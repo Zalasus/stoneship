@@ -1,0 +1,313 @@
+
+Master Game File specification 1.0
+==================================
+
+
+Data types
+----------
+All basic types defined as in KISDF 1.1.
+Additional type structures in KIDDML format:
+
+dependency = {sstring: filename, short: ordinal}
+recordHint = {short: type, int: offset, int: count}
+resource = {byte: type, sstring: path}
+subrecord = {short: type, int: size, byte[~]: data}
+uid = {short: ordinal, int: id}
+record = {short: type, int: sizeInBytes, short: flags, int: recordId, byte[~]: data}
+record_group = {short: type = 0x0000, int: sizeInBytes, short: groupType, int: groupFunction, record[~]: records}
+
+
+File structure
+--------------
+The following lines are a KIDDML representation of the MGF format.
+
+(file header)
+
+byte[8]: 		 magic id = "NRPG3MGF"
+bstring:		 game id
+int:			 file flags
+
+sstring:		 author (name of MGF's author)
+sstring:		 description (descripton of MGF's content)
+
+short:			 dependency count
+dependency[~]:	 dependencies (list of MGFs which hold content that's used by this MGF and must be loaded before it)
+
+short:			 resource count
+resource[~]:	 resources (a list of paths/archive files where this MGFs BLOBs are stored)
+
+
+(records)
+
+int:             record count (total count of records in the MGF)
+int:			 record group count
+record_group[~]: record groups
+
+byte:            end marker = 0xF0
+
+
+File flags
+----------
+The file header has a 32-bit-field for 32 boolean flags. The following bits
+are defined:
+
+bit 0: If set, this bit indicates the MGF is evil and should not be loaded
+bit 1: If set, this bit incicates the MGF was created by a total idiot
+bit 2: If set, this bit indicated the creator of the MGF is aware that there are way too many bits in the flag field
+
+
+Resource files
+--------------
+A MGF may specify additional resource locations, which are used aside the default locations of the engine.
+Resource locations may be folders or archive files. The type field in a resource entry speciefies how to
+handle the resource given in the path field. The following values are possible:
+
+	0: File system (for simple folders)
+	1: Zip file (resources are packed in a .zip archive)
+	2: Gzip file (Implementation is considered optional for now)
+
+
+Size fields
+-----------
+Many structures in Master Game Files contain size fields given in bytes. These almost exclusively precede array structures
+and never contain the size of any other fields in the structure including the size field itself.
+
+
+Record groups
+-------------
+The main unit of record storage in a MGF are record groups. These containers list records of the same type and
+allow fast skipping through the file. Additionally, record groups may follow ordinary records that need a
+set of data that can't be stored in subrecords. For instance, a Dungeon record is followed by a group of Entity records,
+containing all Entities in this Dungeon.
+
+The group function field in the Group record header indicates the layer a Group acts on:
+	0x00000000 = top group
+	0xFFFFFFFF = array group
+Since the group function field shares it's offset with the record id field, the reserved ID value of 0xFFFFFFFF
+ensured an array group is never returned on it's one when doing an ID-only-lookup.
+
+Upon loading, all groups and their respective offsets in the file are indexed so record groups may
+be found quickly when specific types of records are requested for load.
+
+
+
+
+IDs / UIDs
+----------
+Each record (see next chapter) holds an 4-byte wide identifier that is used to uniquely reference the object/entity/etc
+defined by the record. The special ID 0xFFFFFFFF is used for records without the need for reference by other records.
+It is the only ID that is allowed to exist more than once in MGFs.
+
+Wherever a record refers to another record, a 6-byte wide identifier is used. This so-called UID (unique identifier)
+consists of the ordinal number of the MGF that defines the referenced record (a short field that prepends the int ID field)
+and the 4-byte-ID of the referenced record. If, however, a record refers to another record defined in the same MGF, the special
+MGF ordinal 0xFFFF is used. This special MGF ordinal is also used during in savegames and while playing for objects/entities/etc
+that are not defined in any MGF but were created during gameplay.
+Please note that the endianness of the ordinal/ID is treated as if both fields were seperate structures: {short, int}
+
+This system restricts NRPG3 to a maximum possible MGF count of 65.535 with 4.294.967.296 IDs each. This amount
+should be sufficient for any application the engine might have in it's lifespan.
+
+
+Records
+-------
+The main data unit in a MGF is a record. A MGF may contain up to (2^32)-1 = 4294967295 records (Only in theory.
+Amounts this high will most likely fail as indices in MGFs are only 32 bits wide).
+
+Every record has a 16 bit wide type ID that gives information on the type of the record's content. A table of
+type IDs is given below.
+
+A record contains a size field that contains the total size of the record's data field. It is used for skipping single records 
+without having to read all it's data.
+
+Each record holds a 4-byte-wide identifier that is used to reference the object/entity/etc defined by the record.
+Some records may not use this field, in which cases it is set to the reserved value of 0xFFFFFFFF.
+For more information on these IDs, see the previous chapter "IDs / UIDs"
+
+For additional data, every record contains a flag byte. The meanings of the flag bits are as follows:
+
+	Bit 0 -> DELETED:    If set to 1, this record is scratched, and should not be bought
+	Bit 1 -> FULLOFEELS: If set to 1, your hovercraft is full of eels (The sane reader can consider this bit as unused)
+
+The data of records is stored in subrecords which consist of an 8 bit type ID that is specific for the record's
+type ID, meaning that subrecords with equal type IDs must not necessarily contain the same type of data unless
+the type ID of their respective records is equal, too. Some groups of record types, however, store common
+information in specific subrecords.
+
+The subrecord itself is basically a byte array which is interpreted differently depending of the subrecord's type ID.
+Some subrecords may be optional for some type of records. Those may appear once or never in the record. Most other 
+defined subrecord types must appear exactly once. If such a subrecord is defined more than once, the result is
+undefined. Some subrecord types, however, may appear more than once.
+
+If a record contains subrecords that are not defined/not used by that type of record, they are simply ignored.
+
+
+Record types
+------------
+
+Subrecords marked with [Optional] may appear once or never.
+Subrecords marked with [*] may appear arbitrarily often, including never.
+Subrecords marked with [#] may appear arbitrarily often, but at least once.
+
+0: Group (alternate header format)
+
+1: Modify
+	uid: record to modify
+	0: [*] Add subrecord
+		byte: type
+		int: size
+		byte[~]: data
+	
+
+0F: StringResource
+	0: Resource data
+		sstring: string data
+	FFFF: Editior data
+		bstring: resource name
+
+B0: ScalesLib
+	1: Binary library data (see Scales specification)
+	2: [Optional] Source
+		istring: source data
+	FFFF: [Optional] Editor data
+		bstring: script file name
+		
+
+B1: Global
+	0: [Optional] int value
+		int: value
+	1: [Optional] long value
+		long: value
+	2: [Optional] float value
+		float: value
+	3: [Optional] double value
+		double: value
+	4: [Optional] string value
+		istring: value
+	1F: Global data
+		bstring: name
+		byte: data type (as in Scales specification. Subrecord with this ID is required)
+		
+
+
+C0: Outdoor World
+	100:
+		bstring: world name
+		
+	
+C1: Chunk
+	100: chunk data
+		bstring: chunk name
+	200: height map
+		float[*]: 
+		
+		
+C5: Dungeon
+	100: dungeon data
+		bstring: dungeon name
+		
+	(followed by a group record containing all entities in this dungeon)
+
+
+D0: Entity
+	1: entity base data
+		uid: base uid
+	100: entity data
+		vector3: position
+		vector3: rotation
+	
+	
+FFFF: Reserved (Do not use!)
+
+		
+The following types are specific for ATOSAS and may not be valid in every game using NRPG3.
+The subrecords 0-20 are common for all of these record types and are therefore specified in
+the end of the list.
+
+(Entity base records)
+
+800: EntStatic
+	2: world object information
+
+801: EntPlant
+	1: [Optional] script class name
+	100: plant data
+		bstring: TreeGecko generator resource name
+		byte: flags (bit 0 = fixed seed)
+		int: TreeGecko generator seed (ignored if not fixed)
+		
+	
+810: EntWeapon
+	2: world object information
+	5: inventory item information
+	100: weapon data
+		byte: weapon type (0 = sword one handed, 1 = sword two handed, 2 = bow, 4 = blunt)
+		int: weapon damage
+		int: weapon durability
+		int: weapon reach
+		
+811: EntArmor
+	2: world object information
+	4: rigged object information
+	5: inventory item information
+	100: armor data
+		int: armor rating
+		int: armor durability
+		
+820: EntBook
+	2: world object information
+	5: inventory item information
+	100: book data
+		istring: book text in IGT format
+		
+821: EntStuff
+	2: world object information
+	5: inventory item information
+	
+	
+
+2090: EntContainer
+	2: world object data
+	100: container data
+		int: slot count
+		
+		
+		
+2100: EntRace
+	32: race information
+		bstring: race name
+		sstring: race description
+		
+		
+		
+		
+2120: EntSound
+	32: sound information
+		bstring: sound resource name
+		int: flags (bit 0 = 2D)
+		
+		
+		
+Common subrecord types
+----------------------
+	
+2: world object information
+	bstring: model resource name
+	
+5: inventory item information
+	byte: item flags (0x01 = essential item, 0x02 = accepted as currency, 0x04 = is unidentified, 0x08 = does not stack)
+	bstring: display name
+	sstring: description
+	int: trading value
+	byte: slot count
+	bstring: icon resource name
+	uid: indentified item entity id (only present if unidentified flag is set)
+	
+	
+100: specific data
+
+FFF0: editor data
+	sstring: editor name
+		
+
+
