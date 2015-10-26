@@ -23,6 +23,7 @@ namespace Stoneship
 
 
 		void load(RecordAccessor record);
+		void modify(RecordAccessor record);
 		bool onUse(ItemStack &stack);
 
 
@@ -51,6 +52,7 @@ namespace Stoneship
 
 
 		void load(RecordAccessor record);
+		void modify(RecordAccessor record);
 		bool onUse(ItemStack &stack);
 
 
@@ -76,6 +78,7 @@ namespace Stoneship
 		EntityBase_Stuff(Record::Type recordType, UID uid);
 
 		void load(RecordAccessor record);
+		void modify(RecordAccessor record);
 		bool onUse(ItemStack &stack);
 	};
 

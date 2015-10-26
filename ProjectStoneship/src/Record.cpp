@@ -108,4 +108,24 @@ namespace Stoneship
 	{
 		mInternalReader.seek(mOffset);
 	}
+
+	MasterGameFile &RecordAccessor::getGameFile()
+	{
+		return mGameFile;
+	}
+
+	RecordAccessor RecordAccessor::getChildRecord()
+	{
+		RecordHeader header;
+		mInternalReader.readStruct(header);
+
+		return RecordAccessor(header, mStream, mGameFile);
+	}
+
+	RecordAccessor RecordAccessor::getNextRecord()
+	{
+
+		return RecordAccessor(mHeader, mStream, mGameFile); //TODO: Uhhmm....
+
+	}
 }

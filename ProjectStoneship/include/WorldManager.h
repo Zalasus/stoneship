@@ -8,6 +8,9 @@
 #ifndef INCLUDE_WORLDMANAGER_H_
 #define INCLUDE_WORLDMANAGER_H_
 
+#include "MasterGameFileManager.h"
+#include "EntityManager.h"
+
 namespace Stoneship
 {
 

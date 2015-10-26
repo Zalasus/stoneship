@@ -15,13 +15,15 @@
 #include "EntityManager.h"
 #include "StoneshipException.h"
 #include "Inventory.h"
+#include "WorldManager.h"
 
 #include "bprinter/table_printer.h"
 
 
 static Stoneship::MasterGameFileManager mgfm;
 static Stoneship::EntityManager entm(mgfm);
-static Stoneship::Inventory inv(20);
+static Stoneship::WorldManager wrldm(mgfm, entm);
+static Stoneship::Inventory inv(1);
 
 static Stoneship::UID parseUID(const Stoneship::String &in)
 {

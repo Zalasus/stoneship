@@ -11,7 +11,7 @@ Additional type structures in KIDDML format:
 dependency = {sstring: filename, short: ordinal}
 recordHint = {short: type, int: offset, int: count}
 resource = {byte: type, sstring: path}
-subrecord = {short: type, int: size, byte[~]: data}
+subrecord = {short: type, int: size, byte[~]: data} (6 bytes overhead)
 uid = {short: ordinal, int: id}
 record = {short: type, int: sizeInBytes, short: flags, int: recordId, byte[~]: data}
 record_group = {short: type = 0x0000, int: sizeInBytes, short: groupType, int: groupFunction, record[~]: records}
@@ -123,23 +123,41 @@ without having to read all it's data.
 Each record holds a 4-byte-wide identifier that is used to reference the object/entity/etc defined by the record.
 Some records may not use this field, in which cases it is set to the reserved value of 0xFFFFFFFF.
 For more information on these IDs, see the previous chapter "IDs / UIDs"
+	
 
 For additional data, every record contains a flag byte. The meanings of the flag bits are as follows:
 
 	Bit 0 -> DELETED:    If set to 1, this record is scratched, and should not be bought
 	Bit 1 -> FULLOFEELS: If set to 1, your hovercraft is full of eels (The sane reader can consider this bit as unused)
 
-The data of records is stored in subrecords which consist of an 8 bit type ID that is specific for the record's
+The data of records is stored in subrecords which consist of an 16 bit type ID that is specific for the record's
 type ID, meaning that subrecords with equal type IDs must not necessarily contain the same type of data unless
-the type ID of their respective records is equal, too. Some groups of record types, however, store common
+the type ID of their respective record is equal, too. Some groups of record types, however, store common
 information in specific subrecords.
 
 The subrecord itself is basically a byte array which is interpreted differently depending of the subrecord's type ID.
+Because the [Modify] record (described in the following section) lists modifications on subrecord level, the smallest
+possible modification if a field affects all other fields stored in the same subrecord. Therefore a subrecord should
+only contain one field or a set of fields which can be assumed to be always modified together.
+
 Some subrecords may be optional for some type of records. Those may appear once or never in the record. Most other 
 defined subrecord types must appear exactly once. If such a subrecord is defined more than once, the result is
 undefined. Some subrecord types, however, may appear more than once.
 
 If a record contains subrecords that are not defined/not used by that type of record, they are simply ignored.
+
+
+Modify records
+--------------
+As of the incremental nature of the MGF ressource management, it is neccessary that a MGF can modify any
+record present in one of it's dependent files in a way that does not require UID indirection. This functionality is
+provided through [Modify] records which may adress any record that is identified by a UID. The structure of those
+records depends on their target record type, and in most cases simply consists of all subrecords that differ from
+their original definition.
+
+Every [Modify] record provides metadata in the reserved FFF9 subrecord. The metadata consists of the target UID,
+the type of the target record (for hinting the modification table) and a field that was formerly used as a mod type
+designator but is now considered unused. It is, however, still included because who needs hard drive space anyway?
 
 
 Record types
@@ -152,11 +170,10 @@ Subrecords marked with [#] may appear arbitrarily often, but at least once.
 0: Group (alternate header format)
 
 1: Modify
-	uid: record to modify
-	0: [*] Add subrecord
-		byte: type
-		int: size
-		byte[~]: data
+	FFF9: modification data
+		uid: record to modifify
+		ushort: record type
+		ubyte: reserved
 	
 
 0F: StringResource
@@ -231,9 +248,10 @@ the end of the list.
 
 801: EntPlant
 	1: [Optional] script class name
-	100: plant data
-		bstring: TreeGecko generator resource name
+	5: plant flags
 		byte: flags (bit 0 = fixed seed)
+	100: TreeGecko data
+		bstring: TreeGecko generator resource name
 		int: TreeGecko generator seed (ignored if not fixed)
 		
 	
@@ -290,24 +308,36 @@ the end of the list.
 		
 Common subrecord types
 ----------------------
+Common subrecord types with typical fields they contain (these definitions may not apply to all record types):
+	
 	
 2: world object information
 	bstring: model resource name
 	
-5: inventory item information
-	byte: item flags (0x01 = essential item, 0x02 = accepted as currency, 0x04 = is unidentified, 0x08 = does not stack)
-	bstring: display name
+5: additional flags
+	(for items) byte: item flags (0x01 = essential item, 0x02 = accepted as currency, 0x04 = is unidentified, 0x08 = does not stack)
+	
+6: display name
+	bstring: name
+	
+7: description
 	sstring: description
+	
+8: trading information
 	int: trading value
+	
+9: inventory information
 	byte: slot count
+	
+A: icon data
 	bstring: icon resource name
+	
+B: identification data
 	uid: indentified item entity id (only present if unidentified flag is set)
 	
-	
-100: specific data
 
 FFF0: editor data
 	sstring: editor name
 		
-
+FFF9: modify metadata (not to be used in any other record)
 

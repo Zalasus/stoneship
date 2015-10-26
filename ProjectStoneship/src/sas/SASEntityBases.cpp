@@ -17,7 +17,7 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Book::load(RecordAccessor record)
+	void EntityBased_Book::load(RecordAccessor record)
 	{
 		record.getReaderForSubrecord(Record::SUBTYPE_WORLD).readStruct<WorldObjectBase>(*this);
 		record.getReaderForSubrecord(Record::SUBTYPE_ITEM).readStruct<ItemBase>(*this);
@@ -50,6 +50,19 @@ namespace Stoneship
 	}
 
 	void EntityBase_Weapon::load(RecordAccessor record)
+	{
+		record.getReaderForSubrecord(Record::SUBTYPE_WORLD).readStruct<WorldObjectBase>(*this);
+		record.getReaderForSubrecord(Record::SUBTYPE_ITEM).readStruct<ItemBase>(*this);
+
+		MGFDataReader ds = record.getReaderForSubrecord(Record::SUBTYPE_DATA);
+
+		mWeaponType = static_cast<WeaponType>(ds.readUByte());
+		mDamage = ds.readUInt();
+		mDurability = ds.readUInt();
+		mReach = ds.readUInt();
+	}
+
+	void EntityBase_Weapon::modify(RecordAccessor record)
 	{
 		record.getReaderForSubrecord(Record::SUBTYPE_WORLD).readStruct<WorldObjectBase>(*this);
 		record.getReaderForSubrecord(Record::SUBTYPE_ITEM).readStruct<ItemBase>(*this);
@@ -103,5 +116,6 @@ namespace Stoneship
 	{
 		return false;
 	}
+
 }
 

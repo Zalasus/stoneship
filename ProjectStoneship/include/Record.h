@@ -80,6 +80,9 @@ namespace Stoneship
 		MGFDataReader &getReader();
 		MGFDataReader getReaderForSubrecord(Record::Subtype subtype);
 
+		template <typename T>
+		T getSubrecordAs(Record::Subtype subtype);
+
 		RecordAccessor getNextRecord();
 		RecordAccessor getChildRecord();
 

@@ -29,6 +29,7 @@ namespace Stoneship
 		UID getUID() const;
 
 		virtual void load(RecordAccessor record) = 0;
+		virtual void modify(RecordAccessor record) = 0;
 
 
 	private:

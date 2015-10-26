@@ -7,6 +7,9 @@
 
 #include "WorldManager.h"
 
+#include "StoneshipException.h"
+#include "MasterGameFile.h"
+
 namespace Stoneship
 {
 
@@ -25,7 +28,7 @@ namespace Stoneship
 		RecordAccessor entityGroup = worldRecord.getNextRecord();
 		if(entityGroup.getHeader().type != Record::TYPE_GROUP)
 		{
-			break; //no entities
+			return; //no entities
 		}
 
 		while(entityGroup.getReader().bytesRemainingInUnit())
