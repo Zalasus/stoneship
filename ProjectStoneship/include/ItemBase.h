@@ -8,6 +8,7 @@
 #ifndef INCLUDE_ITEMBASE_H_
 #define INCLUDE_ITEMBASE_H_
 
+#include "Util.h"
 #include "String.h"
 #include "Entity.h"
 #include "Record.h"
@@ -21,8 +22,6 @@ namespace Stoneship
 	{
 	public:
 
-		friend class MGFDataReader; // MGFDataReader must access elements
-
 		String getDisplayName() const;
 		String getDescription() const;
 		uint32_t getValue() const;
@@ -30,8 +29,9 @@ namespace Stoneship
 		String getIconFile() const;
 		UID getIdentifiedUID() const;
 
-		virtual bool onUse(ItemStack &stack) = 0;
+		virtual void load(RecordAccessor record);
 
+		virtual bool onUse(ItemStack &stack) = 0;
 
 
 		inline bool isEssential() const { return mFlags & FLAGS_ESSENTIAL; }

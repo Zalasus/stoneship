@@ -17,12 +17,18 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBased_Book::load(RecordAccessor record)
+	void EntityBase_Book::load(RecordAccessor record)
 	{
-		record.getReaderForSubrecord(Record::SUBTYPE_WORLD).readStruct<WorldObjectBase>(*this);
-		record.getReaderForSubrecord(Record::SUBTYPE_ITEM).readStruct<ItemBase>(*this);
+		WorldObjectBase::load(record);
+		ItemBase::load(record);
 
-		mText = record.getReaderForSubrecord(Record::SUBTYPE_DATA).readIString();
+		record.getReaderForSubrecord(Record::SUBTYPE_DATA)
+				.readIString(mText);
+	}
+
+	void EntityBase_Book::modify(RecordAccessor record)
+	{
+		load(record);
 	}
 
 	String EntityBase_Book::getText() const
@@ -35,6 +41,11 @@ namespace Stoneship
 		std::cout << mText << std::endl;
 
 		return true;
+	}
+
+	String EntityBase_Book::getBaseName()
+	{
+		return "Book";
 	}
 
 
@@ -51,28 +62,22 @@ namespace Stoneship
 
 	void EntityBase_Weapon::load(RecordAccessor record)
 	{
-		record.getReaderForSubrecord(Record::SUBTYPE_WORLD).readStruct<WorldObjectBase>(*this);
-		record.getReaderForSubrecord(Record::SUBTYPE_ITEM).readStruct<ItemBase>(*this);
+		WorldObjectBase::load(record);
+		ItemBase::load(record);
 
-		MGFDataReader ds = record.getReaderForSubrecord(Record::SUBTYPE_DATA);
+		uint8_t weaponType;
+		record.getReaderForSubrecord(Record::SUBTYPE_DATA)
+			.readUByte(weaponType)
+			.readUInt(mDamage)
+			.readUInt(mDurability)
+			.readUInt(mReach);
 
-		mWeaponType = static_cast<WeaponType>(ds.readUByte());
-		mDamage = ds.readUInt();
-		mDurability = ds.readUInt();
-		mReach = ds.readUInt();
+		mWeaponType = static_cast<WeaponType>(weaponType);
 	}
 
 	void EntityBase_Weapon::modify(RecordAccessor record)
 	{
-		record.getReaderForSubrecord(Record::SUBTYPE_WORLD).readStruct<WorldObjectBase>(*this);
-		record.getReaderForSubrecord(Record::SUBTYPE_ITEM).readStruct<ItemBase>(*this);
-
-		MGFDataReader ds = record.getReaderForSubrecord(Record::SUBTYPE_DATA);
-
-		mWeaponType = static_cast<WeaponType>(ds.readUByte());
-		mDamage = ds.readUInt();
-		mDurability = ds.readUInt();
-		mReach = ds.readUInt();
+		load(record);
 	}
 
 	EntityBase_Weapon::WeaponType EntityBase_Weapon::getWeaponType() const
@@ -100,6 +105,23 @@ namespace Stoneship
 		return false;
 	}
 
+	String EntityBase_Weapon::getBaseName()
+	{
+		switch(mWeaponType)
+		{
+		case SWORD_ONE_HAND:
+		case SWORD_TWO_HAND:
+			return "Sword";
+
+		case BLUNT:
+			return "... blunt weapon";
+
+		case BOW:
+			return "Bow";
+		}
+		return "Weapon";
+	}
+
 
 	EntityBase_Stuff::EntityBase_Stuff(Record::Type recordType, UID uid)
 	: ItemBase(recordType, uid)
@@ -108,13 +130,23 @@ namespace Stoneship
 
 	void EntityBase_Stuff::load(RecordAccessor record)
 	{
-		record.getReaderForSubrecord(Record::SUBTYPE_WORLD).readStruct<WorldObjectBase>(*this);
-		record.getReaderForSubrecord(Record::SUBTYPE_ITEM).readStruct<ItemBase>(*this);
+		WorldObjectBase::load(record);
+		ItemBase::load(record);
+	}
+
+	void EntityBase_Stuff::modify(RecordAccessor record)
+	{
+		load(record);
 	}
 
 	bool EntityBase_Stuff::onUse(ItemStack &stack)
 	{
 		return false;
+	}
+
+	String EntityBase_Stuff::getBaseName()
+	{
+		return "Thing";
 	}
 
 }

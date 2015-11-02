@@ -44,7 +44,9 @@ namespace Stoneship
 
 	private:
 
+
 		std::vector<MasterGameFile*> mGameFiles;
+
 
 		uint32_t mLoadedGameFileCount;
 	};

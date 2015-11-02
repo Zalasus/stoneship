@@ -32,13 +32,25 @@ namespace Stoneship
 		id = (l & 0xFFFFFFFF);
 	}
 
+	bool UID::operator==(const UID &right)
+	{
+		return id == right.id && ordinal == right.ordinal;
+	}
+
 
 	//reader function specializations
 	template <>
 	MGFDataReader &MGFDataReader::readStruct<UID>(UID &uid)
 	{
-		uid.ordinal = mGameFile.localToGlobalOrdinal(readUShort());
-		uid.id = readUInt();
+		readUShort(uid.ordinal);
+
+		if(mGameFile != nullptr)
+		{
+			uid.ordinal = mGameFile->localToGlobalOrdinal(uid.ordinal);
+
+		}
+
+		readUInt(uid.id);
 
 		return *this;
 	}
@@ -46,10 +58,19 @@ namespace Stoneship
 	template <>
 	MGFDataReader &MGFDataReader::readStruct<RecordHeader>(RecordHeader &header)
 	{
-		header.type = readUShort();
-		header.dataSize = readUInt();
-		header.flags = readUShort();
-		header.id = readUInt();
+		readUShort(header.type);
+		readUInt(header.dataSize);
+
+		if(header.type != Record::TYPE_GROUP)
+		{
+			readUShort(header.flags);
+			readUInt(header.id);
+
+		}else
+		{
+			readUShort(header.groupType);
+			readUInt(header.recordCount);
+		}
 
 		return *this;
 	}
@@ -57,20 +78,29 @@ namespace Stoneship
 	template <>
 	MGFDataReader &MGFDataReader::readStruct<SubrecordHeader>(SubrecordHeader &header)
 	{
-		header.type = readUShort();
-		header.dataSize = readUInt();
+		readUShort(header.type);
+		readUInt(header.dataSize);
 
 		return *this;
 	}
 
 
 
-	RecordAccessor::RecordAccessor(const RecordHeader &header, std::istream &stream, MasterGameFile &mgf)
+	RecordAccessor::RecordAccessor(const RecordHeader &header, std::istream *stream, MasterGameFile *mgf)
 	: mHeader(header),
 	  mStream(stream),
 	  mGameFile(mgf),
-	  mInternalReader(mStream, mgf, mHeader.dataSize, true),
-	  mOffset(mStream.tellg())
+	  mInternalReader(mStream, mgf, mHeader.dataSize),
+	  mOffset(mStream->tellg())
+	{
+	}
+
+	RecordAccessor::RecordAccessor(const RecordAccessor &a)
+	: mHeader(a.mHeader),
+	  mStream(a.mStream),
+	  mGameFile(a.mGameFile),
+	  mInternalReader(mStream, mGameFile, mHeader.dataSize),
+	  mOffset(a.mOffset)
 	{
 	}
 
@@ -93,7 +123,7 @@ namespace Stoneship
 
 			if(header.type == subtype) //found fitting subrecord
 			{
-				return MGFDataReader(mStream, mGameFile, header.dataSize, true, &mInternalReader);
+				return MGFDataReader(mStream, mGameFile, header.dataSize);
 
 			}else
 			{
@@ -104,28 +134,49 @@ namespace Stoneship
 		throw StoneshipException("Subrecord not found");
 	}
 
-	void RecordAccessor::rollback()
-	{
-		mInternalReader.seek(mOffset);
-	}
-
-	MasterGameFile &RecordAccessor::getGameFile()
+	MasterGameFile *RecordAccessor::getGameFile()
 	{
 		return mGameFile;
 	}
 
-	RecordAccessor RecordAccessor::getChildRecord()
+	RecordAccessor RecordAccessor::getNextRecord()
 	{
+		mStream->seekg(static_cast<uint32_t>(mOffset) + mHeader.dataSize);
+		MGFDataReader ds(mStream, mGameFile);
+
+		RecordHeader header;
+		ds.readStruct(header);
+
+		return RecordAccessor(header, mStream, mGameFile);
+
+	}
+
+	RecordAccessor RecordAccessor::getFirstChildRecord()
+	{
+		if(mHeader.type != Record::TYPE_GROUP)
+		{
+			throw StoneshipException("Tried to access child records of non-group record");
+		}
+
+		rollback();
+
 		RecordHeader header;
 		mInternalReader.readStruct(header);
 
 		return RecordAccessor(header, mStream, mGameFile);
 	}
 
-	RecordAccessor RecordAccessor::getNextRecord()
+	/* Implementation removed. This method is deprecated, so the linker should tell anyone.
+	RecordAccessor RecordAccessor::getNextChildRecord()
 	{
+		RecordHeader header;
+		mInternalReader.readStruct(header);
 
-		return RecordAccessor(mHeader, mStream, mGameFile); //TODO: Uhhmm....
+		return RecordAccessor(header, mStream, mGameFile);
+	}*/
 
+	void RecordAccessor::rollback()
+	{
+		mInternalReader.seek(mOffset);
 	}
 }

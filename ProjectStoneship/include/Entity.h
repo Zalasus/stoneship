@@ -31,6 +31,8 @@ namespace Stoneship
 		virtual void load(RecordAccessor record) = 0;
 		virtual void modify(RecordAccessor record) = 0;
 
+		virtual String getBaseName() = 0;
+
 
 	private:
 

@@ -6,30 +6,12 @@
  */
 
 #include "ItemBase.h"
+
 #include "MGFDataReader.h"
 
 
 namespace Stoneship
 {
-
-	template <>
-	MGFDataReader &MGFDataReader::readStruct<ItemBase>(ItemBase &base)
-	{
-		base.mFlags = readUByte();
-		base.mName = readBString();
-		base.mDescription = readSString();
-		base.mValue = readUInt();
-		base.mSlots = readUByte();
-		base.mIconFile = readBString();
-
-		if(base.isUnidentified())
-		{
-			readStruct<UID>(base.mIdentified);
-		}
-
-		return *this;
-	}
-
 
 	ItemBase::ItemBase(Record::Type recordType, UID uid)
 	: WorldObjectBase(recordType, uid),
@@ -37,6 +19,31 @@ namespace Stoneship
 	  mValue(0),
 	  mSlots(0)
 	{
+	}
+
+	void ItemBase::load(RecordAccessor record)
+	{
+		record.getReaderForSubrecord(Record::SUBTYPE_DISPLAY_NAME)
+				.readBString(mName);
+
+		record.getReaderForSubrecord(Record::SUBTYPE_DESCRIPTION)
+				.readSString(mDescription);
+
+		record.getReaderForSubrecord(Record::SUBTYPE_TRADING)
+				.readUInt(mValue);
+
+		record.getReaderForSubrecord(Record::SUBTYPE_INVENTORY)
+				.readUByte(mSlots)
+				.readUByte(mFlags);
+
+		record.getReaderForSubrecord(Record::SUBTYPE_ICON)
+				.readBString(mIconFile);
+
+		if(isUnidentified())
+		{
+			record.getReaderForSubrecord(Record::SUBTYPE_IDENTIFICATION)
+					.readStruct(mIdentified);
+		}
 	}
 
 	String ItemBase::getDisplayName() const

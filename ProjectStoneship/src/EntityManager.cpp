@@ -30,10 +30,19 @@ namespace Stoneship
 
 	EntityBase *EntityManager::getBase(const UID &uid, Record::Type type)
 	{
-		auto search = mBaseCache.find(uid.toUInt64());
+		/*auto search = mBaseCache.find(uid.toUInt64());
 		if(search != mBaseCache.end())
 		{
 			return search->second;
+		}*/
+
+		//TODO: Make search for cached elements more efficient, but beware memory leak problem of unordered_map
+		for(uint32_t i = 0; i < mBaseCache.size(); ++i)
+		{
+			if(mBaseCache[i]->getUID() == uid)
+			{
+				return mBaseCache[i];
+			}
 		}
 
 
@@ -44,15 +53,16 @@ namespace Stoneship
 		EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(rec.getHeader().type);
 		if(factory == nullptr)
 		{
-			throw StoneshipException(String("Record type ") + rec.getHeader().id + " does not match any registered Entity Base types.");
+			throw StoneshipException(String("Record type ") + rec.getHeader().type + " does not match any registered Entity Base types.");
 		}
 
 		EntityBase *base = factory->createEntityBase(uid);
 		base->load(rec);
 
 		// store new base in cache
-		std::pair<uint64_t, EntityBase*> basePair(uid.toUInt64(), base);
-		mBaseCache.insert(basePair);
+		//std::pair<uint64_t, EntityBase*> basePair(uid.toUInt64(), base);
+		//mBaseCache.insert(basePair);
+		mBaseCache.push_back(base);
 
 		return base;
 	}

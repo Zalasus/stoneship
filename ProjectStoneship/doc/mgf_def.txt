@@ -14,7 +14,7 @@ resource = {byte: type, sstring: path}
 subrecord = {short: type, int: size, byte[~]: data} (6 bytes overhead)
 uid = {short: ordinal, int: id}
 record = {short: type, int: sizeInBytes, short: flags, int: recordId, byte[~]: data}
-record_group = {short: type = 0x0000, int: sizeInBytes, short: groupType, int: groupFunction, record[~]: records}
+record_group = {short: type = 0x0000, int: sizeInBytes, short: groupType, int: childRecordCount, record[~]: records}
 
 
 File structure
@@ -80,15 +80,20 @@ allow fast skipping through the file. Additionally, record groups may follow ord
 set of data that can't be stored in subrecords. For instance, a Dungeon record is followed by a group of Entity records,
 containing all Entities in this Dungeon.
 
-The group function field in the Group record header indicates the layer a Group acts on:
-	0x00000000 = top group
-	0xFFFFFFFF = array group
-Since the group function field shares it's offset with the record id field, the reserved ID value of 0xFFFFFFFF
-ensured an array group is never returned on it's one when doing an ID-only-lookup.
+Since record groups contain whole records as subunits, and records are not guaranteed to be read entirely by the
+application, the amount of remaining bytes in the record data field is no safe indicator whether a full record is still
+available or not. Therefore, group records provide an additional child record count field to the byte size field.
 
-Upon loading, all groups and their respective offsets in the file are indexed so record groups may
+Upon loading, all top groups and their respective offsets in the file are indexed so record groups may
 be found quickly when specific types of records are requested for load.
 
+
+Dynlen
+------
+(still LE!!!)
+00000000 - 01111111
+10000000 00000000 - 11111111 01111111
+...
 
 
 
@@ -127,8 +132,8 @@ For more information on these IDs, see the previous chapter "IDs / UIDs"
 
 For additional data, every record contains a flag byte. The meanings of the flag bits are as follows:
 
-	Bit 0 -> DELETED:    If set to 1, this record is scratched, and should not be bought
-	Bit 1 -> FULLOFEELS: If set to 1, your hovercraft is full of eels (The sane reader can consider this bit as unused)
+	Bit 0 -> DELETED:        If set, this record is scratched, and should not be bought
+	Bit 1 -> FULLOFEELS:     If set, your hovercraft is full of eels (The sane reader can consider this bit as unused)
 
 The data of records is stored in subrecords which consist of an 16 bit type ID that is specific for the record's
 type ID, meaning that subrecords with equal type IDs must not necessarily contain the same type of data unless
@@ -229,6 +234,7 @@ C5: Dungeon
 D0: Entity
 	1: entity base data
 		uid: base uid
+		ushort: base type
 	100: entity data
 		vector3: position
 		vector3: rotation
@@ -238,8 +244,6 @@ FFFF: Reserved (Do not use!)
 
 		
 The following types are specific for ATOSAS and may not be valid in every game using NRPG3.
-The subrecords 0-20 are common for all of these record types and are therefore specified in
-the end of the list.
 
 (Entity base records)
 
@@ -257,30 +261,60 @@ the end of the list.
 	
 810: EntWeapon
 	2: world object information
-	5: inventory item information
+	
+	(common item data)
+	6: display name
+	7: description
+	8: trading information
+	9: inventory information
+	A: icon data
+	B: identification data
+	
 	100: weapon data
-		byte: weapon type (0 = sword one handed, 1 = sword two handed, 2 = bow, 4 = blunt)
-		int: weapon damage
-		int: weapon durability
-		int: weapon reach
+		ubyte: weapon type (0 = sword one handed, 1 = sword two handed, 2 = bow, 4 = blunt)
+		uint: weapon damage
+		uint: weapon durability
+		uint: weapon reach
 		
 811: EntArmor
 	2: world object information
-	4: rigged object information
-	5: inventory item information
+	
+	(common item data)
+	6: display name
+	7: description
+	8: trading information
+	9: inventory information
+	A: icon data
+	B: identification data
+	
 	100: armor data
 		int: armor rating
 		int: armor durability
 		
 820: EntBook
 	2: world object information
-	5: inventory item information
+	
+	(common item data)
+	6: display name
+	7: description
+	8: trading information
+	9: inventory information
+	A: icon data
+	B: identification data
+	
 	100: book data
 		istring: book text in IGT format
 		
 821: EntStuff
 	2: world object information
-	5: inventory item information
+	
+	(common item data)
+	6: display name
+	7: description
+	8: trading information
+	9: inventory information
+	A: icon data
+	B: identification data
 	
 	
 
@@ -291,31 +325,17 @@ the end of the list.
 		
 		
 		
-2100: EntRace
-	32: race information
-		bstring: race name
-		sstring: race description
-		
-		
-		
-		
-2120: EntSound
-	32: sound information
-		bstring: sound resource name
-		int: flags (bit 0 = 2D)
-		
-		
-		
 Common subrecord types
 ----------------------
 Common subrecord types with typical fields they contain (these definitions may not apply to all record types):
 	
 	
-2: world object information
+2: world model information
 	bstring: model resource name
 	
-5: additional flags
-	(for items) byte: item flags (0x01 = essential item, 0x02 = accepted as currency, 0x04 = is unidentified, 0x08 = does not stack)
+	
+	
+(the following subrecords are common for all item types)	
 	
 6: display name
 	bstring: name
@@ -328,12 +348,18 @@ Common subrecord types with typical fields they contain (these definitions may n
 	
 9: inventory information
 	byte: slot count
+	byte: item flags (0x01 = essential item, 0x02 = accepted as currency, 0x04 = is unidentified, 0x08 = does not stack)
 	
 A: icon data
 	bstring: icon resource name
 	
-B: identification data
-	uid: indentified item entity id (only present if unidentified flag is set)
+B: identification data (only present if undentified flag in SR 9 is set)
+	uid: indentified item entity id
+	
+	
+	
+100: specific data
+	
 	
 
 FFF0: editor data

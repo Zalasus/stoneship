@@ -23,7 +23,7 @@
 static Stoneship::MasterGameFileManager mgfm;
 static Stoneship::EntityManager entm(mgfm);
 static Stoneship::WorldManager wrldm(mgfm, entm);
-static Stoneship::Inventory inv(1);
+static Stoneship::Inventory inv(20);
 
 static Stoneship::UID parseUID(const Stoneship::String &in)
 {
@@ -181,6 +181,30 @@ static void world_enter(const std::vector<Stoneship::String> &args)
 	}
 }
 
+static void world_look(const std::vector<Stoneship::String> &args)
+{
+
+	std::cout << "You are standing in " << wrldm.getDungeonName() << std::endl;
+	std::cout << "You see: " << std::endl;
+
+	const std::vector<Stoneship::Entity*> &entities = wrldm.getEntities();
+	for(uint32_t i = 0 ; i < entities.size(); ++i)
+	{
+
+		std::cout << "[" << i << "] A " << entities[i]->getBase()->getBaseName() << std::endl;
+	}
+
+}
+
+static void world_interact(const std::vector<Stoneship::String> &args)
+{
+	uint32_t index;
+	std::istringstream(args[1]) >> index;
+
+	Stoneship::Entity *target = wrldm.getEntities()[index];
+
+}
+
 static void record_info(const std::vector<Stoneship::String> &args)
 {
 	if(args.size() < 2)
@@ -200,7 +224,7 @@ static void record_info(const std::vector<Stoneship::String> &args)
 	try
 	{
 		Stoneship::RecordAccessor rec = mgfm.getRecord(uid, type);
-		std::cout << "Record found with size " << rec.getReader().bytesRemainingInUnit() << std::endl;
+		std::cout << "Record found with size " << rec.getHeader().dataSize << " and type " << rec.getHeader().type << std::endl;
 
 	}catch(Stoneship::StoneshipException &e)
 	{
@@ -250,7 +274,6 @@ static void mgf_info(const std::vector<Stoneship::String> &args)
 		std::cout << std::endl;
 
 		std::cout << "Record groups: " << mgf->getRecordGroupCount() << std::endl;
-		std::cout << "Records:       " << mgf->getRecordCount() << std::endl;
 
 	}catch(...)
 	{
@@ -307,6 +330,13 @@ static void prompt()
 		{
 			world_enter(tokens);
 
+		}else if(tokens[0] == "world_look")
+		{
+			world_look(tokens);
+
+		}else if(tokens[0] == "world_interact")
+		{
+			world_interact(tokens);
 		}else if(tokens[0] == "inv_ls")
 		{
 			inv_ls(tokens);
@@ -335,6 +365,7 @@ static void prompt()
 
 int main(int argc, char **argv)
 {
+
 	if(argc < 2)
 	{
 		std::cout << "Usage:  stoneship <MGF file>*" << std::endl;

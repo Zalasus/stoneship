@@ -48,18 +48,21 @@ namespace Stoneship
 
 	bool Inventory::addItem(ItemBase *itemBase, uint32_t count)
 	{
-		//already got a stack of that item?
-		auto it = mItems.begin();
-		while(it != mItems.end())
+		if(!itemBase->isNotStackable()) //is item stackable?
 		{
-			if(it->itemBase == itemBase)
+			//already got a stack of that item?
+			auto it = mItems.begin();
+			while(it != mItems.end())
 			{
-				it->count += count; //yes, increase count
+				if(it->itemBase == itemBase)
+				{
+					it->count += count; //yes, increase count
 
-				return true;
+					return true;
+				}
+
+				++it;
 			}
-
-			++it;
 		}
 
 		//create new stack if enough slots free

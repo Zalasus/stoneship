@@ -25,7 +25,7 @@ namespace Stoneship
 		void load(RecordAccessor record);
 		void modify(RecordAccessor record);
 		bool onUse(ItemStack &stack);
-
+		String getBaseName();
 
 		String getText() const;
 
@@ -54,6 +54,7 @@ namespace Stoneship
 		void load(RecordAccessor record);
 		void modify(RecordAccessor record);
 		bool onUse(ItemStack &stack);
+		String getBaseName();
 
 
 		WeaponType getWeaponType() const;
@@ -80,6 +81,8 @@ namespace Stoneship
 		void load(RecordAccessor record);
 		void modify(RecordAccessor record);
 		bool onUse(ItemStack &stack);
+		String getBaseName();
+
 	};
 
 

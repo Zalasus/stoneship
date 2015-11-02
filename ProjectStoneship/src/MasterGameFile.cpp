@@ -49,58 +49,65 @@ namespace Stoneship
 		}
 
 
-		MGFDataReader ds(mInputStream, *this);
+		MGFDataReader ds(&mInputStream, this);
 
-		uint64_t magic = ds.readULong();
+		uint64_t magic;
+		ds.readULong(magic);
 		if(magic != 0x46474D334750524E) // "NRPG3MGF"
 		{
 			throw StoneshipException("Invalid Magic ID");
 		}
 
-		String gameID = ds.readBString();
+		String gameID;
+		ds.readBString(gameID);
 		if(gameID != STONESHIP_GAMEID)
 		{
 			throw StoneshipException("Incompatible game (Found: '" + gameID + "')");
 		}
 
 
-		mFlags = ds.readUInt();
-		mAuthor = ds.readSString();
-		mDescription = ds.readSString();
+		ds.readUInt(mFlags);
+		ds.readSString(mAuthor);
+		ds.readSString(mDescription);
 
 
 		//load and check for dependencies
-		mDependencyCount = ds.readUShort();
+		ds.readUShort(mDependencyCount);
 		if(mDependencyCount > 0)
 		{
 			mDependencies = new Dependency[mDependencyCount];
 
 			for(uint16_t i = 0; i < mDependencyCount; i++)
 			{
-				String filename = ds.readSString();
+				String filename;
+				ds.readSString(filename);
 				if(mManager.getLoadedMGF(filename) == nullptr)
 				{
 					throw StoneshipException("Dependency '" + filename + "' was not loaded before depending MGF");
 				}
 
 				mDependencies[i].filename = filename;
-				mDependencies[i].ordinal = ds.readUShort();
+				ds.readUShort(mDependencies[i].ordinal);
 			}
 		}
 
 
 		//define resource paths
-		mResourceCount = ds.readUShort();
+		ds.readUShort(mResourceCount);
 		for(uint16_t i = 0; i < mResourceCount; i++)
 		{
-			ds.readUByte(); //discard resource type (for now)
-			ds.readSString(); //discard resource path
+			uint8_t resType;
+			String resPath;
+
+			ds.readUByte(resType);
+			ds.readSString(resPath);
+
+			//TODO: register resource paths
 		}
 
 
 		//load records
-		mRecordCount = ds.readUInt();
-		mRecordGroupCount = ds.readUInt();
+		ds.readUInt(mRecordGroupCount);
 
 		mHeaderEndOfffset = ds.tell(); //store this so we may navigate quickly to start of records
 
@@ -113,13 +120,13 @@ namespace Stoneship
 			RecordHeader groupHeader;
 			ds.readStruct(groupHeader);
 
-			if(groupHeader.type != Record::TYPE_GROUP) //record group magic ID
+			if(groupHeader.type != Record::TYPE_GROUP)
 			{
 				throw StoneshipException("Corrupted MGF found during scanning (expected Group record, found other)");
 			}
 
 			mHints[i].offset = offset;
-			mHints[i].type = groupHeader.flags; //note that for group records, the group type replaces the flag field
+			mHints[i].type = groupHeader.groupType;
 
 			ds.skip(groupHeader.dataSize);
 		}
@@ -155,11 +162,6 @@ namespace Stoneship
 	const String& MasterGameFile::getDescription() const
 	{
 		return mDescription;
-	}
-
-	uint32_t MasterGameFile::getRecordCount() const
-	{
-		return mRecordCount;
 	}
 
 	uint32_t MasterGameFile::getRecordGroupCount() const
@@ -203,7 +205,7 @@ namespace Stoneship
 
 	RecordAccessor MasterGameFile::getRecord(UID::ID id)
 	{
-		MGFDataReader ds(mInputStream, *this);
+		MGFDataReader ds(&mInputStream, this);
 
 		ds.seek(mHeaderEndOfffset);
 
@@ -232,7 +234,7 @@ namespace Stoneship
 				if(recordHeader.id == id) // found it!
 				{
 					//leave stream pointer at data field; that's none of our business
-					return RecordAccessor(recordHeader, mInputStream, *this);
+					return RecordAccessor(recordHeader, &mInputStream, this);
 
 				}else //this is not the record you are looking for
 				{
@@ -258,8 +260,9 @@ namespace Stoneship
 		if(mCachedHint == nullptr || mCachedHint->type != type) //only search hint list when hint type differs from last search
 		{
 			//retrieve offset hint for record type
-			for(uint32_t i = 0; i < mRecordGroupCount; i++)
+			for(uint32_t i = 0; i < mRecordGroupCount; ++i)
 			{
+
 				if(mHints[i].type == type)
 				{
 					mCachedHint = &(mHints[i]);
@@ -274,7 +277,7 @@ namespace Stoneship
 
 	hint_found:
 
-		MGFDataReader ds(mInputStream, *this);
+		MGFDataReader ds(&mInputStream, this);
 
 		ds.seek(mCachedHint->offset);
 
@@ -295,7 +298,7 @@ namespace Stoneship
 			if(recordHeader.id == id && recordHeader.type == type) // found it!
 			{
 				//leave stream pointer at data field; that's none of our business
-				return RecordAccessor(recordHeader, mInputStream, *this);
+				return RecordAccessor(recordHeader, &mInputStream, this);
 
 			}else //this is not the record you are looking for
 			{

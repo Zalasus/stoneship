@@ -19,8 +19,14 @@ namespace Stoneship
 	public:
 
 		WorldManager(MasterGameFileManager &mgfManager, EntityManager &entityManager);
+		~WorldManager();
+
+		void unloadEntities();
 
 		void enterWorld(UID worldUID);
+
+		String getDungeonName();
+		std::vector<Entity*> &getEntities();
 
 
 	private:

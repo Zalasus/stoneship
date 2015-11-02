@@ -51,7 +51,6 @@ namespace Stoneship
 		uint16_t getDependencyCount() const;
 		const Dependency *getDependencies() const;
 		const String &getDescription() const;
-		uint32_t getRecordCount() const;
 		uint32_t getRecordGroupCount() const;
 		uint16_t getResourceCount() const;
 		bool isLoaded() const;

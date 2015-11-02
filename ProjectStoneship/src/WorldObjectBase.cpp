@@ -13,15 +13,6 @@
 namespace Stoneship
 {
 
-	template <>
-	MGFDataReader &MGFDataReader::readStruct<WorldObjectBase>(WorldObjectBase &base)
-	{
-		base.mModelName = readBString();
-
-		return *this;
-	}
-
-
 	WorldObjectBase::WorldObjectBase(Record::Type recordType, UID uid)
 	: EntityBase(recordType, uid)
 	{
@@ -30,6 +21,12 @@ namespace Stoneship
 	String WorldObjectBase::getModelName() const
 	{
 		return mModelName;
+	}
+
+	void WorldObjectBase::load(RecordAccessor record)
+	{
+		record.getReaderForSubrecord(Record::SUBTYPE_WORLD_MODEL)
+				.readBString(mModelName);
 	}
 
 }

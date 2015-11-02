@@ -9,6 +9,7 @@
 #define INCLUDE_WORLDOBJECTBASE_H_
 
 #include "Entity.h"
+#include "Player.h"
 
 namespace Stoneship
 {
@@ -16,11 +17,12 @@ namespace Stoneship
 	class WorldObjectBase : public EntityBase
 	{
 	public:
-		friend class MGFDataReader;  // MGFDataReader must access elements
-
 
 		String getModelName() const;
 
+		virtual void load(RecordAccessor record);
+
+		//virtual void onInteract(Player &player) = 0;
 
 	protected:
 
