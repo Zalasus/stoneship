@@ -16,12 +16,21 @@
 namespace Stoneship
 {
 
-	struct ItemStack
+	class ItemStack
 	{
+	public:
 		ItemStack(ItemBase *pItemBase, uint32_t pCount);
+		ItemStack(const ItemStack &s);
+		~ItemStack();
 
-		ItemBase *itemBase;
-		uint32_t count;
+		ItemBase *getItemBase() const;
+		uint32_t getCount() const;
+		void setCount(uint32_t count);
+
+
+	private:
+		ItemBase *mItemBase;
+		uint32_t mCount;
 	};
 
 	class Inventory

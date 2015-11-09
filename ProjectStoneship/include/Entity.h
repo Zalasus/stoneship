@@ -21,6 +21,9 @@ namespace Stoneship
 	{
 	public:
 
+		friend class Entity;
+		friend class ItemStack;
+
 		EntityBase();
 		EntityBase(Record::Type recordType, UID uid);
 		virtual ~EntityBase();
@@ -28,16 +31,19 @@ namespace Stoneship
 		Record::Type getRecordType() const;
 		UID getUID() const;
 
-		virtual void load(RecordAccessor record) = 0;
-		virtual void modify(RecordAccessor record) = 0;
+		virtual void loadFromRecord(RecordAccessor record) = 0;
+		virtual void modifyFromRecord(RecordAccessor record) = 0;
 
 		virtual String getBaseName() = 0;
 
+		uint32_t getUserCount() const;
 
 	private:
 
 		Record::Type mRecordType;
 		UID mUID;
+
+		uint32_t mUserCount;
 	};
 
 
@@ -70,10 +76,12 @@ namespace Stoneship
 	class Entity
 	{
 	public:
-		Entity(UID uid, EntityBase *base);
+		Entity(UID uidOfEntity, EntityBase *base); //uidOfEntity is the UID of the reference, not the referenced base!!!
+		Entity(const Entity &e) = delete; //don't copy me!
+		~Entity();
 
-		UID getUID();
-		EntityBase *getBase();
+		UID getUID() const;
+		EntityBase *getBase() const;
 
 
 	private:

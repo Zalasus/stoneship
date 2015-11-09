@@ -8,7 +8,6 @@
 #include "MGFDataReader.h"
 
 #include "MasterGameFile.h"
-#include "StoneshipException.h"
 #include "Record.h"
 
 namespace Stoneship
@@ -66,28 +65,28 @@ namespace Stoneship
 
 	MGFDataReader &MGFDataReader::readULong(uint64_t &l)
 	{
-		readIntegral<uint64_t>(l);
+		_readIntegral<uint64_t>(l);
 
 		return *this;
 	}
 
 	MGFDataReader &MGFDataReader::readUInt(uint32_t &i)
 	{
-		readIntegral<uint32_t>(i);
+		_readIntegral<uint32_t>(i);
 
 		return *this;
 	}
 
 	MGFDataReader &MGFDataReader::readUShort(uint16_t &s)
 	{
-		readIntegral<uint16_t>(s);
+		_readIntegral<uint16_t>(s);
 
 		return *this;
 	}
 
 	MGFDataReader &MGFDataReader::readUByte(uint8_t &b)
 	{
-		b = getNext();
+		b = _getNext();
 
 		return *this;
 	}
@@ -143,7 +142,7 @@ namespace Stoneship
 
 		for(uint8_t i = 0; i < len; ++i)
 		{
-			buf[i] = getNext();
+			buf[i] = _getNext();
 		}
 
 		s = String(buf, len);
@@ -161,7 +160,7 @@ namespace Stoneship
 
 		for(uint16_t i = 0; i < len; ++i)
 		{
-			buf[i] = getNext();
+			buf[i] = _getNext();
 		}
 
 		s = String(buf, len);
@@ -179,7 +178,7 @@ namespace Stoneship
 
 		for(uint32_t i = 0; i < len; ++i)
 		{
-			buf[i] = getNext();
+			buf[i] = _getNext();
 		}
 
 		s = String(buf, len);
@@ -193,8 +192,8 @@ namespace Stoneship
 	{
 		std::streamoff off = tell();
 
-		uint32_t len = 0;
-		while(getNext() != 0)
+		size_t len = 0;
+		while(_getNext() != 0)
 		{
 			++len;
 		}
@@ -205,9 +204,9 @@ namespace Stoneship
 
 		char *buf = new char[len];
 
-		for(uint32_t i = 0; i < len; ++i)
+		for(size_t i = 0; i < len; ++i)
 		{
-			buf[i] = getNext();
+			buf[i] = _getNext();
 		}
 
 		s = String(buf, len);
@@ -251,7 +250,7 @@ namespace Stoneship
 	{
 		for(uint32_t i = 0; i < size; ++i)
 		{
-			data[i] = getNext();
+			data[i] = _getNext();
 		}
 	}
 
@@ -259,7 +258,7 @@ namespace Stoneship
 	{
 		if(mFinite && (off > mUnitEnd || off < mUnitStart))
 		{
-			throw StoneshipException(String("Tried to read outside of unit bounds (target: ") + (uint32_t)off + ", unit start: " + (uint32_t)mUnitStart + ", unit end: " + (uint32_t)mUnitEnd + ")");
+			_except(StoneshipException::IO_ERROR, String("Tried to read outside of unit bounds (target: ") + (uint32_t)off + ", unit start: " + (uint32_t)mUnitStart + ", unit end: " + (uint32_t)mUnitEnd + ")");
 		}
 	}
 
@@ -275,11 +274,11 @@ namespace Stoneship
 		return false;
 	}
 
-	uint8_t MGFDataReader::getNext()
+	uint8_t MGFDataReader::_getNext()
 	{
 		if(hasEnded())
 		{
-			throw StoneshipException(String("Out of readable stream data (current: ") + (uint32_t)tell() + ", unit end: " + (uint32_t)mUnitEnd + ")");
+			_except(StoneshipException::IO_ERROR, String("Out of readable stream data (current: ") + (uint32_t)tell() + ", unit end: " + (uint32_t)mUnitEnd + ")");
 		}
 
 		return mStream->get();
@@ -287,7 +286,7 @@ namespace Stoneship
 
 
 	template <typename T>
-	void MGFDataReader::readIntegral(T &v)
+	void MGFDataReader::_readIntegral(T &v)
 	{
 		union{ T vt; uint8_t vb[sizeof(T)];} vu;
 
@@ -295,7 +294,7 @@ namespace Stoneship
 		{
 			//TODO: find a better way to convert to little endian. this might be platform dependent
 
-			vu.vb[i] = getNext();
+			vu.vb[i] = _getNext();
 
 			//v |= static_cast<T>(getNext()) << ((sizeof(T)-1)*8);
 			//v = v >> 8; // Uhhmm... sure our bytes are always 8 bit long?
@@ -303,6 +302,20 @@ namespace Stoneship
 
 		v = vu.vt;
 
+	}
+
+	void MGFDataReader::_except(StoneshipException::ExceptionType type, const String &msg)
+	{
+		//I once was a Java programmer. Can you tell?
+
+		String nmsg(msg);
+
+		if(mGameFile != nullptr)
+		{
+			nmsg = "In file '" + mGameFile->getFilename() + "': " + nmsg;
+		}
+
+		STONESHIP_EXCEPT(type, nmsg);
 	}
 
 

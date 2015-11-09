@@ -28,6 +28,10 @@ namespace Stoneship
 
 		EntityBase *getBase(const UID &uid, Record::Type type = Record::TYPE_LOOKUP_ALL);
 
+		uint32_t getBaseCacheSize();
+		void collectGarbage();
+
+
 	private:
 
 		MasterGameFileManager &mMGFManager;

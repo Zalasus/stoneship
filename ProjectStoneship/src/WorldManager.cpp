@@ -40,7 +40,7 @@ namespace Stoneship
 	{
 		unloadEntities();
 
-		RecordAccessor worldRecord = mMGFManager.getRecord(worldUID, Record::TYPE_DUNGEON); //only allow dungeons for now
+		RecordAccessor worldRecord = mMGFManager.getRecordByTypeID(worldUID, Record::TYPE_DUNGEON); //only allow dungeons for now
 
 		worldRecord.getReaderForSubrecord(Record::SUBTYPE_DATA).readBString(mDungeonName);
 
@@ -65,7 +65,7 @@ namespace Stoneship
 			EntityBase *base = mEntityManager.getBase(baseUID, baseType);
 			if(base == nullptr)
 			{
-				throw StoneshipException("Referenced base not found");
+				STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Referenced base not found");
 			}
 
 			mEntities.push_back(new Entity(UID(entityRecord.getGameFile()->getOrdinal(), entityRecord.getHeader().id), base));
@@ -75,6 +75,8 @@ namespace Stoneship
 				entityRecord = entityRecord.getNextRecord();
 			}
 		}
+
+		mEntityManager.collectGarbage(); //remove all bases that are not used atm
 	}
 
 	String WorldManager::getDungeonName()

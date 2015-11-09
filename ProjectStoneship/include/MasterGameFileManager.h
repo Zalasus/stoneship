@@ -13,17 +13,20 @@
 #include "String.h"
 #include "Record.h"
 #include "Util.h"
+#include "Root.h"
+#include "SaveGameFile.h"
 
 namespace Stoneship
 {
 
 	class MasterGameFile;
+	class EntityBase;
 
 	class MasterGameFileManager
 	{
 	public:
 
-		MasterGameFileManager();
+		MasterGameFileManager(Root *root);
 		~MasterGameFileManager();
 
 		void loadMGF(const String &filename);
@@ -31,22 +34,32 @@ namespace Stoneship
 		MasterGameFile *getLoadedMGF(UID::Ordinal ordinal);
 		MasterGameFile *getLoadedMGF(const String &filename);
 
-		/**
-		 * Searches Record in all top groups
-		 */
-		RecordAccessor getRecord(UID id);
+		void loadSGF(const String &savename);
 
 		/**
-		 * Searches Record only in the top group of given type.
+		 * @brief Searches Record in all top groups
 		 */
-		RecordAccessor getRecord(UID id, Record::Type type);
+		RecordAccessor getRecordByID(UID id);
 
+		/**
+		 * @brief Searches Record only in the top group of given type.
+		 */
+		RecordAccessor getRecordByTypeID(UID id, Record::Type type);
+
+		/**
+		 * @brief Searches for a record with given editor name
+		 *
+		 * @param name The editor name of the record
+		 */
+		RecordAccessor getRecordByEditorName(const String &name, Record::Type type);
+
+		void applyModifications(EntityBase *base);
 
 	private:
 
-
+		Root *mRoot;
 		std::vector<MasterGameFile*> mGameFiles;
-
+		MasterGameFile *mCurrentSaveFile;
 
 		uint32_t mLoadedGameFileCount;
 	};

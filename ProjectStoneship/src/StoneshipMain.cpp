@@ -19,8 +19,8 @@
 
 #include "bprinter/table_printer.h"
 
-
-static Stoneship::MasterGameFileManager mgfm;
+static Stoneship::Root root;
+static Stoneship::MasterGameFileManager mgfm(&root);
 static Stoneship::EntityManager entm(mgfm);
 static Stoneship::WorldManager wrldm(mgfm, entm);
 static Stoneship::Inventory inv(20);
@@ -33,6 +33,16 @@ static Stoneship::UID parseUID(const Stoneship::String &in)
 
 	return Stoneship::UID(rawUID);
 }
+
+/*static Stoneship::RecordAccessor getRecordByToken(const Stoneship::String &token)
+{
+
+	if(!isHexDigit(token[0]))
+	{
+		return mgfm.getRecordByEditorName();
+	}
+
+}*/
 
 static void inv_use(const std::vector<Stoneship::String> &args)
 {
@@ -53,9 +63,9 @@ static void inv_use(const std::vector<Stoneship::String> &args)
 
 	Stoneship::ItemStack &stack = inv.getItems()[index];
 
-	if(!stack.itemBase->onUse(stack))
+	if(!stack.getItemBase()->onUse(stack))
 	{
-		std::cout << "Can't use " << stack.itemBase->getDisplayName() << std::endl;
+		std::cout << "Can't use " << stack.getItemBase()->getDisplayName() << std::endl;
 	}
 }
 
@@ -78,13 +88,13 @@ static void inv_identify(const std::vector<Stoneship::String> &args)
 
 	const Stoneship::ItemStack &stack = inv.getItems()[index];
 
-	if(!stack.itemBase->isUnidentified())
+	if(!stack.getItemBase()->isUnidentified())
 	{
 		std::cout << "You already know everything about this item" << std::endl;
 		return;
 	}
 
-	Stoneship::ItemBase *identifiedBase = static_cast<Stoneship::ItemBase*>(entm.getBase(stack.itemBase->getIdentifiedUID()));
+	Stoneship::ItemBase *identifiedBase = static_cast<Stoneship::ItemBase*>(entm.getBase(stack.getItemBase()->getIdentifiedUID()));
 
 	if(identifiedBase == nullptr)
 	{
@@ -92,8 +102,8 @@ static void inv_identify(const std::vector<Stoneship::String> &args)
 		return;
 	}
 
-	inv.removeItem(index, stack.count);
-	inv.addItem(identifiedBase, stack.count);
+	inv.removeItem(index, stack.getCount());
+	inv.addItem(identifiedBase, stack.getCount());
 	std::cout << "Item identified as '" << identifiedBase->getDisplayName() << "'" << std::endl;
 }
 
@@ -111,9 +121,9 @@ static void inv_ls(const std::vector<Stoneship::String> &args)
 	auto it = inv.getItems().begin();
 	while(it != inv.getItems().end())
 	{
-		tp << index << it->itemBase->getDisplayName() << it->itemBase->getValue() << it->count;
+		tp << index << it->getItemBase()->getDisplayName() << it->getItemBase()->getValue() << it->getCount();
 
-		for(uint32_t i = 1; i < it->itemBase->getSlots(); ++i)
+		for(uint32_t i = 1; i < it->getItemBase()->getSlots(); ++i)
 		{
 			tp << "~" << bprinter::endl();
 		}
@@ -124,6 +134,34 @@ static void inv_ls(const std::vector<Stoneship::String> &args)
 	tp.PrintFooter();
 
 	std::cout << inv.getUsedSlots() << "/" << inv.getSlots() << " Slots used" << std::endl;
+}
+
+static void inv_info(const std::vector<Stoneship::String> &args)
+{
+
+	if(args.size() < 2)
+	{
+		std::cout << "Usage: inv_info <Inventory Index>" << std::endl << "Displaysinformation on an item in the player's inventory" << std::endl;
+		return;
+	}
+
+	uint32_t index;
+	std::istringstream(args[1]) >> index;
+
+	if(index >= inv.getItems().size())
+	{
+		std::cout << "Invalid inventory index" << std::endl;
+		return;
+	}
+
+	Stoneship::ItemStack &stack = inv.getItems()[index];
+	Stoneship::ItemBase * base = stack.getItemBase();
+
+	std::cout << stack.getCount() << " x [" << base->getDisplayName() << "] (" << base->getBaseName() << ")" << std::endl;
+	std::cout << base->getDescription() << std::endl;
+	std::cout << "Value: " << base->getValue() << std::endl;
+	std::cout << "Size:  " << (uint32_t)base->getSlots() << std::endl;
+
 }
 
 static void inv_add(const std::vector<Stoneship::String> &args)
@@ -223,7 +261,7 @@ static void record_info(const std::vector<Stoneship::String> &args)
 
 	try
 	{
-		Stoneship::RecordAccessor rec = mgfm.getRecord(uid, type);
+		Stoneship::RecordAccessor rec = mgfm.getRecordByTypeID(uid, type);
 		std::cout << "Record found with size " << rec.getHeader().dataSize << " and type " << rec.getHeader().type << std::endl;
 
 	}catch(Stoneship::StoneshipException &e)
@@ -291,6 +329,36 @@ static void mgf_ls(const std::vector<Stoneship::String> &args)
 	std::cout << mgfm.getLoadedMGFCount() << " MGF(s)" << std::endl;
 }
 
+static void manager_info(const std::vector<Stoneship::String> &args)
+{
+	std::cout << "Loaded MGFs:                " << mgfm.getLoadedMGFCount() << std::endl;
+	std::cout << "Registered Modify records: -" << std::endl;
+	std::cout << "Cached Entity Bases         " << entm.getBaseCacheSize() << std::endl;
+	std::cout << "Loaded Entities:            " << wrldm.getEntities().size() << std::endl;
+}
+
+static void load(const std::vector<Stoneship::String> &args)
+{
+	if(args.size() < 2)
+	{
+		std::cout << "Usage: load <save name>" << std::endl;
+		return;
+	}
+
+	mgfm.loadSGF(args[1]);
+}
+
+static void save(const std::vector<Stoneship::String> &args)
+{
+	if(args.size() < 2)
+	{
+		std::cout << "Usage: save <save name>" << std::endl;
+		return;
+	}
+
+
+}
+
 static void prompt()
 {
 	bool stopped = false;
@@ -337,6 +405,7 @@ static void prompt()
 		}else if(tokens[0] == "world_interact")
 		{
 			world_interact(tokens);
+
 		}else if(tokens[0] == "inv_ls")
 		{
 			inv_ls(tokens);
@@ -345,6 +414,10 @@ static void prompt()
 		{
 			inv_add(tokens);
 
+		}else if(tokens[0] == "inv_info")
+		{
+			inv_info(tokens);
+
 		}else if(tokens[0] == "inv_identify")
 		{
 			inv_identify(tokens);
@@ -352,6 +425,18 @@ static void prompt()
 		}else if(tokens[0] == "inv_use")
 		{
 			inv_use(tokens);
+
+		}else if(tokens[0] == "manager_info")
+		{
+			manager_info(tokens);
+
+		}else if(tokens[0] == "load")
+		{
+			load(tokens);
+
+		}else if(tokens[0] == "save")
+		{
+			save(tokens);
 
 		}else
 		{

@@ -9,12 +9,15 @@
 
 #include "MasterGameFile.h"
 #include "StoneshipException.h"
+#include "Entity.h"
 
 namespace Stoneship
 {
 
-	MasterGameFileManager::MasterGameFileManager()
-	: mLoadedGameFileCount(0)
+	MasterGameFileManager::MasterGameFileManager(Root *root)
+	: mRoot(root),
+	  mCurrentSaveFile(nullptr),
+	  mLoadedGameFileCount(0)
 	{
 	}
 
@@ -23,6 +26,11 @@ namespace Stoneship
 		for(uint32_t i = 0; i < mGameFiles.size(); i++)
 		{
 			delete mGameFiles[i];
+		}
+
+		if(mCurrentSaveFile != nullptr)
+		{
+			delete mCurrentSaveFile;
 		}
 	}
 
@@ -44,6 +52,11 @@ namespace Stoneship
 
 	MasterGameFile *MasterGameFileManager::getLoadedMGF(UID::Ordinal ordinal)
 	{
+		if(ordinal == UID::SELF_REF_ORDINAL)
+		{
+			return mCurrentSaveFile;
+		}
+
 		if(ordinal >= mGameFiles.size())
 		{
 			return nullptr;
@@ -70,25 +83,81 @@ namespace Stoneship
 		return nullptr;
 	}
 
-
-	RecordAccessor MasterGameFileManager::getRecord(UID id)
+	void MasterGameFileManager::loadSGF(const String &savename)
 	{
-		if(id.ordinal >= mGameFiles.size())
+		if(mCurrentSaveFile != nullptr)
 		{
-			throw StoneshipException("Requested record with invalid ordinal");
+			mCurrentSaveFile->unload();
+
+			delete mCurrentSaveFile;
+
+			mCurrentSaveFile = nullptr;
 		}
 
-		return mGameFiles[id.ordinal]->getRecord(id.id);
+		mCurrentSaveFile = new MasterGameFile(savename, UID::SELF_REF_ORDINAL, *this);
+		mCurrentSaveFile->load();
 	}
 
-	RecordAccessor MasterGameFileManager::getRecord(UID id, Record::Type type)
+
+	//TODO: These functions look almost identical. I don't like that
+	RecordAccessor MasterGameFileManager::getRecordByID(UID id)
 	{
-		if(id.ordinal >= mGameFiles.size())
+		MasterGameFile *mgf = getLoadedMGF(id.ordinal);
+
+		if(mgf == nullptr)
 		{
-			throw StoneshipException("Requested record with invalid ordinal");
+			STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Requested record with invalid ordinal");
 		}
 
-		return mGameFiles[id.ordinal]->getRecord(id.id, type);
+		return mgf->getRecordByID(id.id);
+	}
+
+	RecordAccessor MasterGameFileManager::getRecordByTypeID(UID id, Record::Type type)
+	{
+		MasterGameFile *mgf = getLoadedMGF(id.ordinal);
+
+		if(mgf == nullptr)
+		{
+			STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Requested record with invalid ordinal");
+		}
+
+		return mgf->getRecordByTypeID(id.id, type);
+	}
+
+#ifdef _DEBUG
+	RecordAccessor MasterGameFileManager::getRecordByEditorName(const String &name, Record::Type type)
+	{
+		for(uint16_t i = 0; i < mLoadedGameFileCount; ++i)
+		{
+			try
+			{
+				RecordAccessor record = mGameFiles[i]->getRecordByEditorName(name, type);
+				return record;
+
+			}catch(StoneshipException &e)
+			{
+				if(e.getType() != StoneshipException::RECORD_NOT_FOUND)
+				{
+					throw;
+				}
+			}
+		}
+
+		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record with editor name '" + name + "' not found in loaded MGFs");
+	}
+#endif
+
+	void MasterGameFileManager::applyModifications(EntityBase *base)
+	{
+		for(uint32_t i = 0; i < mLoadedGameFileCount; ++i) // modifications are applied incrementally. not sure if this is the most efficient way, but it should work
+		{
+			mGameFiles[i]->applyModifications(base);
+		}
+
+		if(mCurrentSaveFile != nullptr)
+		{
+			mCurrentSaveFile->applyModifications(base);
+		}
 	}
 
 }

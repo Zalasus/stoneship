@@ -13,13 +13,15 @@ namespace Stoneship
 {
 
 	EntityBase::EntityBase()
-	: mRecordType(0)
+	: mRecordType(0),
+	  mUserCount(0)
 	{
 	}
 
 	EntityBase::EntityBase(Record::Type recordType, UID uid)
 	: mRecordType(recordType),
-	  mUID(uid)
+	  mUID(uid),
+	  mUserCount(0)
 	{
 	}
 
@@ -35,6 +37,11 @@ namespace Stoneship
 	UID EntityBase::getUID() const
 	{
 		return mUID;
+	}
+
+	uint32_t EntityBase::getUserCount() const
+	{
+		return mUserCount;
 	}
 
 
@@ -87,14 +94,26 @@ namespace Stoneship
 	: mUID(uid),
 	  mBase(base)
 	{
+		if(mBase != nullptr)
+		{
+			mBase->mUserCount++;
+		}
 	}
 
-	UID Entity::getUID()
+	Entity::~Entity()
+	{
+		if((mBase != nullptr) && (mBase->mUserCount > 0))
+		{
+			mBase->mUserCount--;
+		}
+	}
+
+	UID Entity::getUID() const
 	{
 		return mUID;
 	}
 
-	EntityBase *Entity::getBase()
+	EntityBase *Entity::getBase() const
 	{
 		return mBase;
 	}

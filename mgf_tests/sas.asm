@@ -2,9 +2,6 @@
 %include 'kisdf.asm'
 %include 'mgf_records.asm'
 
-%assign lastUID 1
-%assign groupCount 0
-
 ;--------file header-----------------------------------------------------------
     db 'NRPG3MGF'   ; magic id
     k_bstring 'SAS' ; game id
@@ -25,17 +22,71 @@
     k_short 0                                 ; record group header
     k_int (book_group_end - book_group_start) ; group size
     k_short 0x820                             ; group type
-    k_int 0x03                                ; child record count
+    k_int 0x02                                ; child record count
 book_group_start:
     
-    r_book lastUID,'The Tale Of The Dragons','Behold, for this is the tale of an ancient kind. Once mighty and high, now veiled in oblivion. Listen, ye who has ears to listen, for many a hero fell the last time this song was sung.'
-    %assign lastUID lastUID+1
-    
-    r_book lastUID,'Old dirty book','[This book is written in an unrecognizable script. Its pages are smeared with black grease.]'
-    %assign lastUID lastUID+1
+    r_begin 0x820
+        r_sub_begin SUB_MODEL
+            k_bstring 'bookQuarto1.model'
+        r_sub_end
 
-    r_book lastUID,'readme.txt','When you can read this, the dependency system is working'
-    %assign lastUID lastUID+1
+        r_sub_begin SUB_DISPLAY
+            k_bstring 'The Tale of the Dragons'
+        r_sub_end
+
+        r_sub_begin SUB_DESCRIPTION
+            k_sstring 'A recent edition of the known epic poem -Tale of the Dragons- which outlines the downfall of the legendary creatures from the north of Xelis'
+        r_sub_end
+
+        r_sub_begin SUB_TRADING
+            k_int 50
+        r_sub_end
+
+        r_sub_begin SUB_INVENTORY
+            k_byte 0x00
+            k_byte 0x00
+        r_sub_end
+
+        r_sub_begin SUB_ICON
+            k_bstring 'book1.png'
+        r_sub_end
+    
+        r_sub_begin SUB_DATA
+            k_istring 'Thats a particulary boring book....'
+        r_sub_end
+    r_end
+
+
+    r_begin 0x820
+        r_sub_begin SUB_MODEL
+            k_bstring 'bookFolio1.model'
+        r_sub_end
+
+        r_sub_begin SUB_DISPLAY
+            k_bstring 'Old dirty book'
+        r_sub_end
+
+        r_sub_begin SUB_DESCRIPTION
+            k_sstring 'An old book. You cant recognize the letters on the cover.'
+        r_sub_end
+
+        r_sub_begin SUB_TRADING
+            k_int 50
+        r_sub_end
+
+        r_sub_begin SUB_INVENTORY
+            k_byte 0x00
+            k_byte 0x00
+        r_sub_end
+
+        r_sub_begin SUB_ICON
+            k_bstring 'book1.png'
+        r_sub_end
+    
+        r_sub_begin SUB_DATA
+            k_istring '[This book is written in an unrecognizable script. Its pages are smeared with black grease.]'
+        r_sub_end
+    r_end
 
     
 book_group_end:
@@ -49,12 +100,76 @@ book_group_end:
     k_int 0x02
 weapon_group_start:
     
-    r_weapon lastUID,'The very unique sword Excalibur'
-    %assign lastUID lastUID+1
+    r_begin 0x810
+        r_sub_begin SUB_MODEL
+            k_bstring 'sword1.model'
+        r_sub_end
+
+        r_sub_begin SUB_DISPLAY
+            k_bstring 'Iron Sword'
+        r_sub_end
+
+        r_sub_begin SUB_DESCRIPTION
+            k_sstring 'A simple sword made of iron.'
+        r_sub_end
+
+        r_sub_begin SUB_TRADING
+            k_int 20
+        r_sub_end
+
+        r_sub_begin SUB_INVENTORY
+            k_byte 0x00
+            k_byte 0x00
+        r_sub_end
+
+        r_sub_begin SUB_ICON
+            k_bstring 'sword1.png'
+        r_sub_end
     
-    r_weapon lastUID,'Lyrs Dagger'
-    %assign lyrs_dagger_id lastUID
-    %assign lastUID lastUID+1
+        r_sub_begin SUB_DATA
+            k_byte 0  ; type
+            k_int 15 ; damage
+            k_int 120 ; durability
+            k_int 15 ; reach
+        r_sub_end
+    r_end
+
+    r_begin 0x810
+        r_sub_begin SUB_MODEL
+            k_bstring 'dagger1.model'
+        r_sub_end
+
+        r_sub_begin SUB_DISPLAY
+            k_bstring 'Lyrs Dagger'
+        r_sub_end
+
+        r_sub_begin SUB_DESCRIPTION
+            k_sstring 'A legendary weapon, said to be once carried by Lyr, the god of magic himself.'
+        r_sub_end
+
+        r_sub_begin SUB_TRADING
+            k_int 3000
+        r_sub_end
+
+        r_sub_begin SUB_INVENTORY
+            k_byte 0x00
+            k_byte 0x00
+        r_sub_end
+
+        r_sub_begin SUB_ICON
+            k_bstring 'dagger1.png'
+        r_sub_end
+    
+        r_sub_begin SUB_DATA
+            k_byte 0  ; type
+            k_int 40 ; damage
+            k_int 0 ; durability
+            k_int 5 ; reach
+        r_sub_end
+
+        %assign lyrs_dagger_id lastUID
+
+    r_end
     
 weapon_group_end:
     
@@ -64,14 +179,93 @@ weapon_group_end:
     k_short 0
     k_int (stuff_group_end - stuff_group_start)
     k_short 0x821
-    k_int 0x02
+    k_int 0x03
 stuff_group_start:
     
-    r_stuff lastUID,'Gunk',0x00,0x00
-    %assign lastUID lastUID+1
+    r_begin 0x821
+        r_sub_begin SUB_MODEL
+            k_bstring 'gunk.model'
+        r_sub_end
+
+        r_sub_begin SUB_DISPLAY
+            k_bstring 'Gunk'
+        r_sub_end
+
+        r_sub_begin SUB_DESCRIPTION
+            k_sstring 'Something you dont have an accurate name for.'
+        r_sub_end
+
+        r_sub_begin SUB_TRADING
+            k_int 0
+        r_sub_end
+
+        r_sub_begin SUB_INVENTORY
+            k_byte 0x00
+            k_byte 0x00
+        r_sub_end
+
+        r_sub_begin SUB_ICON
+            k_bstring 'gunk.png'
+        r_sub_end
+    r_end
     
-    r_stuff lastUID,'Blunt dagger',0xFFFF,lyrs_dagger_id
-    %assign lastUID lastUID+1
+    r_begin 0x821
+        r_sub_begin SUB_MODEL
+            k_bstring 'dagger1.model'
+        r_sub_end
+
+        r_sub_begin SUB_DISPLAY
+            k_bstring 'Blunt Dagger'
+        r_sub_end
+
+        r_sub_begin SUB_DESCRIPTION
+            k_sstring 'A blunt, rusty dagger. It appears to have markings on its blade, but they are too rusty to read'
+        r_sub_end
+
+        r_sub_begin SUB_TRADING
+            k_int 15
+        r_sub_end
+
+        r_sub_begin SUB_INVENTORY
+            k_byte 0x00
+            k_byte 0x04
+        r_sub_end
+
+        r_sub_begin SUB_ICON
+            k_bstring 'dagger1.png'
+        r_sub_end
+
+        r_sub_begin SUB_IDENTIFICATION
+            s_uid 0xFFFF,lyrs_dagger_id
+        r_sub_end
+    r_end
+
+    r_begin 0x821
+        r_sub_begin SUB_MODEL
+            k_bstring 'teapot.model'
+        r_sub_end
+
+        r_sub_begin SUB_DISPLAY
+            k_bstring 'Teapot'
+        r_sub_end
+
+        r_sub_begin SUB_DESCRIPTION
+            k_sstring 'An ordinary teapot made of porcelain. It appers to have a crack at the handle. One should be careful when carrying it around...'
+        r_sub_end
+
+        r_sub_begin SUB_TRADING
+            k_int 120
+        r_sub_end
+
+        r_sub_begin SUB_INVENTORY
+            k_byte 0x00
+            k_byte 0x00
+        r_sub_end
+
+        r_sub_begin SUB_ICON
+            k_bstring 'teapot.png'
+        r_sub_end
+    r_end
     
 stuff_group_end:
     
@@ -83,25 +277,26 @@ stuff_group_end:
     k_int 0x02
 world_group_start:
     
-    r_world lastUID,'Plains of Vinmor'
-    %assign lastUID lastUID+1
+    r_begin 0xC5
+        r_sub_begin SUB_DATA
+            k_bstring 'Plains of Vinmor'
+        r_sub_end
+    r_end
 
     ; world entity group
     k_short 0
     k_int (world_entity_group_end - world_entity_group_start)
     k_short 0xC0
-    k_int 0x03
+    k_int 0x01
     world_entity_group_start:
     
-        r_entity lastUID,0xFFFF,1,0x820
-        %assign lastUID lastUID+1
+        r_begin 0x03
+            r_sub_begin 0x01
+                s_uid 0xFFFF,1
+                k_short 0x820
+            r_sub_end
+        r_end
 
-        r_entity lastUID,0xFFFF,4,0x810
-        %assign lastUID lastUID+1
-
-        r_entity lastUID,0xFFFF,6,0x821
-        %assign lastUID lastUID+1
-    
     world_entity_group_end:
     
 world_group_end:

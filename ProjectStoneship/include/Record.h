@@ -48,6 +48,7 @@ namespace Stoneship
 		static const Type TYPE_GROUP = 0x0;
 		static const Type TYPE_DUNGEON = 0xC5;
 		static const Type TYPE_ENTITY = 0xD0;
+		static const Type TYPE_MODIFY = 0xFFF0;
 
 		static const Type TYPE_LOOKUP_ALL = 0xFFFF; //for lookups only!!!
 
@@ -77,6 +78,8 @@ namespace Stoneship
 		uint32_t recordCount;
 
 		inline bool isDeleted() {return flags | 0x01;};
+
+		static const uint32_t SIZE_IN_FILE = 12;
 	};
 
 	struct SubrecordHeader
@@ -94,12 +97,15 @@ namespace Stoneship
 
 		const RecordHeader &getHeader() const;
 		MasterGameFile *getGameFile();
+		std::streampos getDataOffset(); /** @returns Offset of record's data field */
+		std::streampos getOffset(); /** @returns Absolute offset of record */
+
 
 		MGFDataReader &getReader();
 		MGFDataReader getReaderForSubrecord(Record::Subtype subtype);
 
 		/**
-		 * \brief Creates an Accessor for the next record in the stream.
+		 * @brief Creates an Accessor for the next record in the stream.
 		 *
 		 * Once this method was called, the accessor gets unusable for subrecord access unless rollback() is called. This method can be called
 		 * in any stream position as long as it isn't EOF.
@@ -107,27 +113,32 @@ namespace Stoneship
 		RecordAccessor getNextRecord();
 
 		/**
-		 * \brief Creates accessor for the first record in this record's data field.
+		 * @brief Creates accessor for the first record in this record's data field.
 		 *
 		 * This method is insensitive to stream position and may be called
 		 */
 		RecordAccessor getFirstChildRecord();
 
 		/**
-		 * \brief Creates accessor for the next record in this record's data field.
+		 * @brief Creates accessor for the next record in this record's data field.
 		 *
 		 * Should only be used for Group records and in stream positions right before the next record's header.
 		 *
-		 * \deprecated Since this method ruins everything when called in a position not between two records, it should not be used.
+		 * @deprecated Since this method ruins everything when called in a position not between two records, it should not be used.
 		 * The recommended way to access successive child records is to use the getFirstChildRecord() method and subsequently calling
 		 * the getNextRecord() of the returned RecordAccessor objects since both methods are insensitive to stream position.
 		 */
 		RecordAccessor getNextChildRecord();
 
 		/**
-		 * \brief Moves the stream pointer to the beginning of this records data field.
+		 * @brief Moves the stream pointer to the beginning of this records data field.
 		 */
 		void rollback();
+
+		/**
+		 * @brief Moves the stream pointer to the end of this record (the first byte after the data field)
+		 */
+		void skip();
 
 	private:
 
@@ -135,7 +146,7 @@ namespace Stoneship
 		std::istream *mStream;
 		MasterGameFile *mGameFile;
 		MGFDataReader mInternalReader;
-		std::streampos mOffset; //offset of data field
+		std::streampos mDataOffset; //offset of data field
 
 	};
 }

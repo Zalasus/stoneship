@@ -20,7 +20,7 @@ namespace Stoneship
 
 		String getModelName() const;
 
-		virtual void load(RecordAccessor record);
+		virtual void loadFromRecord(RecordAccessor record);
 
 		//virtual void onInteract(Player &player) = 0;
 

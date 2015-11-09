@@ -2,9 +2,6 @@
 %include 'kisdf.asm'
 %include 'mgf_records.asm'
 
-%assign lastUID 1
-%assign groupCount 0
-
 ;--------file header-----------------------------------------------------------
     db 'NRPG3MGF'   ; magic id
     k_bstring 'SAS' ; game id
@@ -19,7 +16,7 @@
 
     k_short 0 ; resource count
 
-    k_int 2 ; record group count
+    k_int 3 ; record group count
 
 
     
@@ -62,6 +59,27 @@ world_group_start:
     world_entity_group_end:
     
 world_group_end:
+
+;------------------------------------------------------------------------------
+    k_short 0
+    k_int (modify_group_end - modify_group_start)
+    k_short 0xFFF0
+    k_int 0x01
+modify_group_start:
+    
+    r_begin_idless 0xFFF0
+        r_sub_begin 0xFFF9 ; metadata
+            s_uid 0,1
+            k_short 0x820
+            k_byte 0
+        r_sub_end
+
+        r_sub_begin 0x100 ; data
+            k_istring 'This text was loaded from a secondary depending MGF - modification by record seems to work'
+        r_sub_end
+    r_end_idless
+    
+modify_group_end:
     
     db 0xF0 ; end marker
     

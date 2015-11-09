@@ -48,16 +48,45 @@ namespace Stoneship
 
 		// base object is not yet cached. aquire it.
 
-		RecordAccessor rec = mMGFManager.getRecord(uid, type);
+		RecordAccessor rec = mMGFManager.getRecordByTypeID(uid, type);
 
 		EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(rec.getHeader().type);
 		if(factory == nullptr)
 		{
-			throw StoneshipException(String("Record type ") + rec.getHeader().type + " does not match any registered Entity Base types.");
+			STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, String("Record type ") + rec.getHeader().type + " does not match any registered Entity Base types.");
 		}
 
 		EntityBase *base = factory->createEntityBase(uid);
-		base->load(rec);
+
+		try
+		{
+			base->loadFromRecord(rec);
+
+		}catch(StoneshipException &e)
+		{
+			if(e.getType() == StoneshipException::IO_ERROR)
+			{
+				STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Malformed record or IO error. Could not load entity base.");
+			}
+
+			throw;
+		}
+
+		//apply modifications. do this for every new record for now. we might think of situations when we don't have to do this in the future
+		try
+		{
+			mMGFManager.applyModifications(base);
+
+		}catch(StoneshipException &e)
+		{
+			if(e.getType() == StoneshipException::IO_ERROR)
+			{
+				STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Malformed modify record or IO error. Could not apply modifications to base.");
+			}
+
+			throw;
+		}
+
 
 		// store new base in cache
 		//std::pair<uint64_t, EntityBase*> basePair(uid.toUInt64(), base);
@@ -65,6 +94,29 @@ namespace Stoneship
 		mBaseCache.push_back(base);
 
 		return base;
+	}
+
+	uint32_t EntityManager::getBaseCacheSize()
+	{
+		return mBaseCache.size();
+	}
+
+	void EntityManager::collectGarbage()
+	{
+		auto it = mBaseCache.begin();
+		while(it != mBaseCache.end())
+		{
+			if(!(*it)->getUserCount())
+			{
+				delete (*it);
+
+				it = mBaseCache.erase(it);
+
+			}else
+			{
+				++it;
+			}
+		}
 	}
 
 }

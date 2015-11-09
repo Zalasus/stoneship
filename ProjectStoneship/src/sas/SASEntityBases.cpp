@@ -17,18 +17,31 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Book::load(RecordAccessor record)
+	void EntityBase_Book::loadFromRecord(RecordAccessor record)
 	{
-		WorldObjectBase::load(record);
-		ItemBase::load(record);
+		WorldObjectBase::loadFromRecord(record);
+		ItemBase::loadFromRecord(record);
 
 		record.getReaderForSubrecord(Record::SUBTYPE_DATA)
 				.readIString(mText);
 	}
 
-	void EntityBase_Book::modify(RecordAccessor record)
+	void EntityBase_Book::modifyFromRecord(RecordAccessor record)
 	{
-		load(record);
+		//TODO: doing it this way is ugly and possibly dangerous. find a better method
+
+		try
+		{
+			record.getReaderForSubrecord(Record::SUBTYPE_DATA)
+					.readIString(mText);
+
+		}catch(StoneshipException &e)
+		{
+			if(e.getType() != StoneshipException::SUBRECORD_NOT_FOUND)
+			{
+				throw;
+			}
+		}
 	}
 
 	String EntityBase_Book::getText() const
@@ -60,10 +73,10 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Weapon::load(RecordAccessor record)
+	void EntityBase_Weapon::loadFromRecord(RecordAccessor record)
 	{
-		WorldObjectBase::load(record);
-		ItemBase::load(record);
+		WorldObjectBase::loadFromRecord(record);
+		ItemBase::loadFromRecord(record);
 
 		uint8_t weaponType;
 		record.getReaderForSubrecord(Record::SUBTYPE_DATA)
@@ -75,9 +88,9 @@ namespace Stoneship
 		mWeaponType = static_cast<WeaponType>(weaponType);
 	}
 
-	void EntityBase_Weapon::modify(RecordAccessor record)
+	void EntityBase_Weapon::modifyFromRecord(RecordAccessor record)
 	{
-		load(record);
+		loadFromRecord(record);
 	}
 
 	EntityBase_Weapon::WeaponType EntityBase_Weapon::getWeaponType() const
@@ -128,15 +141,15 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Stuff::load(RecordAccessor record)
+	void EntityBase_Stuff::loadFromRecord(RecordAccessor record)
 	{
-		WorldObjectBase::load(record);
-		ItemBase::load(record);
+		WorldObjectBase::loadFromRecord(record);
+		ItemBase::loadFromRecord(record);
 	}
 
-	void EntityBase_Stuff::modify(RecordAccessor record)
+	void EntityBase_Stuff::modifyFromRecord(RecordAccessor record)
 	{
-		load(record);
+		loadFromRecord(record);
 	}
 
 	bool EntityBase_Stuff::onUse(ItemStack &stack)

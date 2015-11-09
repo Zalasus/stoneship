@@ -21,7 +21,7 @@ namespace Stoneship
 	{
 	}
 
-	void ItemBase::load(RecordAccessor record)
+	void ItemBase::loadFromRecord(RecordAccessor record)
 	{
 		record.getReaderForSubrecord(Record::SUBTYPE_DISPLAY_NAME)
 				.readBString(mName);

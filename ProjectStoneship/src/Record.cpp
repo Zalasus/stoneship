@@ -91,7 +91,7 @@ namespace Stoneship
 	  mStream(stream),
 	  mGameFile(mgf),
 	  mInternalReader(mStream, mgf, mHeader.dataSize),
-	  mOffset(mStream->tellg())
+	  mDataOffset(mStream->tellg())
 	{
 	}
 
@@ -100,7 +100,7 @@ namespace Stoneship
 	  mStream(a.mStream),
 	  mGameFile(a.mGameFile),
 	  mInternalReader(mStream, mGameFile, mHeader.dataSize),
-	  mOffset(a.mOffset)
+	  mDataOffset(a.mDataOffset)
 	{
 	}
 
@@ -131,7 +131,7 @@ namespace Stoneship
 			}
 		}
 
-		throw StoneshipException("Subrecord not found");
+		STONESHIP_EXCEPT(StoneshipException::SUBRECORD_NOT_FOUND, "Subrecord not found");
 	}
 
 	MasterGameFile *RecordAccessor::getGameFile()
@@ -139,9 +139,19 @@ namespace Stoneship
 		return mGameFile;
 	}
 
+	std::streampos RecordAccessor::getDataOffset()
+	{
+		return mDataOffset;
+	}
+
+	std::streampos RecordAccessor::getOffset()
+	{
+		return static_cast<uint32_t>(mDataOffset) - RecordHeader::SIZE_IN_FILE;
+	}
+
 	RecordAccessor RecordAccessor::getNextRecord()
 	{
-		mStream->seekg(static_cast<uint32_t>(mOffset) + mHeader.dataSize);
+		mStream->seekg(static_cast<uint32_t>(mDataOffset) + mHeader.dataSize);
 		MGFDataReader ds(mStream, mGameFile);
 
 		RecordHeader header;
@@ -155,7 +165,7 @@ namespace Stoneship
 	{
 		if(mHeader.type != Record::TYPE_GROUP)
 		{
-			throw StoneshipException("Tried to access child records of non-group record");
+			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Tried to access child records of non-group record");
 		}
 
 		rollback();
@@ -177,6 +187,11 @@ namespace Stoneship
 
 	void RecordAccessor::rollback()
 	{
-		mInternalReader.seek(mOffset);
+		mInternalReader.seek(mDataOffset);
+	}
+
+	void RecordAccessor::skip()
+	{
+		mStream->seekg(static_cast<uint32_t>(mDataOffset) + mHeader.dataSize);
 	}
 }

@@ -23,7 +23,7 @@ namespace Stoneship
 		return mModelName;
 	}
 
-	void WorldObjectBase::load(RecordAccessor record)
+	void WorldObjectBase::loadFromRecord(RecordAccessor record)
 	{
 		record.getReaderForSubrecord(Record::SUBTYPE_WORLD_MODEL)
 				.readBString(mModelName);

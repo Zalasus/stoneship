@@ -3,4 +3,12 @@
 -Startup
 -MGF headers are loaded
 -Init script is run
--
+-...
+
+
+Stuff that is loaded from MGF into memory during loading of MGF:
+
+
+Stuff that is just indexed during startup and loaded when it's needed:
+    -Modify records
+    -Scripts

@@ -29,7 +29,7 @@ namespace Stoneship
 		String getIconFile() const;
 		UID getIdentifiedUID() const;
 
-		virtual void load(RecordAccessor record);
+		virtual void loadFromRecord(RecordAccessor record);
 
 		virtual bool onUse(ItemStack &stack) = 0;
 

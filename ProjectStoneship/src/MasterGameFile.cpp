@@ -11,6 +11,7 @@
 #include "StoneshipException.h"
 #include "MasterGameFileManager.h"
 #include "StoneshipConstants.h"
+#include "Entity.h"
 
 namespace Stoneship
 {
@@ -26,8 +27,7 @@ namespace Stoneship
 	  mResourceCount(0),
 	  mHints(nullptr),
 	  mRecordCount(0),
-	  mRecordGroupCount(0),
-	  mCachedHint(nullptr)
+	  mRecordGroupCount(0)
 	{
 	}
 
@@ -45,7 +45,7 @@ namespace Stoneship
 
 		if(!mInputStream.good())
 		{
-			throw StoneshipException("File not found");
+			STONESHIP_EXCEPT(StoneshipException::IO_ERROR, "File not found");
 		}
 
 
@@ -55,14 +55,14 @@ namespace Stoneship
 		ds.readULong(magic);
 		if(magic != 0x46474D334750524E) // "NRPG3MGF"
 		{
-			throw StoneshipException("Invalid Magic ID");
+			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Invalid Magic ID");
 		}
 
 		String gameID;
 		ds.readBString(gameID);
 		if(gameID != STONESHIP_GAMEID)
 		{
-			throw StoneshipException("Incompatible game (Found: '" + gameID + "')");
+			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Incompatible game (Found: '" + gameID + "')");
 		}
 
 
@@ -83,7 +83,7 @@ namespace Stoneship
 				ds.readSString(filename);
 				if(mManager.getLoadedMGF(filename) == nullptr)
 				{
-					throw StoneshipException("Dependency '" + filename + "' was not loaded before depending MGF");
+					STONESHIP_EXCEPT(StoneshipException::DEPENDENCY_NOT_MET, "Dependency '" + filename + "' was not loaded before depending MGF");
 				}
 
 				mDependencies[i].filename = filename;
@@ -122,16 +122,37 @@ namespace Stoneship
 
 			if(groupHeader.type != Record::TYPE_GROUP)
 			{
-				throw StoneshipException("Corrupted MGF found during scanning (expected Group record, found other)");
+				STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF found during scanning (expected Group record, found other)");
 			}
 
 			mHints[i].offset = offset;
 			mHints[i].type = groupHeader.groupType;
+			mHints[i].recordCount = groupHeader.recordCount;
 
-			ds.skip(groupHeader.dataSize);
+			//there are some records which we want to index one by one like Modify. check if we have on of those on our hands
+			if(mHints[i].type == Record::TYPE_MODIFY)
+			{
+
+				_indexModifies(mHints[i].recordCount);
+
+			}else
+			{
+				//no special group here. just skip to the next one
+				ds.skip(groupHeader.dataSize);
+			}
 		}
 
 		mLoaded = true;
+	}
+
+	void MasterGameFile::unload()
+	{
+
+	}
+
+	void MasterGameFile::store()
+	{
+		STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "MGF storage is not provided for file-based GFs");
 	}
 
 	const String &MasterGameFile::getFilename() const
@@ -186,24 +207,34 @@ namespace Stoneship
 			return getOrdinal();
 		}
 
-		for(uint16_t i = 0; i < mDependencyCount; i++)
+		for(uint16_t i = 0; i < mDependencyCount; ++i)
 		{
 			if(mDependencies[i].ordinal == local)
 			{
 				MasterGameFile *refMgf = mManager.getLoadedMGF(mDependencies[i].filename);
 				if(refMgf == nullptr)
 				{
-					throw StoneshipException("Supposedly loaded dependency was not loaded. This probably indicates the whole program is shit.");
+					STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Supposedly loaded dependency was not loaded. This probably indicates the whole program is shit.");
 				}
 
 				return refMgf->getOrdinal();
 			}
 		}
 
-		throw StoneshipException("Referenced ordinal not found in dependency table. This probably means a dependency was not loaded.");
+		STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Referenced ordinal not found in dependency table. This probably means a dependency was not loaded.");
 	}
 
-	RecordAccessor MasterGameFile::getRecord(UID::ID id)
+	RecordAccessor MasterGameFile::getRecord()
+	{
+		MGFDataReader ds(&mInputStream, this);
+
+		RecordHeader recordHeader;
+		ds.readStruct(recordHeader);
+
+		return RecordAccessor(recordHeader, &mInputStream, this);
+	}
+
+	RecordAccessor MasterGameFile::getRecordByID(UID::ID id)
 	{
 		MGFDataReader ds(&mInputStream, this);
 
@@ -215,7 +246,7 @@ namespace Stoneship
 			ds.readStruct(groupHeader);
 			if(groupHeader.type != Record::TYPE_GROUP)
 			{
-				throw StoneshipException("Corrupted MGF (expected top group record, found other)");
+				STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF (expected top group record, found other)");
 			}
 
 			if(false) //does group type match the type mask? TODO: implement some matching here later
@@ -245,48 +276,35 @@ namespace Stoneship
 			ds.endUnit();
 		}
 
-		throw StoneshipException("Record not found in MGF");
+		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
 	}
 
-	RecordAccessor MasterGameFile::getRecord(UID::ID id, Record::Type type)
+	RecordAccessor MasterGameFile::getRecordByTypeID(UID::ID id, Record::Type type)
 	{
 		if(type == Record::TYPE_LOOKUP_ALL) //this fixes a problem with uninitialized Accessors. It's ugly, but it works for now
 		{
-			//typeless lookup
+			// typeless lookup
 
-			return getRecord(id);
+			return getRecordByID(id);
 		}
 
-		if(mCachedHint == nullptr || mCachedHint->type != type) //only search hint list when hint type differs from last search
+		OffsetHint *hint = _getHint(type);
+		if(hint == nullptr)
 		{
-			//retrieve offset hint for record type
-			for(uint32_t i = 0; i < mRecordGroupCount; ++i)
-			{
-
-				if(mHints[i].type == type)
-				{
-					mCachedHint = &(mHints[i]);
-
-					goto hint_found; //whoooa velociraptor attack
-				}
-			}
-
-			//no offset hint for that type -> this file does not contain that type of record
-			throw StoneshipException("Record not found in MGF (missing hint)");
+			// no offset hint for that type -> this file does not contain that type of record
+			STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF (missing hint)");
 		}
 
-	hint_found:
-
+		// create reader and move to top group of requested type
 		MGFDataReader ds(&mInputStream, this);
-
-		ds.seek(mCachedHint->offset);
+		ds.seek(hint->offset);
 
 		RecordHeader groupHeader;
 		ds.readStruct(groupHeader);
 
 		if(groupHeader.type != Record::TYPE_GROUP)
 		{
-			throw StoneshipException("Corrupted MGF (expected top group record, found other)");
+			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF (expected top group record, found other)");
 		}
 
 		ds.beginUnit(groupHeader.dataSize);
@@ -297,17 +315,179 @@ namespace Stoneship
 
 			if(recordHeader.id == id && recordHeader.type == type) // found it!
 			{
-				//leave stream pointer at data field; that's none of our business
+				// leave stream pointer at data field; that's none of our business
 				return RecordAccessor(recordHeader, &mInputStream, this);
 
-			}else //this is not the record you are looking for
+			}else // this is not the record you are looking for
 			{
-				//skip until next record
+				// skip until next record
 				ds.skip(recordHeader.dataSize);
 			}
 		}
 
-		throw StoneshipException("Record not found in MGF");
+		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
+	}
+
+#ifdef _DEBUG
+	RecordAccessor MasterGameFile::getRecordByEditorName(const String &name, Record::Type type)
+	{
+		MGFDataReader ds(&mInputStream, this);
+
+		ds.seek(mHeaderEndOfffset);
+
+		for(uint32_t i = 0; i < mRecordGroupCount; ++i)
+		{
+			RecordHeader groupHeader;
+			ds.readStruct(groupHeader);
+			if(groupHeader.type != Record::TYPE_GROUP)
+			{
+				STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF (expected top group record, found other)");
+			}
+
+			ds.beginUnit(groupHeader.dataSize);
+			while(ds.bytesRemainingInUnit())
+			{
+				RecordHeader recordHeader;
+				ds.readStruct(recordHeader);
+
+				RecordAccessor record(recordHeader, &mInputStream, this);
+				try
+				{
+					String editorName;
+					record.getReaderForSubrecord(Record::SUBTYPE_EDITOR).readSString(editorName);
+
+					if(editorName == name)
+					{
+						record.rollback();
+						return record;
+					}
+				}catch(StoneshipException &e)
+				{
+					if(e.getType() != StoneshipException::SUBRECORD_NOT_FOUND)
+					{
+						throw;
+					}
+				}
+
+				record.skip(); // not a matching record. go to next one
+			}
+			ds.endUnit();
+		}
+
+		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
+	}
+#endif
+
+	RecordAccessor MasterGameFile::getFirstRecord(Record::Type type)
+	{
+		OffsetHint *hint = _getHint(type);
+		if(hint == nullptr)
+		{
+			// no offset hint for that type -> this file does not contain that type of record
+			STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF (missing hint)");
+		}
+
+		mInputStream.seekg(hint->offset);
+
+		MGFDataReader ds(&mInputStream, this);
+
+		RecordHeader groupHeader;
+		ds.readStruct(groupHeader);
+		if(groupHeader.type != Record::TYPE_GROUP)
+		{
+			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF (expected top group record, found other)");
+		}
+
+		// top group does not neccessarily start with record of associated type. Search group for first occurrence
+		ds.beginUnit(groupHeader.dataSize);
+		while(ds.bytesRemainingInUnit())
+		{
+			RecordHeader recordHeader;
+			ds.readStruct(recordHeader);
+
+			if(recordHeader.type == type)
+			{
+				return RecordAccessor(recordHeader, &mInputStream, this);
+
+			}else // this is not the record you are looking for
+			{
+				// skip until next record
+				ds.skip(recordHeader.dataSize);
+			}
+		}
+
+		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
+	}
+
+	void MasterGameFile::applyModifications(EntityBase *base)
+	{
+		for(uint32_t i = 0; i < mMods.size(); ++i)
+		{
+			if(mMods[i].uid == base->getUID())
+			{
+				MGFDataReader ds(&mInputStream, this);
+				ds.seek(mMods[i].offset);
+
+				RecordHeader header;
+				ds.readStruct(header);
+
+				RecordAccessor record(header, &mInputStream, this);
+
+				base->modifyFromRecord(record);
+
+				return; // only one Mod record per UID per MGF may be specified, so we are done here
+			}
+		}
+	}
+
+
+	MasterGameFile::OffsetHint *MasterGameFile::_getHint(Record::Type type)
+	{
+		static OffsetHint *cachedHint = nullptr;
+
+		if(cachedHint == nullptr || cachedHint->type != type) // only search hint list when hint type differs from last search
+		{
+			// retrieve offset hint for record type
+			for(uint32_t i = 0; i < mRecordGroupCount; ++i)
+			{
+
+				if(mHints[i].type == type)
+				{
+					cachedHint = &(mHints[i]);
+
+					return cachedHint;
+				}
+			}
+
+			return nullptr;
+		}
+
+		return cachedHint;
+	}
+
+	void MasterGameFile::_indexModifies(uint32_t recordCount)
+	{
+		RecordAccessor record = getRecord();
+
+		for(uint32_t i = 0; i < recordCount; ++i)
+		{
+			ModHint mod;
+			mod.offset = record.getOffset();
+			uint8_t dummyByte;
+			record.getReaderForSubrecord(Record::SUBTYPE_MODIFY_METADATA)
+					.readStruct<UID>(mod.uid)
+					.readUShort(mod.type)
+					.readUByte(dummyByte);
+
+			mMods.push_back(mod);
+
+			if(i < recordCount-1) // reached last record yet?
+			{
+				// no -> fetch next one
+
+				record = record.getNextRecord();
+			}
+		}
 	}
 
 }

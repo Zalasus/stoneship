@@ -164,6 +164,8 @@ Every [Modify] record provides metadata in the reserved FFF9 subrecord. The meta
 the type of the target record (for hinting the modification table) and a field that was formerly used as a mod type
 designator but is now considered unused. It is, however, still included because who needs hard drive space anyway?
 
+Modify records are ID-less, so the ID field in their record header contains the default value of 0xFFFFFFFF.
+
 
 Record types
 ------------
@@ -173,14 +175,7 @@ Subrecords marked with [*] may appear arbitrarily often, including never.
 Subrecords marked with [#] may appear arbitrarily often, but at least once.
 
 0: Group (alternate header format)
-
-1: Modify
-	FFF9: modification data
-		uid: record to modifify
-		ushort: record type
-		ubyte: reserved
 	
-
 0F: StringResource
 	0: Resource data
 		sstring: string data
@@ -239,6 +234,12 @@ D0: Entity
 		vector3: position
 		vector3: rotation
 	
+	
+FFF0: Modify
+	FFF9: modification data
+		uid: record to modifify
+		ushort: record type
+		ubyte: reserved
 	
 FFFF: Reserved (Do not use!)
 

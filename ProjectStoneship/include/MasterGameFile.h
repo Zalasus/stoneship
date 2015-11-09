@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <ios>
+#include <vector>
 
 #include "String.h"
 #include "Record.h"
@@ -20,6 +21,7 @@ namespace Stoneship
 {
 
 	class MasterGameFileManager;
+	class EntityBase;
 
 	class MasterGameFile
 	{
@@ -38,12 +40,22 @@ namespace Stoneship
 		{
 			Record::Type type;
 			std::streampos offset;
+			uint32_t recordCount;
+		};
+
+		struct ModHint
+		{
+			UID uid;
+			Record::Type type;
+			std::streampos offset;
 		};
 
 		MasterGameFile(const String &filename, UID::Ordinal ordinal, MasterGameFileManager &manager);
-		~MasterGameFile();
+		virtual ~MasterGameFile();
 
-		void load();
+		virtual void load();
+		virtual void unload();
+		virtual void store();
 
 		const String &getFilename() const;
 		UID::Ordinal getOrdinal() const;
@@ -56,15 +68,29 @@ namespace Stoneship
 		bool isLoaded() const;
 
 		/**
-		 * Translates an ordinal in this file according to the dependency table (see MGF definition for more information).
+		 * @brief Translates an ordinal in this file according to the dependency table (see MGF definition for more information).
 		 */
 		UID::Ordinal localToGlobalOrdinal(UID::Ordinal local);
 
-		RecordAccessor getRecord(UID::ID id);
-		RecordAccessor getRecord(UID::ID id, Record::Type type);
+		/**
+		 * @brief Creates accessor for a record at the current stream position
+		 */
+		virtual RecordAccessor getRecord();
 
+		virtual RecordAccessor getRecordByID(UID::ID id);
+		virtual RecordAccessor getRecordByTypeID(UID::ID id, Record::Type type);
+
+		virtual RecordAccessor getRecordByEditorName(const String &name, Record::Type type);
+
+		virtual RecordAccessor getFirstRecord(Record::Type type);
+
+		virtual void applyModifications(EntityBase *base);
 
 	private:
+
+		inline void _indexModifies(uint32_t recordCount);
+		OffsetHint *_getHint(Record::Type t);
+
 
 		String mFilename;
 		std::ifstream mInputStream;
@@ -83,9 +109,10 @@ namespace Stoneship
 		OffsetHint *mHints;
 		uint32_t mRecordCount;
 		uint32_t mRecordGroupCount;
-		const OffsetHint *mCachedHint;
 
 		std::streampos mHeaderEndOfffset;
+
+		std::vector<ModHint> mMods; //TODO: Replace this with array. we know the total amount of records
 	};
 
 }

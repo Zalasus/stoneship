@@ -22,8 +22,8 @@ namespace Stoneship
 		EntityBase_Book(Record::Type recordType, UID uid);
 
 
-		void load(RecordAccessor record);
-		void modify(RecordAccessor record);
+		void loadFromRecord(RecordAccessor record);
+		void modifyFromRecord(RecordAccessor record);
 		bool onUse(ItemStack &stack);
 		String getBaseName();
 
@@ -51,8 +51,8 @@ namespace Stoneship
 		EntityBase_Weapon(Record::Type recordType, UID uid);
 
 
-		void load(RecordAccessor record);
-		void modify(RecordAccessor record);
+		void loadFromRecord(RecordAccessor record);
+		void modifyFromRecord(RecordAccessor record);
 		bool onUse(ItemStack &stack);
 		String getBaseName();
 
@@ -78,8 +78,8 @@ namespace Stoneship
 
 		EntityBase_Stuff(Record::Type recordType, UID uid);
 
-		void load(RecordAccessor record);
-		void modify(RecordAccessor record);
+		void loadFromRecord(RecordAccessor record);
+		void modifyFromRecord(RecordAccessor record);
 		bool onUse(ItemStack &stack);
 		String getBaseName();
 

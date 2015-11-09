@@ -12,18 +12,42 @@
 
 #include "String.h"
 
+#ifdef _DEBUG
+	#define STONESHIP_EXCEPT(type, msg) throw StoneshipException(type, msg, __FILE__, __LINE__);
+#else
+	#define STONESHIP_EXCEPT(type, msg) throw StoneshipException(type, msg);
+#endif
+
 namespace Stoneship
 {
 
 	class StoneshipException : public std::exception
 	{
 	public:
-		StoneshipException(const String &msg);
+
+		enum ExceptionType
+		{
+			MGF_NOT_FOUND,
+			RECORD_NOT_FOUND,
+			SUBRECORD_NOT_FOUND,
+			ENTITY_ERROR,
+			IO_ERROR,
+			DATA_FORMAT,
+			DEPENDENCY_NOT_MET,
+			UNSUPPSORTED
+		};
+
+		StoneshipException(ExceptionType type, const String &msg);
+		StoneshipException(ExceptionType type, const String &msg, const String &file, uint32_t line);
+
+		ExceptionType getType() const;
+		const String &getMessage() const;
 
 		const char *what();
 
 	private:
 
+		ExceptionType mType;
 		String mMsg;
 	};
 

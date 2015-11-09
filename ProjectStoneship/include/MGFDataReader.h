@@ -6,6 +6,7 @@
 
 #include "Util.h"
 #include "String.h"
+#include "StoneshipException.h"
 
 namespace Stoneship
 {
@@ -62,17 +63,19 @@ namespace Stoneship
 
 		bool hasEnded();
 
-		void _readChars(char* data, uint32_t size);
-
-		void _checkBounds(std::streamoff off);
-
 
 	private:
 
 		template <typename T>
-		void readIntegral(T &v);
+		void _readIntegral(T &v);
 
-		uint8_t getNext();
+		void _readChars(char* data, uint32_t size);
+
+		void _checkBounds(std::streamoff off);
+
+		void _except(StoneshipException::ExceptionType type, const String &msg);
+
+		uint8_t _getNext();
 
 		std::istream *mStream;
 		MasterGameFile *mGameFile;
