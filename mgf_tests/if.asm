@@ -9,6 +9,7 @@
 
     k_sstring 'Zalasus'                                ; author
     k_sstring 'Just another master file to test the dependency system' ; description
+    k_long 88392743 ; timestamp
 
     k_short 1 ; dependency count
     k_sstring 'sas.mgf'
@@ -26,9 +27,39 @@
     k_short 0x820                             ; group type
     k_int 0x01                                ; child record count
 book_group_start:
+
+    r_begin 0x820
+        r_sub_begin SUB_MODEL
+            k_bstring 'bookQuarto1.model'
+            k_float 1.0
+        r_sub_end
+
+        r_sub_begin SUB_DISPLAY
+            k_bstring 'Chronicles of Cloudkeep'
+        r_sub_end
+
+        r_sub_begin SUB_DESCRIPTION
+            k_sstring 'A clothbound book, containing a detailed history of political events in County Cloudkeep'
+        r_sub_end
+
+        r_sub_begin SUB_TRADING
+            k_int 20
+        r_sub_end
+
+        r_sub_begin SUB_INVENTORY
+            k_byte 0x00 ; flags
+            k_byte 1 ; slot count
+            k_int 0     ; max stack size
+        r_sub_end
+
+        r_sub_begin SUB_ICON
+            k_bstring 'book2.png'
+        r_sub_end
     
-    r_book lastUID,'Chronicles of Cloudkeep','[This book contains an exceptionally boring timeline of previous regents of Cloudkeep. It is totally not worth reading]'
-    %assign lastUID lastUID+1
+        r_sub_begin SUB_DATA
+            k_istring '[This book contains an exceptionally boring timeline of previous regents of Cloudkeep. It is totally not worth reading]'
+        r_sub_end
+    r_end
 
 book_group_end:
     
@@ -40,8 +71,11 @@ book_group_end:
     k_int 0x02
 world_group_start:
     
-    r_world lastUID,'Cloudkeep - Inner Courtyard'
-    %assign lastUID lastUID+1
+    r_begin 0xC5
+        r_sub_begin SUB_DATA
+            k_bstring 'Cloudkeep - Inner Courtyard'
+        r_sub_end
+    r_end
 
     ; world entity group
     k_short 0
@@ -50,11 +84,19 @@ world_group_start:
     k_int 0x02
     world_entity_group_start:
     
-        r_entity lastUID,0x0,3,0x820
-        %assign lastUID lastUID+1
+        r_begin 0x02
+            r_sub_begin 1
+                s_uid 0x00,0x02
+                k_short 0x820
+            r_sub_end
+        r_end
 
-        r_entity lastUID,0xFFFF,1,0x820
-        %assign lastUID lastUID+1
+        r_begin 0x02
+            r_sub_begin 1
+                s_uid 0xFFFF,0x01
+                k_short 0x820
+            r_sub_end
+        r_end
     
     world_entity_group_end:
     

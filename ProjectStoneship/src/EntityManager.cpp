@@ -5,18 +5,18 @@
  *      Author: Zalasus
  */
 
+#include "MGFManager.h"
 #include "EntityManager.h"
 
 #include <utility>
 
-#include "MasterGameFileManager.h"
 #include "StoneshipException.h"
 
 namespace Stoneship
 {
 
-	EntityManager::EntityManager(MasterGameFileManager &mgfManager)
-	: mMGFManager(mgfManager)
+	EntityManager::EntityManager(Root *root)
+	: mRoot(root)
 	{
 	}
 
@@ -48,7 +48,7 @@ namespace Stoneship
 
 		// base object is not yet cached. aquire it.
 
-		RecordAccessor rec = mMGFManager.getRecordByTypeID(uid, type);
+		RecordAccessor rec = mRoot->getMGFManager()->getRecordByTypeID(uid, type);
 
 		EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(rec.getHeader().type);
 		if(factory == nullptr)
@@ -75,7 +75,7 @@ namespace Stoneship
 		//apply modifications. do this for every new record for now. we might think of situations when we don't have to do this in the future
 		try
 		{
-			mMGFManager.applyModifications(base);
+			mRoot->getMGFManager()->applyModifications(base);
 
 		}catch(StoneshipException &e)
 		{

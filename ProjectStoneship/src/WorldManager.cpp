@@ -15,9 +15,8 @@
 namespace Stoneship
 {
 
-	WorldManager::WorldManager(MasterGameFileManager &mgfManager, EntityManager &entityManager)
-	: mMGFManager(mgfManager),
-	  mEntityManager(entityManager)
+	WorldManager::WorldManager(Root *root)
+	: mRoot(root)
 	{
 	}
 
@@ -40,7 +39,7 @@ namespace Stoneship
 	{
 		unloadEntities();
 
-		RecordAccessor worldRecord = mMGFManager.getRecordByTypeID(worldUID, Record::TYPE_DUNGEON); //only allow dungeons for now
+		RecordAccessor worldRecord = mRoot->getMGFManager()->getRecordByTypeID(worldUID, Record::TYPE_DUNGEON); //only allow dungeons for now
 
 		worldRecord.getReaderForSubrecord(Record::SUBTYPE_DATA).readBString(mDungeonName);
 
@@ -62,13 +61,13 @@ namespace Stoneship
 					.readStruct(baseUID)
 					.readUShort(baseType);
 
-			EntityBase *base = mEntityManager.getBase(baseUID, baseType);
+			EntityBase *base = mRoot->getEntityManager()->getBase(baseUID, baseType);
 			if(base == nullptr)
 			{
 				STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Referenced base not found");
 			}
 
-			mEntities.push_back(new Entity(UID(entityRecord.getGameFile()->getOrdinal(), entityRecord.getHeader().id), base));
+			mEntities.push_back(new WorldEntity(UID(entityRecord.getGameFile()->getOrdinal(), entityRecord.getHeader().id), base, this));
 
 			if(i < entityGroup.getHeader().recordCount - 1)
 			{
@@ -76,7 +75,7 @@ namespace Stoneship
 			}
 		}
 
-		mEntityManager.collectGarbage(); //remove all bases that are not used atm
+		mRoot->getEntityManager()->collectGarbage(); //remove all bases that are not used atm
 	}
 
 	String WorldManager::getDungeonName()
@@ -84,11 +83,25 @@ namespace Stoneship
 		return mDungeonName;
 	}
 
-	std::vector<Entity*> &WorldManager::getEntities()
+	std::vector<WorldEntity*> &WorldManager::getEntities()
 	{
 		return mEntities;
 	}
 
+	void WorldManager::removeEntity(UID entityUID)
+	{
+		auto it = mEntities.begin();
+		while(it != mEntities.end())
+		{
+			if((*it)->getUID() == entityUID)
+			{
+				mEntities.erase(it);
+				break;
+			}
+
+			it++;
+		}
+	}
 }
 
 

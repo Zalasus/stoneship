@@ -13,25 +13,6 @@
 namespace Stoneship
 {
 
-	/*static void *memcpy(void *d, const void *s, size_t n)
-	{
-		const char *sc, *se;
-		char *dc;
-
-		dc = (char *) d;
-		sc = (const char *) s;
-		se = sc + n;
-
-		if(se != sc)
-		{
-			do
-			{
-				*dc++ = *sc++;
-			}while(sc < se);
-		}
-		return d;
-	}*/
-
 	MGFDataReader::MGFDataReader(std::istream *stream, MasterGameFile *mgf, uint32_t unitSize)
 	: mStream(stream),
 	  mGameFile(mgf),
@@ -91,48 +72,43 @@ namespace Stoneship
 		return *this;
 	}
 
-	//TODO: These functions store the data in the endianess of the platform they are compiled in and NOT in the one advised by KISDF 1.1 This is a heavy problem, as it may prevent us from porting to other systems whilst keeping the data files unchanged. This NEEDS to be fixed
-	/*float MGFDataReader::readFloat()
+	//FIXME: Portability issue. This could fail if target platform uses different floating point format than the advised IEEE 754
+	MGFDataReader &MGFDataReader::readFloat(float &f)
 	{
-		float v;
-		char data[sizeof(v)];
-	#if NRPG_SYSTEM_ENDIANESS == little
-		for(int8_t i = 0; i < sizeof(v); --i)
+		union
 		{
-			data[i] = getNext();
-		}
-	#else
-		for(int8_t i = sizeof(v)-1; i >= 0; --i)
+			float v;
+			char data[sizeof(v)];
+		};
+
+		for(uint8_t i = 0; i < sizeof(v); ++i)
 		{
-			data[i] = getNext();
+			data[i] = _getNext();
 		}
-	#endif
 
-		memcpy(&v, data, sizeof(v));
+		f = v;
 
-		return v;
+		return *this;
 	}
 
-	double MGFDataReader::readDouble()
+	//FIXME: Portability issue. This could fail if target platform uses different floating point format than the advised IEEE 754
+	MGFDataReader &MGFDataReader::readDouble(double &d)
 	{
-		double v;
-		char data[sizeof(v)];
-	#if NRPG_SYSTEM_ENDIANESS == little
-		for(int8_t i = 0; i < sizeof(v); ++i)
+		union
 		{
-			data[i] = getNext();
-		}
-	#else
-		for(int8_t i = sizeof(v)-1; i >= 0; --i)
+			double v;
+			char data[sizeof(v)];
+		};
+
+		for(uint8_t i = 0; i < sizeof(v); ++i)
 		{
-			data[i] = getNext();
+			data[i] = _getNext();
 		}
-	#endif
 
-		memcpy(&v, data, sizeof(v));
+		d = v;
 
-		return v;
-	}*/
+		return *this;
+	}
 
 	MGFDataReader &MGFDataReader::readBString(String &s)
 	{

@@ -17,6 +17,12 @@
 
 
 
+%macro k_float 1
+    dd %1
+%endmacro
+
+
+
 %macro k_bstring 1
     %strlen _len %1
     k_byte _len

@@ -5,27 +5,30 @@
  *      Author: Zalasus
  */
 
+#include <MGFManager.h>
 #include "MasterGameFile.h"
 
 #include "MGFDataReader.h"
+#include "MGFManager.h"
 #include "StoneshipException.h"
-#include "MasterGameFileManager.h"
 #include "StoneshipConstants.h"
 #include "Entity.h"
 
 namespace Stoneship
 {
 
-	MasterGameFile::MasterGameFile(const String &filename, UID::Ordinal ordinal, MasterGameFileManager &manager)
+	MasterGameFile::MasterGameFile(const String &filename, UID::Ordinal ordinal, MGFManager *mgfManager, ResourceManager *resourceManager)
 	: mFilename(filename),
 	  mOrdinal(ordinal),
-	  mManager(manager),
+	  mMGFManager(mgfManager),
+	  mResourceManager(resourceManager),
 	  mLoaded(false),
 	  mFlags(0),
 	  mDependencyCount(0),
 	  mDependencies(nullptr),
 	  mResourceCount(0),
 	  mHints(nullptr),
+	  mCachedHint(nullptr),
 	  mRecordCount(0),
 	  mRecordGroupCount(0)
 	{
@@ -55,7 +58,7 @@ namespace Stoneship
 		ds.readULong(magic);
 		if(magic != 0x46474D334750524E) // "NRPG3MGF"
 		{
-			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Invalid Magic ID");
+			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Not a Master Game File: Invalid Magic ID");
 		}
 
 		String gameID;
@@ -65,11 +68,16 @@ namespace Stoneship
 			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Incompatible game (Found: '" + gameID + "')");
 		}
 
+		uint64_t timestamp;
 
-		ds.readUInt(mFlags);
-		ds.readSString(mAuthor);
-		ds.readSString(mDescription);
+		ds.readUInt(mFlags)
+		  .readSString(mAuthor)
+		  .readSString(mDescription)
+		  .readULong(timestamp);
 
+		std::time_t timestampCTime;
+		timestampCTime = static_cast<time_t>(timestamp);
+		mTimestamp = *std::localtime(&timestampCTime);  //FIXME: Not portable! Timestamp in MGF is always UNIX format, but localtime() may use different format
 
 		//load and check for dependencies
 		ds.readUShort(mDependencyCount);
@@ -81,7 +89,7 @@ namespace Stoneship
 			{
 				String filename;
 				ds.readSString(filename);
-				if(mManager.getLoadedMGF(filename) == nullptr)
+				if(mMGFManager->getLoadedMGF(filename) == nullptr)
 				{
 					STONESHIP_EXCEPT(StoneshipException::DEPENDENCY_NOT_MET, "Dependency '" + filename + "' was not loaded before depending MGF");
 				}
@@ -99,10 +107,27 @@ namespace Stoneship
 			uint8_t resType;
 			String resPath;
 
-			ds.readUByte(resType);
-			ds.readSString(resPath);
+			ds.readUByte(resType)
+			  .readSString(resPath);
 
-			//TODO: register resource paths
+			switch(resType)
+			{
+			case RES_TYPE_FS:
+				mResourceManager->addResourcePath(resPath,ResourceManager::FILESYSTEM);
+				break;
+
+			case RES_TYPE_ZIP:
+				mResourceManager->addResourcePath(resPath,ResourceManager::ZIP_FILE);
+				break;
+
+			case RES_TYPE_GZIP:
+				mResourceManager->addResourcePath(resPath,ResourceManager::GZIP_FILE);
+				break;
+
+			case RES_TYPE_SINGLE:
+			default:
+				STONESHIP_EXCEPT(StoneshipException::RESOURCE_ERROR, "Unknown or unsupported type given for resource " + resPath);
+			}
 		}
 
 
@@ -185,6 +210,11 @@ namespace Stoneship
 		return mDescription;
 	}
 
+	const std::tm *MasterGameFile::getTimestamp() const
+	{
+		return &mTimestamp; //return a pointer here because it's fucking c goddammit
+	}
+
 	uint32_t MasterGameFile::getRecordGroupCount() const
 	{
 		return mRecordGroupCount;
@@ -211,7 +241,7 @@ namespace Stoneship
 		{
 			if(mDependencies[i].ordinal == local)
 			{
-				MasterGameFile *refMgf = mManager.getLoadedMGF(mDependencies[i].filename);
+				MasterGameFile *refMgf = mMGFManager->getLoadedMGF(mDependencies[i].filename);
 				if(refMgf == nullptr)
 				{
 					STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Supposedly loaded dependency was not loaded. This probably indicates the whole program is shit.");
@@ -443,9 +473,8 @@ namespace Stoneship
 
 	MasterGameFile::OffsetHint *MasterGameFile::_getHint(Record::Type type)
 	{
-		static OffsetHint *cachedHint = nullptr;
 
-		if(cachedHint == nullptr || cachedHint->type != type) // only search hint list when hint type differs from last search
+		if(mCachedHint == nullptr || mCachedHint->type != type) // only search hint list when hint type differs from last search
 		{
 			// retrieve offset hint for record type
 			for(uint32_t i = 0; i < mRecordGroupCount; ++i)
@@ -453,16 +482,16 @@ namespace Stoneship
 
 				if(mHints[i].type == type)
 				{
-					cachedHint = &(mHints[i]);
+					mCachedHint = &(mHints[i]);
 
-					return cachedHint;
+					return mCachedHint;
 				}
 			}
 
 			return nullptr;
 		}
 
-		return cachedHint;
+		return mCachedHint;
 	}
 
 	void MasterGameFile::_indexModifies(uint32_t recordCount)

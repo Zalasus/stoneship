@@ -7,92 +7,18 @@
 
 #include "Entity.h"
 
-#include "sas/SASEntityBases.h"
+#include "WorldEntityBase.h"
+#include "WorldManager.h"
 
 namespace Stoneship
 {
 
-	EntityBase::EntityBase()
-	: mRecordType(0),
-	  mUserCount(0)
-	{
-	}
 
-	EntityBase::EntityBase(Record::Type recordType, UID uid)
-	: mRecordType(recordType),
-	  mUID(uid),
-	  mUserCount(0)
-	{
-	}
-
-	EntityBase::~EntityBase()
-	{
-	}
-
-	Record::Type EntityBase::getRecordType() const
-	{
-		return mRecordType;
-	}
-
-	UID EntityBase::getUID() const
-	{
-		return mUID;
-	}
-
-	uint32_t EntityBase::getUserCount() const
-	{
-		return mUserCount;
-	}
-
-
-
-
-	EntityBaseFactory::EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc)
-	: mRecordType(recordType),
-	  mAllocator(alloc)
-	{
-		smFactories.push_back(this);
-	}
-
-	Record::Type EntityBaseFactory::getRecordType() const
-	{
-		return mRecordType;
-	}
-
-	EntityBase *EntityBaseFactory::createEntityBase(UID uid)
-	{
-		return (mAllocator(mRecordType, uid));
-	}
-
-
-	EntityBaseFactory *EntityBaseFactory::getFactoryForRecordType(Record::Type t)
-	{
-		for(uint32_t i = 0; i < smFactories.size(); ++i)
-		{
-			if(smFactories[i]->getRecordType() == t)
-			{
-				return smFactories[i];
-			}
-		}
-
-		return nullptr;
-	}
-
-	std::vector<EntityBaseFactory*> EntityBaseFactory::smFactories;
-
-
-	//for now, all EntityBase registrations need to be put here in order to guarantee the are created AFTER the vector in the factory
-
-	REGISTER_ENTITY_BASE(0x810, EntityBase_Weapon)
-	REGISTER_ENTITY_BASE(0x820, EntityBase_Book)
-	REGISTER_ENTITY_BASE(0x821, EntityBase_Stuff)
-
-
-
-
-	Entity::Entity(UID uid, EntityBase *base)
+	WorldEntity::WorldEntity(UID uid, WorldEntityBase *base, WorldManager *worldManager)
 	: mUID(uid),
-	  mBase(base)
+	  mBase(base),
+	  mWorldManager(worldManager),
+	  mHidden(false)
 	{
 		if(mBase != nullptr)
 		{
@@ -100,7 +26,7 @@ namespace Stoneship
 		}
 	}
 
-	Entity::~Entity()
+	WorldEntity::~WorldEntity()
 	{
 		if((mBase != nullptr) && (mBase->mUserCount > 0))
 		{
@@ -108,14 +34,29 @@ namespace Stoneship
 		}
 	}
 
-	UID Entity::getUID() const
+	UID WorldEntity::getUID() const
 	{
 		return mUID;
 	}
 
-	EntityBase *Entity::getBase() const
+	WorldEntityBase *WorldEntity::getBase() const
 	{
 		return mBase;
+	}
+
+	void WorldEntity::remove()
+	{
+		mWorldManager->removeEntity(mUID);
+	}
+
+	bool WorldEntity::isHidden() const
+	{
+		return mHidden;
+	}
+
+	void WorldEntity::setHidden(bool hidden)
+	{
+		mHidden = hidden;
 	}
 }
 

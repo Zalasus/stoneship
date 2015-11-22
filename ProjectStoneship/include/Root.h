@@ -13,11 +13,36 @@
 namespace Stoneship
 {
 
+	class MGFManager;
+	class EntityManager;
+	class WorldManager;
+	class ResourceManager;
+
+	//TODO: Important methods in Root and all Managers should be virtual to enable creation of custom manager classes by extending existing ones
+
 	class Root
 	{
 	public:
 
-		Options &getOptions();
+		Root();
+		virtual ~Root();
+
+		virtual Options &getOptions();
+
+		virtual MGFManager *getMGFManager();
+		virtual EntityManager *getEntityManager();
+		virtual WorldManager *getWorldManager();
+		virtual ResourceManager *getResourceManager();
+
+
+	private:
+		Options mOptions;
+
+		MGFManager *mMGFManager;
+		EntityManager *mEntityManager;
+		WorldManager *mWorldManager;
+		ResourceManager *mResourceManager;
+
 	};
 
 }

@@ -69,13 +69,17 @@ namespace Stoneship
 		Record::Type type;
 		uint32_t dataSize;
 
-		//not used by groups. undefined in group headers
-		uint16_t flags;
-		UID::ID id;
+		union
+		{
+			uint16_t flags;
+			Record::Type groupType; //only used in group records
+		};
 
-		//only used by groups. undefined for others
-		Record::Type groupType;
-		uint32_t recordCount;
+		union
+		{
+			UID::ID id;
+			uint32_t recordCount; //only used in group records
+		};
 
 		inline bool isDeleted() {return flags | 0x01;};
 

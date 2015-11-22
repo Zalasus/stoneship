@@ -1,12 +1,11 @@
 /*
- * MasterGameFileManager.cpp
+ * MGFManager.cpp
  *
  *  Created on: 27.08.2015
  *      Author: Niklas Weissner
  */
 
-#include "MasterGameFileManager.h"
-
+#include "MGFManager.h"
 #include "MasterGameFile.h"
 #include "StoneshipException.h"
 #include "Entity.h"
@@ -14,14 +13,14 @@
 namespace Stoneship
 {
 
-	MasterGameFileManager::MasterGameFileManager(Root *root)
+	MGFManager::MGFManager(Root *root)
 	: mRoot(root),
 	  mCurrentSaveFile(nullptr),
 	  mLoadedGameFileCount(0)
 	{
 	}
 
-	MasterGameFileManager::~MasterGameFileManager()
+	MGFManager::~MGFManager()
 	{
 		for(uint32_t i = 0; i < mGameFiles.size(); i++)
 		{
@@ -34,10 +33,10 @@ namespace Stoneship
 		}
 	}
 
-	void MasterGameFileManager::loadMGF(const String& filename)
+	void MGFManager::loadMGF(const String& filename)
 	{
 		UID::Ordinal ordinal = mGameFiles.size();
-		MasterGameFile *mgf = new MasterGameFile(filename, ordinal, *this);
+		MasterGameFile *mgf = new MasterGameFile(filename, ordinal, this, mRoot->getResourceManager());
 		mGameFiles.push_back(mgf);
 
 		mgf->load();
@@ -45,12 +44,12 @@ namespace Stoneship
 		mLoadedGameFileCount++;
 	}
 
-	uint32_t MasterGameFileManager::getLoadedMGFCount() const
+	uint32_t MGFManager::getLoadedMGFCount() const
 	{
 		return mLoadedGameFileCount;
 	}
 
-	MasterGameFile *MasterGameFileManager::getLoadedMGF(UID::Ordinal ordinal)
+	MasterGameFile *MGFManager::getLoadedMGF(UID::Ordinal ordinal)
 	{
 		if(ordinal == UID::SELF_REF_ORDINAL)
 		{
@@ -70,7 +69,7 @@ namespace Stoneship
 		return mGameFiles[ordinal];
 	}
 
-	MasterGameFile *MasterGameFileManager::getLoadedMGF(const String &filename)
+	MasterGameFile *MGFManager::getLoadedMGF(const String &filename)
 	{
 		for(uint32_t i = 0; i < mGameFiles.size(); i++)
 		{
@@ -83,7 +82,7 @@ namespace Stoneship
 		return nullptr;
 	}
 
-	void MasterGameFileManager::loadSGF(const String &savename)
+	void MGFManager::loadSGF(const String &savename)
 	{
 		if(mCurrentSaveFile != nullptr)
 		{
@@ -94,13 +93,13 @@ namespace Stoneship
 			mCurrentSaveFile = nullptr;
 		}
 
-		mCurrentSaveFile = new MasterGameFile(savename, UID::SELF_REF_ORDINAL, *this);
+		mCurrentSaveFile = new MasterGameFile(savename, UID::SELF_REF_ORDINAL, this, mRoot->getResourceManager());
 		mCurrentSaveFile->load();
 	}
 
 
 	//TODO: These functions look almost identical. I don't like that
-	RecordAccessor MasterGameFileManager::getRecordByID(UID id)
+	RecordAccessor MGFManager::getRecordByID(UID id)
 	{
 		MasterGameFile *mgf = getLoadedMGF(id.ordinal);
 
@@ -112,7 +111,7 @@ namespace Stoneship
 		return mgf->getRecordByID(id.id);
 	}
 
-	RecordAccessor MasterGameFileManager::getRecordByTypeID(UID id, Record::Type type)
+	RecordAccessor MGFManager::getRecordByTypeID(UID id, Record::Type type)
 	{
 		MasterGameFile *mgf = getLoadedMGF(id.ordinal);
 
@@ -125,7 +124,7 @@ namespace Stoneship
 	}
 
 #ifdef _DEBUG
-	RecordAccessor MasterGameFileManager::getRecordByEditorName(const String &name, Record::Type type)
+	RecordAccessor MGFManager::getRecordByEditorName(const String &name, Record::Type type)
 	{
 		for(uint16_t i = 0; i < mLoadedGameFileCount; ++i)
 		{
@@ -147,7 +146,7 @@ namespace Stoneship
 	}
 #endif
 
-	void MasterGameFileManager::applyModifications(EntityBase *base)
+	void MGFManager::applyModifications(EntityBase *base)
 	{
 		for(uint32_t i = 0; i < mLoadedGameFileCount; ++i) // modifications are applied incrementally. not sure if this is the most efficient way, but it should work
 		{

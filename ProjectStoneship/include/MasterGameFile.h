@@ -11,16 +11,18 @@
 #include <fstream>
 #include <ios>
 #include <vector>
+#include <ctime>
 
 #include "String.h"
 #include "Record.h"
+#include "ResourceManager.h"
 #include "Util.h"
 
 
 namespace Stoneship
 {
 
-	class MasterGameFileManager;
+	class MGFManager;
 	class EntityBase;
 
 	class MasterGameFile
@@ -50,7 +52,7 @@ namespace Stoneship
 			std::streampos offset;
 		};
 
-		MasterGameFile(const String &filename, UID::Ordinal ordinal, MasterGameFileManager &manager);
+		MasterGameFile(const String &filename, UID::Ordinal ordinal, MGFManager *mgfManager, ResourceManager *resourceManager);
 		virtual ~MasterGameFile();
 
 		virtual void load();
@@ -60,11 +62,12 @@ namespace Stoneship
 		const String &getFilename() const;
 		UID::Ordinal getOrdinal() const;
 		const String &getAuthor() const;
+		const String &getDescription() const;
+		const std::tm *getTimestamp() const;
 		uint16_t getDependencyCount() const;
 		const Dependency *getDependencies() const;
-		const String &getDescription() const;
-		uint32_t getRecordGroupCount() const;
 		uint16_t getResourceCount() const;
+		uint32_t getRecordGroupCount() const;
 		bool isLoaded() const;
 
 		/**
@@ -91,28 +94,36 @@ namespace Stoneship
 		inline void _indexModifies(uint32_t recordCount);
 		OffsetHint *_getHint(Record::Type t);
 
-
 		String mFilename;
 		std::ifstream mInputStream;
 		UID::Ordinal mOrdinal;
-		MasterGameFileManager &mManager;
+		MGFManager *mMGFManager;
+		ResourceManager *mResourceManager;
 
 		bool mLoaded;
 
 		uint32_t mFlags;
 		String mAuthor;
 		String mDescription;
+		std::tm mTimestamp;
 
 		uint16_t mDependencyCount;
 		Dependency *mDependencies;
 		uint16_t mResourceCount;
 		OffsetHint *mHints;
+		OffsetHint *mCachedHint;
 		uint32_t mRecordCount;
 		uint32_t mRecordGroupCount;
 
 		std::streampos mHeaderEndOfffset;
 
 		std::vector<ModHint> mMods; //TODO: Replace this with array. we know the total amount of records
+
+
+		static const uint8_t RES_TYPE_SINGLE = 0;
+		static const uint8_t RES_TYPE_FS = 1;
+		static const uint8_t RES_TYPE_ZIP = 2;
+		static const uint8_t RES_TYPE_GZIP = 3;
 	};
 
 }

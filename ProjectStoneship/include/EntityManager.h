@@ -23,7 +23,7 @@ namespace Stoneship
 	{
 	public:
 
-		EntityManager(MasterGameFileManager &mgfManager);
+		EntityManager(Root *root);
 		~EntityManager();
 
 		EntityBase *getBase(const UID &uid, Record::Type type = Record::TYPE_LOOKUP_ALL);
@@ -34,7 +34,7 @@ namespace Stoneship
 
 	private:
 
-		MasterGameFileManager &mMGFManager;
+		Root *mRoot;
 
 		std::vector<EntityBase*> mBaseCache;
 		//std::unordered_map<uint64_t, EntityBase*> mBaseCache;

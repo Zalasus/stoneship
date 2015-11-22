@@ -12,14 +12,36 @@
 namespace Stoneship
 {
 
-	EntityBase_Book::EntityBase_Book(Record::Type recordType, UID uid)
-	: ItemBase(recordType, uid)
+
+	EntityBase_Static::EntityBase_Static(UID uid)
+	: WorldEntityBase(uid)
+	{
+	}
+
+	void EntityBase_Static::loadFromRecord(RecordAccessor record)
+	{
+		WorldEntityBase::loadFromRecord(record);
+	}
+
+	void EntityBase_Static::modifyFromRecord(RecordAccessor record)
+	{
+	}
+
+	bool EntityBase_Static::onInteract(Entity *entity, Actor *actor)
+	{
+		return false;
+	}
+
+
+
+	EntityBase_Book::EntityBase_Book(UID uid)
+	: ItemBase(uid)
 	{
 	}
 
 	void EntityBase_Book::loadFromRecord(RecordAccessor record)
 	{
-		WorldObjectBase::loadFromRecord(record);
+		WorldEntityBase::loadFromRecord(record);
 		ItemBase::loadFromRecord(record);
 
 		record.getReaderForSubrecord(Record::SUBTYPE_DATA)
@@ -44,28 +66,27 @@ namespace Stoneship
 		}
 	}
 
-	String EntityBase_Book::getText() const
-	{
-		return mText;
-	}
-
-	bool EntityBase_Book::onUse(ItemStack &stack)
+	bool EntityBase_Book::onUse(ItemStack &stack, Actor &actor)
 	{
 		std::cout << mText << std::endl;
 
 		return true;
 	}
 
-	String EntityBase_Book::getBaseName()
+	bool EntityBase_Book::onInteract(Entity *entity, Actor *actor)
 	{
-		return "Book";
+		return _pickupOnInteract(entity, actor);
+	}
+
+	String EntityBase_Book::getText() const
+	{
+		return mText;
 	}
 
 
 
-
-	EntityBase_Weapon::EntityBase_Weapon(Record::Type recordType, UID uid)
-	: ItemBase(recordType, uid),
+	EntityBase_Weapon::EntityBase_Weapon(UID uid)
+	: ItemBase(uid),
 	  mWeaponType(SWORD_ONE_HAND),
 	  mDamage(0),
 	  mDurability(0),
@@ -75,7 +96,7 @@ namespace Stoneship
 
 	void EntityBase_Weapon::loadFromRecord(RecordAccessor record)
 	{
-		WorldObjectBase::loadFromRecord(record);
+		WorldEntityBase::loadFromRecord(record);
 		ItemBase::loadFromRecord(record);
 
 		uint8_t weaponType;
@@ -113,37 +134,26 @@ namespace Stoneship
 		return mReach;
 	}
 
-	bool EntityBase_Weapon::onUse(ItemStack &stack)
+	bool EntityBase_Weapon::onUse(ItemStack &stack, Actor &actor)
 	{
 		return false;
 	}
 
-	String EntityBase_Weapon::getBaseName()
+	bool EntityBase_Weapon::onInteract(Entity *entity, Actor *actor)
 	{
-		switch(mWeaponType)
-		{
-		case SWORD_ONE_HAND:
-		case SWORD_TWO_HAND:
-			return "Sword";
-
-		case BLUNT:
-			return "... blunt weapon";
-
-		case BOW:
-			return "Bow";
-		}
-		return "Weapon";
+		return _pickupOnInteract(entity, actor);
 	}
 
 
-	EntityBase_Stuff::EntityBase_Stuff(Record::Type recordType, UID uid)
-	: ItemBase(recordType, uid)
+
+	EntityBase_Stuff::EntityBase_Stuff(UID uid)
+	: ItemBase(uid)
 	{
 	}
 
 	void EntityBase_Stuff::loadFromRecord(RecordAccessor record)
 	{
-		WorldObjectBase::loadFromRecord(record);
+		WorldEntityBase::loadFromRecord(record);
 		ItemBase::loadFromRecord(record);
 	}
 
@@ -152,14 +162,14 @@ namespace Stoneship
 		loadFromRecord(record);
 	}
 
-	bool EntityBase_Stuff::onUse(ItemStack &stack)
+	bool EntityBase_Stuff::onUse(ItemStack &stack, Actor &actor)
 	{
 		return false;
 	}
 
-	String EntityBase_Stuff::getBaseName()
+	bool EntityBase_Stuff::onInteract(Entity *entity, Actor *actor)
 	{
-		return "Thing";
+		return _pickupOnInteract(entity, actor);
 	}
 
 }

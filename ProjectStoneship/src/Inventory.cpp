@@ -6,6 +6,7 @@
  */
 
 #include "Inventory.h"
+#include "ItemBase.h"
 
 namespace Stoneship
 {
@@ -83,34 +84,78 @@ namespace Stoneship
 		return mItems;
 	}
 
-	bool Inventory::addItem(ItemBase *itemBase, uint32_t count)
+	uint32_t Inventory::addItem(EntityBase *base, uint32_t count)
 	{
-		if(!itemBase->isNotStackable()) //is item stackable?
+		uint32_t countRemaining = count;
+
+		if(!(base->getBaseType() & EntityBase::BASETYPE_ITEM))
+		{
+			STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Can't add non-ItemBase-entity to inventory");
+		}
+
+		ItemBase *itemBase = static_cast<ItemBase*>(base);
+
+		if(itemBase->isStackable()) //is item stackable?
 		{
 			//already got a stack of that item?
 			auto it = mItems.begin();
-			while(it != mItems.end())
+			while(it != mItems.end() && countRemaining > 0)
 			{
 				if(it->getItemBase() == itemBase)
 				{
-					it->setCount(it->getCount() + count); //yes, increase count
+					//yes, we already have a stack
 
-					return true;
+					uint32_t oldStackSize = it->getCount();
+					uint32_t newStackSize = oldStackSize + countRemaining;
+
+					//is stack size limited and would writing new count exceed the limit?
+					if((itemBase->getMaxStackSize() > 0) && (newStackSize > itemBase->getMaxStackSize()))
+					{
+						//set count to maximum
+						newStackSize = itemBase->getMaxStackSize();
+					}
+
+					it->setCount(newStackSize);
+
+					countRemaining -= newStackSize - oldStackSize;
+
 				}
 
 				++it;
 			}
 		}
 
-		//create new stack if enough slots free
-		if(getFreeSlots() >= itemBase->getSlots())
+		while(countRemaining > 0)
 		{
-			mItems.push_back(ItemStack(itemBase, count));
+			uint32_t newStackSize = countRemaining;
 
-			return true;
+			//is stack size limited and would current stack size exceed maximum?
+			if((itemBase->getMaxStackSize() > 0) && (countRemaining > itemBase->getMaxStackSize()))
+			{
+				//yes, limit this stack to maximum. we'll process the remaining items in the next iteration
+
+				newStackSize = itemBase->getMaxStackSize();
+			}
+
+			//create new stack if enough slots free
+			if(getFreeSlots() >= itemBase->getSlots())
+			{
+				mItems.push_back(ItemStack(itemBase, newStackSize));
+				countRemaining -= newStackSize;
+
+			}else
+			{
+				//can't add any more stacks. we are done here
+				break;
+			}
 		}
 
-		return false;
+		return count - countRemaining;
+	}
+
+	uint32_t Inventory::addItem(const ItemStack &stack)
+	{
+		return addItem(stack.getItemBase(), stack.getCount());
 	}
 
 	bool Inventory::removeItem(uint32_t index, uint32_t count)

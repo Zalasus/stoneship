@@ -9,15 +9,19 @@
 
 #include "MGFDataReader.h"
 
-
 namespace Stoneship
 {
 
-	ItemBase::ItemBase(Record::Type recordType, UID uid)
-	: WorldObjectBase(recordType, uid),
+	ItemBase::ItemBase(UID uid)
+	: WorldEntityBase(uid),
 	  mFlags(0),
 	  mValue(0),
-	  mSlots(0)
+	  mSlots(0),
+	  mMaxStackSize(0)
+	{
+	}
+
+	ItemBase::~ItemBase()
 	{
 	}
 
@@ -33,8 +37,9 @@ namespace Stoneship
 				.readUInt(mValue);
 
 		record.getReaderForSubrecord(Record::SUBTYPE_INVENTORY)
+				.readUByte(mFlags)
 				.readUByte(mSlots)
-				.readUByte(mFlags);
+				.readUInt(mMaxStackSize);
 
 		record.getReaderForSubrecord(Record::SUBTYPE_ICON)
 				.readBString(mIconFile);
@@ -66,6 +71,16 @@ namespace Stoneship
 		return mSlots;
 	}
 
+	uint32_t ItemBase::getMaxStackSize() const
+	{
+		return mMaxStackSize;
+	}
+
+	bool ItemBase::isStackable() const
+	{
+		return mMaxStackSize != 1;
+	}
+
 	String ItemBase::getIconFile() const
 	{
 		return mIconFile;
@@ -74,6 +89,15 @@ namespace Stoneship
 	UID ItemBase::getIdentifiedUID() const
 	{
 		return mIdentified;
+	}
+
+	bool ItemBase::_pickupOnInteract(Entity *entity, Actor *actor)
+	{
+		actor->getInventory().addItem(entity->getBase(), 1); //TODO: Use count field of entity record instead of fixed value
+
+		entity->remove();
+
+		return true;
 	}
 }
 

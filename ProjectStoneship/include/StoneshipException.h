@@ -34,6 +34,7 @@ namespace Stoneship
 			IO_ERROR,
 			DATA_FORMAT,
 			DEPENDENCY_NOT_MET,
+			RESOURCE_ERROR,
 			UNSUPPSORTED
 		};
 

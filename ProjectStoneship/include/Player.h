@@ -8,12 +8,24 @@
 #ifndef INCLUDE_PLAYER_H_
 #define INCLUDE_PLAYER_H_
 
+#include "Actor.h"
+#include "Inventory.h"
 
 namespace Stoneship
 {
 
-	class Player
+	class Player : public Actor
 	{
+	public:
+
+		Player();
+
+		Inventory &getInventory();
+
+
+	private:
+
+		Inventory mInventory;
 
 	};
 

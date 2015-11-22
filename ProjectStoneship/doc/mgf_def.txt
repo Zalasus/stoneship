@@ -27,8 +27,10 @@ byte[8]: 		 magic id = "NRPG3MGF"
 bstring:		 game id
 int:			 file flags
 
+(meta information)
 sstring:		 author (name of MGF's author)
 sstring:		 description (descripton of MGF's content)
+ulong:           timestamp (in UNIX epoch milliseconds format)
 
 short:			 dependency count
 dependency[~]:	 dependencies (list of MGFs which hold content that's used by this MGF and must be loaded before it)
@@ -62,9 +64,10 @@ A MGF may specify additional resource locations, which are used aside the defaul
 Resource locations may be folders or archive files. The type field in a resource entry speciefies how to
 handle the resource given in the path field. The following values are possible:
 
-	0: File system (for simple folders)
-	1: Zip file (resources are packed in a .zip archive)
-	2: Gzip file (Implementation is considered optional for now)
+	0: Single file
+	1: File system (for simple folders)
+	2: Zip file (resources are packed in a .zip archive)
+	3: Gzip file (Implementation is considered optional for now)
 
 
 Size fields
@@ -333,6 +336,7 @@ Common subrecord types with typical fields they contain (these definitions may n
 	
 2: world model information
 	bstring: model resource name
+	float: model scale
 	
 	
 	
@@ -348,8 +352,9 @@ Common subrecord types with typical fields they contain (these definitions may n
 	int: trading value
 	
 9: inventory information
-	byte: slot count
-	byte: item flags (0x01 = essential item, 0x02 = accepted as currency, 0x04 = is unidentified, 0x08 = does not stack)
+	byte: item flags (0x01 = IS_ESSENTIAL, 0x02 = IS_CURRENCY, 0x04 = IS_UNIDENTIFIED, 0x10 = IS_UNIQUE)
+	byte: slot count (0 means item does not take up any slots)
+	int: max stack size (0 means unlimited, 1 means does not stack (formerly set by flag))
 	
 A: icon data
 	bstring: icon resource name

@@ -1,12 +1,12 @@
 /*
- * MasterGameFileManager.h
+ * MGFManager.h
  *
  *  Created on: 27.08.2015
  *      Author: Zalasus
  */
 
-#ifndef INCLUDE_MASTERGAMEFILEMANAGER_H_
-#define INCLUDE_MASTERGAMEFILEMANAGER_H_
+#ifndef INCLUDE_MGFMANAGER_H_
+#define INCLUDE_MGFMANAGER_H_
 
 #include <vector>
 
@@ -22,12 +22,12 @@ namespace Stoneship
 	class MasterGameFile;
 	class EntityBase;
 
-	class MasterGameFileManager
+	class MGFManager
 	{
 	public:
 
-		MasterGameFileManager(Root *root);
-		~MasterGameFileManager();
+		MGFManager(Root *root);
+		~MGFManager();
 
 		void loadMGF(const String &filename);
 		uint32_t getLoadedMGFCount() const;
@@ -66,4 +66,4 @@ namespace Stoneship
 
 }
 
-#endif /* INCLUDE_MASTERGAMEFILEMANAGER_H_ */
+#endif /* INCLUDE_MGFMANAGER_H_ */

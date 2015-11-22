@@ -10,11 +10,13 @@
 
 #include <vector>
 
-#include "ItemBase.h"
-
+#include "Util.h"
 
 namespace Stoneship
 {
+
+	class EntityBase;
+	class ItemBase;
 
 	class ItemStack
 	{
@@ -45,7 +47,12 @@ namespace Stoneship
 
 		std::vector<ItemStack> &getItems();
 
-		bool addItem(ItemBase *itemBase, uint32_t count = 1);
+		/**
+		 * @returns The actual amount of items that were added to the inventory
+		 */
+		uint32_t addItem(EntityBase *base, uint32_t count = 1);
+		uint32_t addItem(const ItemStack &stack);
+
 		bool removeItem(uint32_t index, uint32_t count = 1);
 
 	private:

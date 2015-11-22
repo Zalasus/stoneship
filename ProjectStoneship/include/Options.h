@@ -8,15 +8,25 @@
 #ifndef INCLUDE_OPTIONS_H_
 #define INCLUDE_OPTIONS_H_
 
+#include "String.h"
 
 namespace Stoneship
 {
+
+	class Root;
 
 	class Options
 	{
 	public:
 
-		const String &getSavegamePrefix() const;
+		Options(Root *root);
+
+		void load(const String &path);
+
+
+	private:
+
+		Root *mRoot;
 
 	};
 

@@ -8,47 +8,53 @@
 #ifndef INCLUDE_ITEMBASE_H_
 #define INCLUDE_ITEMBASE_H_
 
+#include "WorldEntityBase.h"
 #include "Util.h"
 #include "String.h"
 #include "Entity.h"
 #include "Record.h"
-#include "WorldObjectBase.h"
 
 namespace Stoneship
 {
 	class ItemStack;
 
-	class ItemBase : public WorldObjectBase
+	class Actor;
+
+	class ItemBase : public WorldEntityBase
 	{
 	public:
+
+		virtual ~ItemBase();
 
 		String getDisplayName() const;
 		String getDescription() const;
 		uint32_t getValue() const;
 		uint8_t getSlots() const;
+		uint32_t getMaxStackSize() const;
+		bool isStackable() const;
 		String getIconFile() const;
 		UID getIdentifiedUID() const;
 
-		virtual void loadFromRecord(RecordAccessor record);
+		void loadFromRecord(RecordAccessor record);
 
-		virtual bool onUse(ItemStack &stack) = 0;
+		virtual bool onUse(ItemStack &stack, Actor &a) = 0;
 
+		inline bool isEssential() const { return mFlags & FLAGS_IS_ESSENTIAL; }
+		inline bool isCurrency() const { return mFlags & FLAGS_IS_CURRENCY; }
+		inline bool isUnidentified() const { return mFlags & FLAGS_IS_UNIDENTIFIED; }
+		inline bool isUnique() const { return mFlags & FLAGS_IS_UNIQUE; }
 
-		inline bool isEssential() const { return mFlags & FLAGS_ESSENTIAL; }
-		inline bool isCurrency() const { return mFlags & FLAGS_CURRENCY; }
-		inline bool isUnidentified() const { return mFlags & FLAGS_UNIDENTIFIED; }
-		inline bool isNotStackable() const { return mFlags & FLAGS_DOES_NOT_STACK; }
-
-		static const uint8_t FLAGS_ESSENTIAL = 0x01;
-		static const uint8_t FLAGS_CURRENCY = 0x02;
-		static const uint8_t FLAGS_UNIDENTIFIED = 0x04;
-		static const uint8_t FLAGS_DOES_NOT_STACK = 0x08;
+		static const uint8_t FLAGS_IS_ESSENTIAL = 0x01;
+		static const uint8_t FLAGS_IS_CURRENCY = 0x02;
+		static const uint8_t FLAGS_IS_UNIDENTIFIED = 0x04;
+		static const uint8_t FLAGS_IS_UNIQUE = 0x10;
 
 
 	protected:
 
-		ItemBase(Record::Type recordType, UID uid);
+		ItemBase(UID uid);
 
+		bool _pickupOnInteract(Entity *entity, Actor *actor);
 
 	private:
 
@@ -57,6 +63,7 @@ namespace Stoneship
 		String mDescription;
 		uint32_t mValue;
 		uint8_t mSlots;
+		uint32_t mMaxStackSize;
 		String mIconFile;
 		UID mIdentified;
 	};

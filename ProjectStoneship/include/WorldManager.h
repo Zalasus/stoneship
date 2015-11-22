@@ -8,7 +8,7 @@
 #ifndef INCLUDE_WORLDMANAGER_H_
 #define INCLUDE_WORLDMANAGER_H_
 
-#include "MasterGameFileManager.h"
+#include "MGFManager.h"
 #include "EntityManager.h"
 
 namespace Stoneship
@@ -18,7 +18,7 @@ namespace Stoneship
 	{
 	public:
 
-		WorldManager(MasterGameFileManager &mgfManager, EntityManager &entityManager);
+		WorldManager(Root *root);
 		~WorldManager();
 
 		void unloadEntities();
@@ -26,17 +26,16 @@ namespace Stoneship
 		void enterWorld(UID worldUID);
 
 		String getDungeonName();
-		std::vector<Entity*> &getEntities();
+		std::vector<WorldEntity*> &getEntities();
+		void removeEntity(UID entityUID);
 
 
 	private:
 
-		MasterGameFileManager &mMGFManager;
-		EntityManager &mEntityManager;
-
+		Root *mRoot;
 
 		String mDungeonName;
-		std::vector<Entity*> mEntities;
+		std::vector<WorldEntity*> mEntities;
 
 	};
 

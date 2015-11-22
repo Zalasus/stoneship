@@ -13,12 +13,11 @@
 namespace Stoneship
 {
 
-
 	class SaveGameFile : public MasterGameFile
 	{
 	public:
 
-		SaveGameFile(const String &filename, UID::Ordinal ordinal, MasterGameFileManager &manager);
+		SaveGameFile(const String &filename, UID::Ordinal ordinal, MGFManager *manager, ResourceManager *resourceManager);
 		~SaveGameFile();
 
 		void load();

@@ -9,12 +9,15 @@
 
     k_sstring 'Zalasus'                                ; author
     k_sstring 'The main game file for Skin And Scales' ; description
+    k_long 0x5649A4D3 ; timestamp
 
     k_short 0 ; dependency count
 
-    k_short 0 ; resource count
+    k_short 1 ; resource count
+    k_byte 1
+    k_sstring 'sas_data/'
 
-    k_int 4 ; record group count
+    k_int 5 ; record group count
 
 
     
@@ -28,6 +31,7 @@ book_group_start:
     r_begin 0x820
         r_sub_begin SUB_MODEL
             k_bstring 'bookQuarto1.model'
+            k_float 1.3
         r_sub_end
 
         r_sub_begin SUB_DISPLAY
@@ -43,8 +47,9 @@ book_group_start:
         r_sub_end
 
         r_sub_begin SUB_INVENTORY
-            k_byte 0x00
-            k_byte 0x00
+            k_byte 0x00 ; flags
+            k_byte 1 ; slot count
+            k_int 2     ; max stack size
         r_sub_end
 
         r_sub_begin SUB_ICON
@@ -60,6 +65,7 @@ book_group_start:
     r_begin 0x820
         r_sub_begin SUB_MODEL
             k_bstring 'bookFolio1.model'
+            k_float 1.2
         r_sub_end
 
         r_sub_begin SUB_DISPLAY
@@ -76,7 +82,8 @@ book_group_start:
 
         r_sub_begin SUB_INVENTORY
             k_byte 0x00
-            k_byte 0x00
+            k_byte 1
+            k_int 0
         r_sub_end
 
         r_sub_begin SUB_ICON
@@ -103,6 +110,7 @@ weapon_group_start:
     r_begin 0x810
         r_sub_begin SUB_MODEL
             k_bstring 'sword1.model'
+            k_float 1.0
         r_sub_end
 
         r_sub_begin SUB_DISPLAY
@@ -118,8 +126,9 @@ weapon_group_start:
         r_sub_end
 
         r_sub_begin SUB_INVENTORY
-            k_byte 0x00
-            k_byte 0x00
+            k_byte 0
+            k_byte 2
+            k_int 1
         r_sub_end
 
         r_sub_begin SUB_ICON
@@ -137,6 +146,7 @@ weapon_group_start:
     r_begin 0x810
         r_sub_begin SUB_MODEL
             k_bstring 'dagger1.model'
+            k_float 1.0
         r_sub_end
 
         r_sub_begin SUB_DISPLAY
@@ -152,8 +162,9 @@ weapon_group_start:
         r_sub_end
 
         r_sub_begin SUB_INVENTORY
-            k_byte 0x00
-            k_byte 0x00
+            k_byte IS_UNIQUE | IS_ESSENTIAL
+            k_byte 1
+            k_int 1
         r_sub_end
 
         r_sub_begin SUB_ICON
@@ -185,6 +196,7 @@ stuff_group_start:
     r_begin 0x821
         r_sub_begin SUB_MODEL
             k_bstring 'gunk.model'
+            k_float 1.0
         r_sub_end
 
         r_sub_begin SUB_DISPLAY
@@ -201,7 +213,8 @@ stuff_group_start:
 
         r_sub_begin SUB_INVENTORY
             k_byte 0x00
-            k_byte 0x00
+            k_byte 1
+            k_int 0
         r_sub_end
 
         r_sub_begin SUB_ICON
@@ -212,6 +225,7 @@ stuff_group_start:
     r_begin 0x821
         r_sub_begin SUB_MODEL
             k_bstring 'dagger1.model'
+            k_float 1.0
         r_sub_end
 
         r_sub_begin SUB_DISPLAY
@@ -227,8 +241,9 @@ stuff_group_start:
         r_sub_end
 
         r_sub_begin SUB_INVENTORY
-            k_byte 0x00
-            k_byte 0x04
+            k_byte IS_UNIDENTIFIED | IS_ESSENTIAL | IS_UNIQUE
+            k_byte 1
+            k_int 1
         r_sub_end
 
         r_sub_begin SUB_ICON
@@ -243,6 +258,7 @@ stuff_group_start:
     r_begin 0x821
         r_sub_begin SUB_MODEL
             k_bstring 'teapot.model'
+            k_float 1.0
         r_sub_end
 
         r_sub_begin SUB_DISPLAY
@@ -259,7 +275,8 @@ stuff_group_start:
 
         r_sub_begin SUB_INVENTORY
             k_byte 0x00
-            k_byte 0x00
+            k_byte 1
+            k_int 0
         r_sub_end
 
         r_sub_begin SUB_ICON
@@ -268,7 +285,37 @@ stuff_group_start:
     r_end
     
 stuff_group_end:
+   
+;------------------------------------------------------------------------------
+    k_short 0
+    k_int (static_group_end - static_group_start)
+    k_short 0x800
+    k_int 0x02
+static_group_start:
     
+    r_begin 0x800
+        r_sub_begin SUB_MODEL
+            k_bstring 'teapot.model'
+            k_float 1.0
+        r_sub_end
+
+        r_sub_begin SUB_EDITOR
+            k_sstring 'teapotCommon'
+        r_sub_end
+    r_end
+
+    r_begin 0x800
+        r_sub_begin SUB_MODEL
+            k_bstring 'cube.model'
+            k_float 1.0
+        r_sub_end
+
+        r_sub_begin SUB_EDITOR
+            k_sstring 'cubeTest'
+        r_sub_end
+    r_end
+    
+static_group_end: 
     
 ;------------------------------------------------------------------------------
     k_short 0
@@ -286,11 +333,18 @@ world_group_start:
     ; world entity group
     k_short 0
     k_int (world_entity_group_end - world_entity_group_start)
-    k_short 0xC0
-    k_int 0x01
+    k_short REC_ENTITY
+    k_int 0x02
     world_entity_group_start:
     
-        r_begin 0x03
+        r_begin REC_ENTITY
+            r_sub_begin 0x01
+                s_uid 0xFFFF,9
+                k_short 0x800
+            r_sub_end
+        r_end
+
+        r_begin REC_ENTITY
             r_sub_begin 0x01
                 s_uid 0xFFFF,1
                 k_short 0x820
