@@ -8,6 +8,9 @@
 #include "ItemBase.h"
 
 #include "MGFDataReader.h"
+#include "Inventory.h"
+#include "Actor.h"
+#include "Entity.h"
 
 namespace Stoneship
 {
@@ -95,7 +98,10 @@ namespace Stoneship
 	{
 		actor->getInventory().addItem(entity->getBase(), 1); //TODO: Use count field of entity record instead of fixed value
 
-		entity->remove();
+		if(entity->getEntityType() == Entity::ENTITYTYPE_WORLD)
+		{
+			static_cast<WorldEntity*>(entity)->remove();
+		}
 
 		return true;
 	}

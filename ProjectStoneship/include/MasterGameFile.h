@@ -8,22 +8,20 @@
 #ifndef INCLUDE_MASTERGAMEFILE_H_
 #define INCLUDE_MASTERGAMEFILE_H_
 
-#include <fstream>
-#include <ios>
 #include <vector>
+#include <fstream>
 #include <ctime>
 
+#include "Types.h"
 #include "String.h"
 #include "Record.h"
-#include "ResourceManager.h"
-#include "Util.h"
-
 
 namespace Stoneship
 {
 
-	class MGFManager;
-	class EntityBase;
+    class MGFManager;
+    class ResourceManager;
+    class EntityBase;
 
 	class MasterGameFile
 	{

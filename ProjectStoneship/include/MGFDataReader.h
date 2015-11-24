@@ -4,14 +4,13 @@
 
 #include <istream>
 
-#include "Util.h"
-#include "String.h"
-#include "StoneshipException.h"
+#include "Types.h"
+#include "Exception.h"
 
 namespace Stoneship
 {
 
-	class MasterGameFile;
+    class MasterGameFile;
 
 	class MGFDataReader
 	{

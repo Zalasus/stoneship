@@ -66,7 +66,7 @@ namespace Stoneship
 		}
 	}
 
-	bool EntityBase_Book::onUse(ItemStack &stack, Actor &actor)
+	bool EntityBase_Book::onUse(ItemStack *stack, Actor *actor)
 	{
 		std::cout << mText << std::endl;
 
@@ -134,7 +134,7 @@ namespace Stoneship
 		return mReach;
 	}
 
-	bool EntityBase_Weapon::onUse(ItemStack &stack, Actor &actor)
+	bool EntityBase_Weapon::onUse(ItemStack *stack, Actor *actor)
 	{
 		return false;
 	}
@@ -162,7 +162,7 @@ namespace Stoneship
 		loadFromRecord(record);
 	}
 
-	bool EntityBase_Stuff::onUse(ItemStack &stack, Actor &actor)
+	bool EntityBase_Stuff::onUse(ItemStack *stack, Actor *actor)
 	{
 		return false;
 	}

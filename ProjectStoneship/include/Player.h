@@ -8,6 +8,7 @@
 #ifndef INCLUDE_PLAYER_H_
 #define INCLUDE_PLAYER_H_
 
+#include "Types.h"
 #include "Actor.h"
 #include "Inventory.h"
 

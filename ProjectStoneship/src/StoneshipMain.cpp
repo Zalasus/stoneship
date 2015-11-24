@@ -5,20 +5,14 @@
  *      Author: Zalasus
  */
 
+#include <Exception.h>
 #include <MGFManager.h>
 #include <iostream>
 #include <vector>
 #include <sstream>
 #include <ctime>
 
-#include "String.h"
-#include "MasterGameFile.h"
-#include "EntityManager.h"
-#include "StoneshipException.h"
-#include "Inventory.h"
-#include "WorldManager.h"
-#include "ItemBase.h"
-#include "Player.h"
+#include "Stoneship.h"
 
 #include "bprinter/table_printer.h"
 
@@ -61,11 +55,11 @@ static void inv_use(const std::vector<Stoneship::String> &args)
 		return;
 	}
 
-	Stoneship::ItemStack &stack = player.getInventory().getItems()[index];
+	Stoneship::ItemStack *stack = &(player.getInventory().getItems()[index]);
 
-	if(!stack.getItemBase()->onUse(stack, player))
+	if(!stack->getItemBase()->onUse(stack, &player))
 	{
-		std::cout << "Can't use " << stack.getItemBase()->getDisplayName() << std::endl;
+		std::cout << "Can't use " << stack->getItemBase()->getDisplayName() << std::endl;
 	}
 }
 
@@ -225,10 +219,10 @@ static void world_look(const std::vector<Stoneship::String> &args)
 	std::cout << "You are standing in " << root->getWorldManager()->getDungeonName() << std::endl;
 	std::cout << "You see: " << std::endl;
 
-	const std::vector<Stoneship::WorldEntity*> &entities = root->getWorldManager()->getEntities();
+	const std::vector<Stoneship::Entity*> &entities = root->getWorldManager()->getEntities();
 	for(uint32_t i = 0 ; i < entities.size(); ++i)
 	{
-		Stoneship::WorldEntityBase *wob = entities[i]->getBase();
+		Stoneship::WorldEntityBase *wob = static_cast<Stoneship::WorldEntityBase*>(entities[i]->getBase());
 
 		std::cout << "[" << i << "] A " << wob->getBaseName() << std::endl;
 		std::cout << "    Model: " << wob->getModelName() << " (Scaled x" << wob->getModelScale() << ")" << std::endl;

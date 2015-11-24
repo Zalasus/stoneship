@@ -10,6 +10,8 @@
 
 #include <vector>
 
+#include "Types.h"
+#include "String.h"
 #include "Record.h"
 
 #define REGISTER_ENTITY_BASE(recordType, entityBaseClass) static EntityBase* create_ ## entityBaseClass ## _instance(UID uid) { return new entityBaseClass(uid); } static EntityBaseFactory entityBaseClass ## _factory(recordType, & create_ ## entityBaseClass ## _instance);
@@ -22,8 +24,8 @@ namespace Stoneship
 	{
 	public:
 
-		friend class WorldEntity;
-		friend class ItemStack;
+		friend class Entity;
+        friend class ItemStack; //TODO: I'd prefer a solution in which ItemStack just uses an Entity instance to do GC
 
 		typedef uint32_t BaseType;
 		static const BaseType BASETYPE_ITEM = 1;

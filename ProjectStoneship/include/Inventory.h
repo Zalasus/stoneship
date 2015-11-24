@@ -10,13 +10,12 @@
 
 #include <vector>
 
-#include "Util.h"
+#include "Types.h"
 
 namespace Stoneship
 {
 
-	class EntityBase;
-	class ItemBase;
+    class ItemBase;
 
 	class ItemStack
 	{
@@ -34,6 +33,9 @@ namespace Stoneship
 		ItemBase *mItemBase;
 		uint32_t mCount;
 	};
+
+
+	class EntityBase;
 
 	class Inventory
 	{

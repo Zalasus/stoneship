@@ -6,7 +6,7 @@
  */
 
 
-#include "StoneshipException.h"
+#include <Exception.h>
 
 #ifdef _DEBUG
 	#include <sstream>

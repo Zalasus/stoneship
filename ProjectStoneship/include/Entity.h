@@ -8,29 +8,50 @@
 #ifndef INCLUDE_ENTITY_H_
 #define INCLUDE_ENTITY_H_
 
+#include "Types.h"
 #include "Record.h"
 
 namespace Stoneship
 {
 
-	class WorldManager;
-	class WorldEntityBase;
+    class EntityBase;
 
 	class Entity
 	{
+	public:
 
+		enum EntityType
+		{
+			ENTITYTYPE_DEFAULT,
+			ENTITYTYPE_WORLD
+		};
+
+		Entity(UID uid, EntityBase *base);
+		virtual ~Entity();
+
+		virtual EntityType getEntityType() { return ENTITYTYPE_DEFAULT;}
+
+		UID getUID() const;
+		EntityBase *getBase() const;
+
+	private:
+
+		UID mUID;
+		EntityBase *mBase;
 
 	};
+
+
+	class WorldManager;
 
 	class WorldEntity : public Entity
 	{
 	public:
-		WorldEntity(UID uidOfEntity, WorldEntityBase *base, WorldManager *manager); //uidOfEntity is the UID of the reference, not the referenced base!!!
+		WorldEntity(UID uidOfEntity, EntityBase *base, WorldManager *manager); //uidOfEntity is the UID of the reference, not the referenced base!!!
 		WorldEntity(const WorldEntity &e) = delete; //don't copy me!
 		~WorldEntity();
 
-		UID getUID() const;
-		WorldEntityBase *getBase() const;
+		virtual EntityType getEntityType() { return ENTITYTYPE_WORLD;}
 
 		void remove();
 		void setHidden(bool hidden);
@@ -38,8 +59,6 @@ namespace Stoneship
 
 	private:
 
-		UID mUID;
-		WorldEntityBase *mBase;
 		WorldManager *mWorldManager;
 
 		bool mHidden;

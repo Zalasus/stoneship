@@ -7,6 +7,8 @@
 
 #include "MGFDataWriter.h"
 
+#include "MasterGameFile.h"
+
 namespace Stoneship
 {
 

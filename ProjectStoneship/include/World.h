@@ -14,9 +14,6 @@ namespace Stoneship
 	class World
 	{
 
-	private:
-
-		std::vector<>
 	};
 
 }

@@ -5,10 +5,11 @@
  *      Author: Niklas Weissner
  */
 
+#include "Exception.h"
 #include "MGFManager.h"
 #include "MasterGameFile.h"
-#include "StoneshipException.h"
 #include "Entity.h"
+#include "Root.h"
 
 namespace Stoneship
 {

@@ -8,17 +8,18 @@
 #ifndef INCLUDE_ROOT_H_
 #define INCLUDE_ROOT_H_
 
+#include "Types.h"
 #include "Options.h"
 
 namespace Stoneship
 {
 
-	class MGFManager;
-	class EntityManager;
-	class WorldManager;
-	class ResourceManager;
-
 	//TODO: Important methods in Root and all Managers should be virtual to enable creation of custom manager classes by extending existing ones
+
+    class MGFManager;
+    class EntityManager;
+    class WorldManager;
+    class ResourceManager;
 
 	class Root
 	{

@@ -5,11 +5,11 @@
  *      Author: Zalasus
  */
 
+#include <Exception.h>
 #include "Record.h"
 
 #include "MGFDataReader.h"
 #include "MasterGameFile.h"
-#include "StoneshipException.h"
 
 namespace Stoneship
 {

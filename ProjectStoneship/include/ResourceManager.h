@@ -8,10 +8,13 @@
 #ifndef INCLUDE_RESOURCEMANAGER_H_
 #define INCLUDE_RESOURCEMANAGER_H_
 
-#include "Root.h"
+#include "Types.h"
+#include "String.h"
 
 namespace Stoneship
 {
+
+    class Root;
 
 	class ResourceManager
 	{

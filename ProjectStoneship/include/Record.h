@@ -11,13 +11,11 @@
 #include <istream>
 #include <vector>
 
-#include "Util.h"
+#include "Types.h"
 #include "MGFDataReader.h"
 
 namespace Stoneship
 {
-
-	class MasterGameFile;
 
 	struct UID
 	{
@@ -91,6 +89,9 @@ namespace Stoneship
 		Record::Subtype type;
 		uint32_t dataSize;
 	};
+
+
+	class MasterGameFile;
 
 	class RecordAccessor
 	{

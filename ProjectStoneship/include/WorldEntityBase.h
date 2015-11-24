@@ -8,13 +8,16 @@
 #ifndef INCLUDE_WORLDENTITYBASE_H_
 #define INCLUDE_WORLDENTITYBASE_H_
 
+#include "Types.h"
+#include "String.h"
 #include "EntityBase.h"
-#include "Player.h"
+#include "Record.h"
 
 namespace Stoneship
 {
 
-	class Entity;
+    class Entity;
+    class Actor;
 
 	class WorldEntityBase : public EntityBase
 	{

@@ -8,12 +8,18 @@
 #ifndef INCLUDE_SAS_SASENTITYBASES_H_
 #define INCLUDE_SAS_SASENTITYBASES_H_
 
-#include <WorldEntityBase.h>
+#include "Types.h"
+#include "Record.h"
+#include "String.h"
+#include "EntityBase.h"
+#include "WorldEntityBase.h"
 #include "ItemBase.h"
-#include "Entity.h"
 
 namespace Stoneship
 {
+
+    class ItemStack;
+    class Entity;
 
 	class EntityBase_Static : public WorldEntityBase
 	{
@@ -27,7 +33,7 @@ namespace Stoneship
 		void loadFromRecord(RecordAccessor record);
 		void modifyFromRecord(RecordAccessor record);
 
-		bool onUse(ItemStack &stack, Actor &actor);
+		bool onUse(ItemStack *stack, Actor *actor);
 		bool onInteract(Entity *entity, Actor *actor);
 
 	};
@@ -45,7 +51,7 @@ namespace Stoneship
 		void loadFromRecord(RecordAccessor record);
 		void modifyFromRecord(RecordAccessor record);
 
-		bool onUse(ItemStack &stack, Actor &actor);
+		bool onUse(ItemStack *stack, Actor *actor);
 		bool onInteract(Entity *entity, Actor *actor);
 
 		String getText() const;
@@ -78,7 +84,7 @@ namespace Stoneship
 		void loadFromRecord(RecordAccessor record);
 		void modifyFromRecord(RecordAccessor record);
 
-		bool onUse(ItemStack &stack, Actor &actor);
+		bool onUse(ItemStack *stack, Actor *actor);
 		bool onInteract(Entity *entity, Actor *actor);
 
 		WeaponType getWeaponType() const;
@@ -109,7 +115,7 @@ namespace Stoneship
 		void loadFromRecord(RecordAccessor record);
 		void modifyFromRecord(RecordAccessor record);
 
-		bool onUse(ItemStack &stack, Actor &actor);
+		bool onUse(ItemStack *stack, Actor *actor);
 		bool onInteract(Entity *entity, Actor *actor);
 	};
 

@@ -8,10 +8,15 @@
 #ifndef INCLUDE_SAVEGAMEFILE_H_
 #define INCLUDE_SAVEGAMEFILE_H_
 
+#include "Types.h"
+#include "String.h"
 #include "MasterGameFile.h"
 
 namespace Stoneship
 {
+
+    class ResourceManager;
+    class MGFManager;
 
 	class SaveGameFile : public MasterGameFile
 	{

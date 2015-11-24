@@ -7,10 +7,14 @@
 
 #include "WorldManager.h"
 
-#include "StoneshipException.h"
-#include "MasterGameFile.h"
-
 #include <iostream>
+
+#include "Exception.h"
+#include "Entity.h"
+#include "MasterGameFile.h"
+#include "Root.h"
+#include "MGFManager.h"
+#include "EntityManager.h"
 
 namespace Stoneship
 {
@@ -83,7 +87,7 @@ namespace Stoneship
 		return mDungeonName;
 	}
 
-	std::vector<WorldEntity*> &WorldManager::getEntities()
+	std::vector<Entity*> &WorldManager::getEntities()
 	{
 		return mEntities;
 	}

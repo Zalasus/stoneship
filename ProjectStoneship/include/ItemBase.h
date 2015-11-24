@@ -8,17 +8,17 @@
 #ifndef INCLUDE_ITEMBASE_H_
 #define INCLUDE_ITEMBASE_H_
 
-#include "WorldEntityBase.h"
-#include "Util.h"
+#include "Types.h"
 #include "String.h"
-#include "Entity.h"
+#include "EntityBase.h"
+#include "WorldEntityBase.h"
 #include "Record.h"
 
 namespace Stoneship
 {
 	class ItemStack;
-
 	class Actor;
+	class Entity;
 
 	class ItemBase : public WorldEntityBase
 	{
@@ -37,7 +37,7 @@ namespace Stoneship
 
 		void loadFromRecord(RecordAccessor record);
 
-		virtual bool onUse(ItemStack &stack, Actor &a) = 0;
+		virtual bool onUse(ItemStack *stack, Actor *a) = 0;
 
 		inline bool isEssential() const { return mFlags & FLAGS_IS_ESSENTIAL; }
 		inline bool isCurrency() const { return mFlags & FLAGS_IS_CURRENCY; }

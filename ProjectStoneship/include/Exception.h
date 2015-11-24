@@ -5,8 +5,8 @@
  *      Author: Zalasus
  */
 
-#ifndef INCLUDE_STONESHIPEXCEPTION_H_
-#define INCLUDE_STONESHIPEXCEPTION_H_
+#ifndef INCLUDE_EXCEPTION_H_
+#define INCLUDE_EXCEPTION_H_
 
 #include <exception>
 
@@ -55,4 +55,4 @@ namespace Stoneship
 }
 
 
-#endif /* INCLUDE_STONESHIPEXCEPTION_H_ */
+#endif /* INCLUDE_EXCEPTION_H_ */

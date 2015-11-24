@@ -8,11 +8,17 @@
 #ifndef INCLUDE_WORLDMANAGER_H_
 #define INCLUDE_WORLDMANAGER_H_
 
-#include "MGFManager.h"
-#include "EntityManager.h"
+#include <vector>
+
+#include "Types.h"
+#include "String.h"
+#include "Record.h"
 
 namespace Stoneship
 {
+
+	class Root;
+	class Entity;
 
 	class WorldManager
 	{
@@ -26,7 +32,7 @@ namespace Stoneship
 		void enterWorld(UID worldUID);
 
 		String getDungeonName();
-		std::vector<WorldEntity*> &getEntities();
+		std::vector<Entity*> &getEntities();
 		void removeEntity(UID entityUID);
 
 
@@ -35,7 +41,7 @@ namespace Stoneship
 		Root *mRoot;
 
 		String mDungeonName;
-		std::vector<WorldEntity*> mEntities;
+		std::vector<Entity*> mEntities;
 
 	};
 

@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include "Types.h"
+
 namespace Stoneship
 {
 

@@ -8,16 +8,16 @@
 #ifndef INCLUDE_ENTITYMANAGER_H_
 #define INCLUDE_ENTITYMANAGER_H_
 
-#include <cstdint>
-#include <unordered_map>
+#include <vector>
 
-#include "Entity.h"
+#include "Types.h"
 #include "Record.h"
-
 
 namespace Stoneship
 {
-	class MasterGameFileManager;
+
+    class Root;
+    class EntityBase;
 
 	class EntityManager
 	{

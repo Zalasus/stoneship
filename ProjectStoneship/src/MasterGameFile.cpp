@@ -5,14 +5,15 @@
  *      Author: Zalasus
  */
 
+#include <Exception.h>
 #include <MGFManager.h>
 #include "MasterGameFile.h"
 
 #include "MGFDataReader.h"
 #include "MGFManager.h"
-#include "StoneshipException.h"
+#include "ResourceManager.h"
 #include "StoneshipConstants.h"
-#include "Entity.h"
+#include "EntityBase.h"
 
 namespace Stoneship
 {

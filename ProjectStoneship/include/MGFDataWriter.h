@@ -10,13 +10,14 @@
 
 #include <ostream>
 
+#include "Types.h"
 #include "String.h"
-#include "Util.h"
-#include "StoneshipException.h"
-#include "MasterGameFile.h"
+#include "Exception.h"
 
 namespace Stoneship
 {
+
+    class MasterGameFile;
 
 	class MGFDataWriter
 	{

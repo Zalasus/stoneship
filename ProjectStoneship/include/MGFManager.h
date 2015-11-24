@@ -10,17 +10,16 @@
 
 #include <vector>
 
+#include "Types.h"
 #include "String.h"
 #include "Record.h"
-#include "Util.h"
-#include "Root.h"
-#include "SaveGameFile.h"
+
 
 namespace Stoneship
 {
 
-	class MasterGameFile;
-	class EntityBase;
+    class Root;
+    class EntityBase;
 
 	class MGFManager
 	{
