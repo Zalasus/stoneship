@@ -11,6 +11,8 @@
 #include "Inventory.h"
 #include "Actor.h"
 #include "Entity.h"
+#include "Root.h"
+#include "EventPipeline.h"
 
 namespace Stoneship
 {
@@ -96,14 +98,28 @@ namespace Stoneship
 
 	bool ItemBase::_pickupOnInteract(Entity *entity, Actor *actor)
 	{
-		actor->getInventory().addItem(entity->getBase(), 1); //TODO: Use count field of entity record instead of fixed value
+	    if(entity->getEntityType() == Entity::ENTITYTYPE_ITEM)
+	    {
+	        if(Root::getSingleton()->getEventPipeline()->dispatch(Event(Event::TYPE_PICKUP, entity, actor)))
+	        {
+                ItemEntity *itemEntity = static_cast<ItemEntity*>(entity);
 
-		if(entity->getEntityType() == Entity::ENTITYTYPE_WORLD)
-		{
-			static_cast<WorldEntity*>(entity)->remove();
-		}
+                uint32_t countRemaining = itemEntity->getCount() - actor->getInventory().addItem(itemEntity->getBase(), itemEntity->getCount());
 
-		return true;
+                if(countRemaining == 0)
+                {
+                    itemEntity->remove();
+
+                }else
+                {
+                    itemEntity->setCount(countRemaining);
+                }
+
+                return true;
+	        }
+	    }
+
+		return false;
 	}
 }
 

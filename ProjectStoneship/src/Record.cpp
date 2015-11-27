@@ -194,4 +194,16 @@ namespace Stoneship
 	{
 		mStream->seekg(static_cast<uint32_t>(mDataOffset) + mHeader.dataSize);
 	}
+
+
+
+	RecordLoadable::~RecordLoadable()
+	{
+	}
+
+	void RecordLoadable::modifyFromRecord(RecordAccessor rec)
+	{
+	    STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "Loadable does not support modification by record");
+	}
+
 }

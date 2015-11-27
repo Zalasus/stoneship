@@ -154,6 +154,18 @@ namespace Stoneship
 		std::streampos mDataOffset; //offset of data field
 
 	};
+
+
+	class RecordLoadable
+	{
+	public:
+
+	    virtual ~RecordLoadable();
+
+	    virtual void loadFromRecord(RecordAccessor rec) = 0;
+	    virtual void modifyFromRecord(RecordAccessor rec);
+
+	};
 }
 
 #endif /* INCLUDE_RECORD_H_ */

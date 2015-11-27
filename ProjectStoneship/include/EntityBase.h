@@ -20,7 +20,7 @@
 namespace Stoneship
 {
 
-	class EntityBase
+	class EntityBase : public RecordLoadable
 	{
 	public:
 
@@ -42,9 +42,6 @@ namespace Stoneship
 
 
 		UID getUID() const;
-
-		virtual void loadFromRecord(RecordAccessor record) = 0;
-		virtual void modifyFromRecord(RecordAccessor record) = 0;
 
 		uint32_t getUserCount() const;
 

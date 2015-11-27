@@ -17,6 +17,7 @@
 #include "Entity.h"
 #include "EntityBase.h"
 #include "EntityManager.h"
+#include "EventPipeline.h"
 #include "Exception.h"
 #include "Inventory.h"
 #include "ItemBase.h"

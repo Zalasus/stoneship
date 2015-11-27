@@ -69,6 +69,38 @@ namespace Stoneship
 	{
 		mHidden = hidden;
 	}
+
+	void WorldEntity::loadFromRecord(RecordAccessor rec)
+	{
+
+	}
+
+
+
+	ItemEntity::ItemEntity(UID uid, EntityBase *base, WorldManager *worldManager)
+    : WorldEntity(uid, base, worldManager),
+      mCount(0)
+    {
+    }
+
+	ItemEntity::~ItemEntity()
+    {
+    }
+
+	void ItemEntity::setCount(uint32_t count)
+	{
+	    mCount = count;
+	}
+
+	uint32_t ItemEntity::getCount() const
+	{
+	    return mCount;
+	}
+
+	void ItemEntity::loadFromRecord(RecordAccessor rec)
+	{
+
+	}
 }
 
 

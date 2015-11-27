@@ -12,6 +12,8 @@
 #include "EntityManager.h"
 #include "WorldManager.h"
 #include "ResourceManager.h"
+#include "EventPipeline.h"
+#include "Logger.h"
 
 namespace Stoneship
 {
@@ -21,8 +23,17 @@ namespace Stoneship
 	  mMGFManager(nullptr),
 	  mEntityManager(nullptr),
 	  mWorldManager(nullptr),
-	  mResourceManager(nullptr)
+	  mResourceManager(nullptr),
+	  mEventPipeline(nullptr)
 	{
+	    if(smSingleton != nullptr)
+	    {
+	        Logger::warn("Created second instance of Root object. This indicates an error in the engine");
+
+	    }else
+	    {
+	        smSingleton = this; //catch any instantiations not mady by the singleton method
+	    }
 	}
 
 	Root::~Root()
@@ -77,5 +88,28 @@ namespace Stoneship
 
 		return mResourceManager;
 	}
+
+	EventPipeline *Root::getEventPipeline()
+	{
+	    if(mEventPipeline == nullptr)
+	    {
+	        mEventPipeline = new EventPipeline();
+	    }
+
+	    return mEventPipeline;
+	}
+
+	Root *Root::smSingleton = nullptr;
+
+	Root *Root::getSingleton()
+	{
+	    if(smSingleton == nullptr)
+	    {
+	        smSingleton = new Root();
+	    }
+
+	    return smSingleton;
+	}
+
 
 }

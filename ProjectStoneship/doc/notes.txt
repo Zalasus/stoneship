@@ -12,3 +12,15 @@ Stuff that is loaded from MGF into memory during loading of MGF:
 Stuff that is just indexed during startup and loaded when it's needed:
     -Modify records
     -Scripts
+    
+    
+ATM Entities and Bases have nealy the same structure. So what seperates them? Well,
+currently Entities are created for every reference in a cell. They reflect all properties
+given by their Base. They only difference is they may be modified at runtime. Why not let
+Bases represent placed objects, too, and make the kind of Bases that are referenced const
+or something. Problem: we need to create copies for every placed instance. theres no clear
+seperation between what is placed in the world and what defines those things.
+maybe we should keep the current model, even if it is not minimal. 
+
+entities create modify records, supply methods for saving... wait, the editor also needs these methods
+in base classes... 
