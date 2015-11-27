@@ -5,11 +5,11 @@
  *      Author: Zalasus
  */
 
+#include <Entity.h>
 #include "EntityManager.h"
 
 #include "Exception.h"
 #include "MGFManager.h"
-#include "EntityBase.h"
 #include "Root.h"
 
 namespace Stoneship

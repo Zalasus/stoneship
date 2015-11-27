@@ -5,8 +5,7 @@
  *      Author: Zalasus
  */
 
-#include "ItemBase.h"
-
+#include "EntityItem.h"
 #include "MGFDataReader.h"
 #include "Inventory.h"
 #include "Actor.h"
@@ -17,8 +16,8 @@
 namespace Stoneship
 {
 
-	ItemBase::ItemBase(UID uid)
-	: WorldEntityBase(uid),
+	EntityItem::EntityItem(UID uid, Entity *parent, World *world)
+	: EntityWorld(uid, parent, world),
 	  mFlags(0),
 	  mValue(0),
 	  mSlots(0),
@@ -26,11 +25,11 @@ namespace Stoneship
 	{
 	}
 
-	ItemBase::~ItemBase()
+	EntityItem::~EntityItem()
 	{
 	}
 
-	void ItemBase::loadFromRecord(RecordAccessor record)
+	void EntityItem::loadFromRecord(RecordAccessor record)
 	{
 		record.getReaderForSubrecord(Record::SUBTYPE_DISPLAY_NAME)
 				.readBString(mName);
@@ -56,68 +55,63 @@ namespace Stoneship
 		}
 	}
 
-	String ItemBase::getDisplayName() const
+	String EntityItem::getDisplayName() const
 	{
 		return mName;
 	}
 
-	String ItemBase::getDescription() const
+	String EntityItem::getDescription() const
 	{
 		return mDescription;
 	}
 
-	uint32_t ItemBase::getValue() const
+	uint32_t EntityItem::getValue() const
 	{
 		return mValue;
 	}
 
-	uint8_t ItemBase::getSlots() const
+	uint8_t EntityItem::getSlots() const
 	{
 		return mSlots;
 	}
 
-	uint32_t ItemBase::getMaxStackSize() const
+	uint32_t EntityItem::getMaxStackSize() const
 	{
 		return mMaxStackSize;
 	}
 
-	bool ItemBase::isStackable() const
+	bool EntityItem::isStackable() const
 	{
 		return mMaxStackSize != 1;
 	}
 
-	String ItemBase::getIconFile() const
+	String EntityItem::getIconFile() const
 	{
 		return mIconFile;
 	}
 
-	UID ItemBase::getIdentifiedUID() const
+	UID EntityItem::getIdentifiedUID() const
 	{
 		return mIdentified;
 	}
 
-	bool ItemBase::_pickupOnInteract(Entity *entity, Actor *actor)
+	bool EntityItem::_pickupOnInteract(Actor *actor)
 	{
-	    if(entity->getEntityType() == Entity::ENTITYTYPE_ITEM)
-	    {
-	        if(Root::getSingleton()->getEventPipeline()->dispatch(Event(Event::TYPE_PICKUP, entity, actor)))
-	        {
-                ItemEntity *itemEntity = static_cast<ItemEntity*>(entity);
+	    if(Root::getSingleton()->getEventPipeline()->dispatch(Event(Event::TYPE_PICKUP, actor)))
+        {
+            uint32_t countRemaining = getCount() - actor->getInventory().addItem(itemEntity->getBase(), itemEntity->getCount());
 
-                uint32_t countRemaining = itemEntity->getCount() - actor->getInventory().addItem(itemEntity->getBase(), itemEntity->getCount());
+            if(countRemaining == 0)
+            {
+                itemEntity->remove();
 
-                if(countRemaining == 0)
-                {
-                    itemEntity->remove();
+            }else
+            {
+                itemEntity->setCount(countRemaining);
+            }
 
-                }else
-                {
-                    itemEntity->setCount(countRemaining);
-                }
-
-                return true;
-	        }
-	    }
+            return true;
+        }
 
 		return false;
 	}

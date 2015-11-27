@@ -1,35 +1,26 @@
 /*
- * Entity.cpp
+ * EntityBase.cpp
  *
- *  Created on: 16.09.2015
- *      Author: Zalasus
+ *  Created on: Nov 20, 2015
+ *      Author: zalasus
  */
 
 #include "Entity.h"
+#include "sas/SASEntities.h" // provided for base registration
 
-#include "EntityBase.h"
-#include "WorldEntityBase.h"
-#include "WorldManager.h"
 
 namespace Stoneship
 {
 
-	Entity::Entity(UID uid, EntityBase *base)
-	: mUID(uid),
-	  mBase(base)
+    Entity::Entity(UID uid, Entity *parent)
+    : mUID(uid),
+      mParent(parent),
+	  mUserCount(0)
 	{
-		if(mBase != nullptr)
-		{
-			mBase->mUserCount++;
-		}
 	}
 
-	Entity::~Entity()
+    Entity::~Entity()
 	{
-		if((mBase != nullptr) && (mBase->mUserCount > 0))
-		{
-			mBase->mUserCount--;
-		}
 	}
 
 	UID Entity::getUID() const
@@ -37,71 +28,53 @@ namespace Stoneship
 		return mUID;
 	}
 
-	EntityBase *Entity::getBase() const
+	uint32_t Entity::getUserCount() const
 	{
-		return mBase;
+		return mUserCount;
 	}
 
 
 
-	WorldEntity::WorldEntity(UID uid, EntityBase *base, WorldManager *worldManager)
-	: Entity(uid, base),
-	  mWorldManager(worldManager),
-	  mHidden(false)
+
+	EntityFactory::EntityFactory(Record::Type recordType, EntityAllocatorMethodPtr alloc)
+	: mRecordType(recordType),
+	  mAllocator(alloc)
 	{
+		smFactories.push_back(this);
 	}
 
-	WorldEntity::~WorldEntity()
+	Record::Type EntityFactory::getRecordType() const
 	{
+		return mRecordType;
 	}
 
-	void WorldEntity::remove()
+	EntityBase *EntityFactory::createEntity(UID uid)
 	{
-		mWorldManager->removeEntity(getUID());
-	}
-
-	bool WorldEntity::isHidden() const
-	{
-		return mHidden;
-	}
-
-	void WorldEntity::setHidden(bool hidden)
-	{
-		mHidden = hidden;
-	}
-
-	void WorldEntity::loadFromRecord(RecordAccessor rec)
-	{
-
+		return (mAllocator(uid));
 	}
 
 
-
-	ItemEntity::ItemEntity(UID uid, EntityBase *base, WorldManager *worldManager)
-    : WorldEntity(uid, base, worldManager),
-      mCount(0)
-    {
-    }
-
-	ItemEntity::~ItemEntity()
-    {
-    }
-
-	void ItemEntity::setCount(uint32_t count)
+	EntityFactory *EntityFactory::getFactoryForRecordType(Record::Type t)
 	{
-	    mCount = count;
+		for(uint32_t i = 0; i < smFactories.size(); ++i)
+		{
+			if(smFactories[i]->getRecordType() == t)
+			{
+				return smFactories[i];
+			}
+		}
+
+		return nullptr;
 	}
 
-	uint32_t ItemEntity::getCount() const
-	{
-	    return mCount;
-	}
+	std::vector<EntityFactory*> EntityFactory::smFactories;
 
-	void ItemEntity::loadFromRecord(RecordAccessor rec)
-	{
 
-	}
+	//for now, all EntityBase registrations need to be put here in order to guarantee the are created AFTER the vector in the factory
+
+	REGISTER_ENTITY(0x800, Entity_Static)
+	REGISTER_ENTITY(0x810, Entity_Weapon)
+	REGISTER_ENTITY(0x820, Entity_Book)
+	REGISTER_ENTITY(0x821, Entity_Stuff)
+
 }
-
-
-

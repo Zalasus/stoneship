@@ -8,11 +8,16 @@
 #ifndef INCLUDE_WORLD_H_
 #define INCLUDE_WORLD_H_
 
+#include "Record.h"
+
 namespace Stoneship
 {
 
 	class World
 	{
+	public:
+
+	    void removeEntity(UID entityUID);
 
 	};
 

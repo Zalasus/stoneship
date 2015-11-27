@@ -5,8 +5,8 @@
  *      Author: Zalasus
  */
 
+#include <EntityItem.h>
 #include "Inventory.h"
-#include "ItemBase.h"
 
 namespace Stoneship
 {

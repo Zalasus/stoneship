@@ -5,8 +5,7 @@
  *      Author: Zalasus
  */
 
-#include "sas/SASEntityBases.h"
-
+#include <sas/SASEntities.h>
 #include <iostream>
 
 namespace Stoneship

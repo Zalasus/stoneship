@@ -5,35 +5,36 @@
  *      Author: Zalasus
  */
 
-#include "WorldEntityBase.h"
+#include "EntityWorld.h"
 #include "MGFDataReader.h"
 
 
 namespace Stoneship
 {
 
-	WorldEntityBase::WorldEntityBase(UID uid)
-	: EntityBase(uid),
+	EntityWorld::EntityWorld(UID uid, Entity *parent, World *world)
+	: Entity(uid, parent),
+	  mWorld(world),
 	  mModelScale(0)
 	{
 	}
 
-	WorldEntityBase::~WorldEntityBase()
+	EntityWorld::~EntityWorld()
 	{
 
 	}
 
-	String WorldEntityBase::getModelName() const
+	String EntityWorld::getModelName() const
 	{
 		return mModelName;
 	}
 
-	float WorldEntityBase::getModelScale() const
+	float EntityWorld::getModelScale() const
 	{
 		return mModelScale;
 	}
 
-	void WorldEntityBase::loadFromRecord(RecordAccessor record)
+	void EntityWorld::loadFromRecord(RecordAccessor record)
 	{
 		record.getReaderForSubrecord(Record::SUBTYPE_WORLD_MODEL)
 				.readBString(mModelName)

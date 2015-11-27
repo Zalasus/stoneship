@@ -1,30 +1,29 @@
 /*
- * Item.h
+ * EntityItem.h
  *
  *  Created on: 15.09.2015
  *      Author: Zalasus
  */
 
-#ifndef INCLUDE_ITEMBASE_H_
-#define INCLUDE_ITEMBASE_H_
+#ifndef INCLUDE_ENTITYITEM_H_
+#define INCLUDE_ENTITYITEM_H_
 
+#include "EntityWorld.h"
+#include "Entity.h"
 #include "Types.h"
 #include "String.h"
-#include "EntityBase.h"
-#include "WorldEntityBase.h"
 #include "Record.h"
 
 namespace Stoneship
 {
 	class ItemStack;
 	class Actor;
-	class Entity;
 
-	class ItemBase : public WorldEntityBase
+	class EntityItem : public EntityWorld
 	{
 	public:
 
-		virtual ~ItemBase();
+		virtual ~EntityItem();
 
 		String getDisplayName() const;
 		String getDescription() const;
@@ -52,9 +51,9 @@ namespace Stoneship
 
 	protected:
 
-		ItemBase(UID uid);
+		EntityItem(UID uid, Entity *parent = nullptr, World *world = nullptr);
 
-		bool _pickupOnInteract(Entity *entity, Actor *actor);
+		bool _pickupOnInteract(Actor *actor);
 
 	private:
 
@@ -71,4 +70,4 @@ namespace Stoneship
 }
 
 
-#endif /* INCLUDE_ITEMBASE_H_ */
+#endif /* INCLUDE_ENTITYITEM_H_ */

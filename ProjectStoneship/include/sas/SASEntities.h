@@ -5,15 +5,15 @@
  *      Author: Zalasus
  */
 
-#ifndef INCLUDE_SAS_SASENTITYBASES_H_
-#define INCLUDE_SAS_SASENTITYBASES_H_
+#ifndef INCLUDE_SAS_SASENTITIES_H_
+#define INCLUDE_SAS_SASENTITIES_H_
 
+#include <Entity.h>
+#include <EntityItem.h>
+#include <EntityWorld.h>
 #include "Types.h"
 #include "Record.h"
 #include "String.h"
-#include "EntityBase.h"
-#include "WorldEntityBase.h"
-#include "ItemBase.h"
 
 namespace Stoneship
 {
@@ -122,4 +122,4 @@ namespace Stoneship
 
 }
 
-#endif /* INCLUDE_SAS_SASENTITYBASES_H_ */
+#endif /* INCLUDE_SAS_SASENTITIES_H_ */

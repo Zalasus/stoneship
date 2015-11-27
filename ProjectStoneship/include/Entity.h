@@ -1,100 +1,84 @@
 /*
  * Entity.h
  *
- *  Created on: 15.09.2015
- *      Author: Zalasus
+ *  Created on: Nov 20, 2015
+ *      Author: zalasus
  */
 
 #ifndef INCLUDE_ENTITY_H_
 #define INCLUDE_ENTITY_H_
 
+#include <vector>
+
 #include "Types.h"
+#include "String.h"
 #include "Record.h"
+
+#define REGISTER_ENTITY(recordType, entityClass) static Entity* create_ ## entityClass ## _instance(UID uid) { return new entityClass(uid); } static EntityFactory entityClass ## _factory(recordType, & create_ ## entityClass ## _instance);
+
 
 namespace Stoneship
 {
-
-    class EntityBase;
-
-    class EntityPlaced : public EntityBase
-    {
-
-    };
 
 	class Entity : public RecordLoadable
 	{
 	public:
 
-		enum EntityType
-		{
-			ENTITYTYPE_DEFAULT,
-			ENTITYTYPE_WORLD,
-			ENTITYTYPE_ITEM
-		};
+        friend class ItemStack;
 
-		Entity(UID uid, EntityBase *base);
+		typedef uint32_t EntityClassType;
+		static const EntityClassType BASETYPE_ITEM = 1;
+		static const EntityClassType BASETYPE_WORLD = 2;
+		static const EntityClassType BASETYPE_SPECIAL = 4;
+
+		Entity(UID uid, Entity *parent = nullptr);
 		virtual ~Entity();
 
-		virtual EntityType getEntityType() = 0;
+		virtual Record::Type getRecordType() const = 0;
+		virtual EntityClassType getClassType() const = 0;
+		virtual String getSymbolicName() const = 0;
+
 
 		UID getUID() const;
-		EntityBase *getBase() const;
+		Entity *getParent() const;
+
+		uint32_t getUserCount() const;
 
 	private:
 
 		UID mUID;
-		EntityBase *mBase;
+		Entity *mParent;
 
+		uint32_t mUserCount;
 	};
 
 
-	class WorldManager;
-
-	class WorldEntity : public Entity
+	class EntityFactory
 	{
 	public:
-		WorldEntity(UID uidOfEntity, EntityBase *base, WorldManager *manager); //uidOfEntity is the UID of the reference, not the referenced base!!!
-		WorldEntity(const WorldEntity &e) = delete; //don't copy me!
-		~WorldEntity();
 
-		virtual EntityType getEntityType() { return ENTITYTYPE_WORLD;}
-
-        virtual void loadFromRecord(RecordAccessor rec);
-
-		void remove();
-		void setHidden(bool hidden);
-		bool isHidden() const;
-
-	private:
-
-		WorldManager *mWorldManager;
-
-		bool mHidden;
-
-	};
+		typedef Entity* (*EntityAllocatorMethodPtr)(UID);
 
 
-	class ItemEntity : public WorldEntity
-	{
-	public:
-	    ItemEntity(UID uidOfEntity, EntityBase *base, WorldManager *manager); //uidOfEntity is the UID of the reference, not the referenced base!!!
-	    ItemEntity(const ItemEntity &e) = delete; //don't copy me!
-        ~ItemEntity();
+		EntityFactory(Record::Type recordType, EntityAllocatorMethodPtr alloc);
 
-        virtual EntityType getEntityType() { return ENTITYTYPE_ITEM;}
+		Record::Type getRecordType() const;
+		EntityBase *createEntity(UID uid);
 
-        virtual void loadFromRecord(RecordAccessor rec);
 
-        uint32_t getCount() const;
-        void setCount(uint32_t count);
+		static EntityFactory *getFactoryForRecordType(Record::Type t);
 
 
 	private:
 
-        uint32_t mCount;
+		Record::Type mRecordType;
+		EntityAllocatorMethodPtr mAllocator;
+
+		static std::vector<EntityFactory*> smFactories;
 	};
 
 }
+
 
 
 #endif /* INCLUDE_ENTITY_H_ */

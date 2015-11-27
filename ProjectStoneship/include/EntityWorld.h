@@ -5,38 +5,39 @@
  *      Author: Zalasus
  */
 
-#ifndef INCLUDE_WORLDENTITYBASE_H_
-#define INCLUDE_WORLDENTITYBASE_H_
+#ifndef INCLUDE_ENTITYWORLD_H_
+#define INCLUDE_ENTITYWORLD_H_
 
+#include "Entity.h"
 #include "Types.h"
 #include "String.h"
-#include "EntityBase.h"
 #include "Record.h"
 
 namespace Stoneship
 {
 
-    class Entity;
     class Actor;
 
-	class WorldEntityBase : public EntityBase
+	class EntityWorld : public EntityBase
 	{
 	public:
 
-		virtual ~WorldEntityBase();
+		virtual ~EntityWorld();
 
 		String getModelName() const;
 		float getModelScale() const;
 
-		virtual bool onInteract(Entity *entity, Actor *actor) = 0;
+		virtual bool onInteract(Actor *actor) = 0;
 
 	protected:
 
-		WorldEntityBase(UID uid);
+		EntityWorld(UID uid, Entity *parent = nullptr, World *world = nullptr);
 
 		void loadFromRecord(RecordAccessor record);
 
 	private:
+
+		World *mWorld;
 
 		String mModelName;
 		float mModelScale;
@@ -46,4 +47,4 @@ namespace Stoneship
 }
 
 
-#endif /* INCLUDE_WORLDENTITYBASE_H_ */
+#endif /* INCLUDE_ENTITYWORLD_H_ */

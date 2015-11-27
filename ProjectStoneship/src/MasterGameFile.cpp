@@ -5,6 +5,7 @@
  *      Author: Zalasus
  */
 
+#include <Entity.h>
 #include <Exception.h>
 #include <MGFManager.h>
 #include "MasterGameFile.h"
@@ -13,7 +14,6 @@
 #include "MGFManager.h"
 #include "ResourceManager.h"
 #include "StoneshipConstants.h"
-#include "EntityBase.h"
 
 namespace Stoneship
 {
