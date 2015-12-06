@@ -13,14 +13,14 @@
 #endif
 
 
-#include "Actor.h"
-#include "Entity.h"
-#include "EntityBase.h"
+#include <IActor.h>
+#include <IEntity.h>
+#include <IEntityBase.h>
 #include "EntityManager.h"
 #include "EventPipeline.h"
 #include "Exception.h"
 #include "Inventory.h"
-#include "ItemBase.h"
+#include <IEntityBaseItem.h>
 #include "Logger.h"
 #include "MasterGameFile.h"
 #include "MGFDataReader.h"
@@ -35,8 +35,10 @@
 #include "StoneshipConstants.h"
 #include "String.h"
 #include "Types.h"
-#include "World.h"
-#include "WorldEntityBase.h"
+#include <IWorld.h>
+#include <IEntityBaseWorld.h>
 #include "WorldManager.h"
+#include "WorldDungeon.h"
+#include "WorldOutdoor.h"
 
 #endif /* INCLUDE_STONESHIP_H_ */

@@ -21,7 +21,7 @@ namespace Stoneship
 
     class MGFManager;
     class ResourceManager;
-    class EntityBase;
+    class IEntityBase;
 
 	class MasterGameFile
 	{
@@ -85,7 +85,7 @@ namespace Stoneship
 
 		virtual RecordAccessor getFirstRecord(Record::Type type);
 
-		virtual void applyModifications(EntityBase *base);
+		virtual void applyModifications(IRecordLoadable *loadable);
 
 	private:
 

@@ -17,7 +17,7 @@
     k_byte 1
     k_sstring 'sas_data/'
 
-    k_int 5 ; record group count
+    k_int 6 ; record group count
 
 
     
@@ -319,12 +319,66 @@ static_group_end:
     
 ;------------------------------------------------------------------------------
     k_short 0
+    k_int (dungeon_group_end - dungeon_group_start)
+    k_short REC_DUNGEON
+    k_int 0x02
+dungeon_group_start:
+    
+    r_begin REC_DUNGEON
+        r_sub_begin SUB_DATA
+            k_bstring 'Cloudkeep - Gatehouse'
+        r_sub_end
+    r_end
+
+    ; world entity group
+    k_short 0
+    k_int (dungeon_entity_group_end - dungeon_entity_group_start)
+    k_short REC_ENTITY
+    k_int 0x03
+    dungeon_entity_group_start:
+    
+        r_begin REC_ENTITY
+            r_sub_begin SUB_ENTITY
+                s_uid 0xFFFF,9
+                k_short 0x800
+            r_sub_end
+        r_end
+
+        r_begin REC_ENTITY
+            r_sub_begin SUB_ENTITY
+                s_uid 0xFFFF,1
+                k_short 0x820
+            r_sub_end
+
+            r_sub_begin SUB_ENTITY_ITEM
+                k_int 1
+            r_sub_end
+        r_end
+
+        r_begin REC_ENTITY
+            r_sub_begin SUB_ENTITY
+                s_uid 0xFFFF,0x5
+                k_short 0x821
+            r_sub_end
+
+            r_sub_begin SUB_ENTITY_ITEM
+                k_int 64
+            r_sub_end
+        r_end
+
+    dungeon_entity_group_end:
+    
+dungeon_group_end:
+
+
+;------------------------------------------------------------------------------
+    k_short 0
     k_int (world_group_end - world_group_start)
-    k_short 0xC5
+    k_short REC_OUTDOOR
     k_int 0x02
 world_group_start:
     
-    r_begin 0xC5
+    r_begin REC_OUTDOOR
         r_sub_begin SUB_DATA
             k_bstring 'Plains of Vinmor'
         r_sub_end
@@ -338,16 +392,16 @@ world_group_start:
     world_entity_group_start:
     
         r_begin REC_ENTITY
-            r_sub_begin 0x01
-                s_uid 0xFFFF,9
+            r_sub_begin SUB_ENTITY
+                s_uid 0xFFFF,8
                 k_short 0x800
             r_sub_end
         r_end
 
         r_begin REC_ENTITY
-            r_sub_begin 0x01
-                s_uid 0xFFFF,1
-                k_short 0x820
+            r_sub_begin SUB_ENTITY
+                s_uid 0xFFFF,9
+                k_short 0x800
             r_sub_end
         r_end
 

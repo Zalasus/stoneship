@@ -5,20 +5,19 @@
  *      Author: Zalasus
  */
 
-#include "ItemBase.h"
-
+#include <IEntity.h>
+#include <IEntityBaseItem.h>
+#include "IActor.h"
 #include "MGFDataReader.h"
 #include "Inventory.h"
-#include "Actor.h"
-#include "Entity.h"
 #include "Root.h"
 #include "EventPipeline.h"
 
 namespace Stoneship
 {
 
-	ItemBase::ItemBase(UID uid)
-	: WorldEntityBase(uid),
+	IEntityBaseItem::IEntityBaseItem(UID uid)
+	: IEntityBaseWorld(uid),
 	  mFlags(0),
 	  mValue(0),
 	  mSlots(0),
@@ -26,11 +25,11 @@ namespace Stoneship
 	{
 	}
 
-	ItemBase::~ItemBase()
+	IEntityBaseItem::~IEntityBaseItem()
 	{
 	}
 
-	void ItemBase::loadFromRecord(RecordAccessor record)
+	void IEntityBaseItem::loadFromRecord(RecordAccessor record)
 	{
 		record.getReaderForSubrecord(Record::SUBTYPE_DISPLAY_NAME)
 				.readBString(mName);
@@ -56,53 +55,58 @@ namespace Stoneship
 		}
 	}
 
-	String ItemBase::getDisplayName() const
+	String IEntityBaseItem::getDisplayName() const
 	{
 		return mName;
 	}
 
-	String ItemBase::getDescription() const
+	String IEntityBaseItem::getDescription() const
 	{
 		return mDescription;
 	}
 
-	uint32_t ItemBase::getValue() const
+	uint32_t IEntityBaseItem::getValue() const
 	{
 		return mValue;
 	}
 
-	uint8_t ItemBase::getSlots() const
+	uint8_t IEntityBaseItem::getSlots() const
 	{
 		return mSlots;
 	}
 
-	uint32_t ItemBase::getMaxStackSize() const
+	uint32_t IEntityBaseItem::getMaxStackSize() const
 	{
 		return mMaxStackSize;
 	}
 
-	bool ItemBase::isStackable() const
+	bool IEntityBaseItem::isStackable() const
 	{
 		return mMaxStackSize != 1;
 	}
 
-	String ItemBase::getIconFile() const
+	String IEntityBaseItem::getIconFile() const
 	{
 		return mIconFile;
 	}
 
-	UID ItemBase::getIdentifiedUID() const
+	UID IEntityBaseItem::getIdentifiedUID() const
 	{
 		return mIdentified;
 	}
 
-	bool ItemBase::_pickupOnInteract(Entity *entity, Actor *actor)
+	IEntity *IEntityBaseItem::createEntity(UID uid)
 	{
-	    if(entity->getEntityType() == Entity::ENTITYTYPE_ITEM)
+	    return new EntityItem(uid, this);
+	}
+
+	bool IEntityBaseItem::_pickupOnInteract(IEntity *entity, IActor *actor)
+	{
+	    if(entity->getEntityType() & IEntity::ENTITYTYPE_ITEM)
 	    {
 	        if(Root::getSingleton()->getEventPipeline()->dispatch(Event(Event::TYPE_PICKUP, entity, actor)))
 	        {
-                ItemEntity *itemEntity = static_cast<ItemEntity*>(entity);
+                EntityItem *itemEntity = static_cast<EntityItem*>(entity);
 
                 uint32_t countRemaining = itemEntity->getCount() - actor->getInventory().addItem(itemEntity->getBase(), itemEntity->getCount());
 

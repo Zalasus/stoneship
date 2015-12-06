@@ -6,6 +6,7 @@
  */
 
 #include <Exception.h>
+#include <IEntityBase.h>
 #include <MGFManager.h>
 #include "MasterGameFile.h"
 
@@ -13,7 +14,6 @@
 #include "MGFManager.h"
 #include "ResourceManager.h"
 #include "StoneshipConstants.h"
-#include "EntityBase.h"
 
 namespace Stoneship
 {
@@ -450,11 +450,11 @@ namespace Stoneship
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
 	}
 
-	void MasterGameFile::applyModifications(EntityBase *base)
+	void MasterGameFile::applyModifications(IRecordLoadable *loadable)
 	{
 		for(uint32_t i = 0; i < mMods.size(); ++i)
 		{
-			if(mMods[i].uid == base->getUID())
+			if(mMods[i].uid == loadable->getUID())
 			{
 				MGFDataReader ds(&mInputStream, this);
 				ds.seek(mMods[i].offset);
@@ -464,7 +464,7 @@ namespace Stoneship
 
 				RecordAccessor record(header, &mInputStream, this);
 
-				base->modifyFromRecord(record);
+				loadable->modifyFromRecord(record);
 
 				return; // only one Mod record per UID per MGF may be specified, so we are done here
 			}

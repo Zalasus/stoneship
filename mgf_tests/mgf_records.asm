@@ -78,6 +78,8 @@
 %endmacro
 
 
+%define REC_OUTDOOR 0xC0
+%define REC_DUNGEON 0xC5
 %define REC_ENTITY 0xD0
 
 
@@ -88,6 +90,9 @@
 %define SUB_INVENTORY 0x09
 %define SUB_ICON 0x0A
 %define SUB_IDENTIFICATION 0x0B
+%define SUB_POSITION 0x10
+%define SUB_ENTITY 0xF0
+%define SUB_ENTITY_ITEM 0xF2
 %define SUB_DATA 0x100
 %define SUB_EDITOR 0xFFF0
 %define SUB_MODIFY_META 0xFFF9

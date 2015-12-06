@@ -85,16 +85,24 @@ world_group_start:
     world_entity_group_start:
     
         r_begin 0x02
-            r_sub_begin 1
+            r_sub_begin SUB_ENTITY
                 s_uid 0x00,0x02
                 k_short 0x820
+            r_sub_end
+
+            r_sub_begin SUB_ENTITY_ITEM
+                k_int 1
             r_sub_end
         r_end
 
         r_begin 0x02
-            r_sub_begin 1
+            r_sub_begin SUB_ENTITY
                 s_uid 0xFFFF,0x01
                 k_short 0x820
+            r_sub_end
+
+            r_sub_begin SUB_ENTITY_ITEM
+                k_int 1
             r_sub_end
         r_end
     

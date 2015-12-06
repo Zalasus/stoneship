@@ -21,11 +21,26 @@ static Stoneship::Player player;
 
 static Stoneship::UID parseUID(const Stoneship::String &in)
 {
-	uint64_t rawUID;
+    std::size_t index = in.find(':');
 
-	std::istringstream(in) >> std::hex >> rawUID;
+    if(index != std::string::npos)
+    {
+        Stoneship::UID::Ordinal ordinal;
+        Stoneship::UID::ID id;
 
-	return Stoneship::UID(rawUID);
+        std::istringstream(in.substr(0,index)) >> std::hex >> ordinal;
+        std::istringstream(in.substr(index+1,std::string::npos)) >> std::hex >> id;
+
+        return Stoneship::UID(ordinal,id);
+
+    }else
+    {
+        uint64_t rawUID;
+
+        std::istringstream(in) >> std::hex >> rawUID;
+
+        return Stoneship::UID(rawUID);
+    }
 }
 
 /*static Stoneship::RecordAccessor getRecordByToken(const Stoneship::String &token)
@@ -88,7 +103,7 @@ static void inv_identify(const std::vector<Stoneship::String> &args)
 		return;
 	}
 
-	Stoneship::ItemBase *identifiedBase = static_cast<Stoneship::ItemBase*>(root->getEntityManager()->getBase(stack.getItemBase()->getIdentifiedUID()));
+	Stoneship::IEntityBaseItem *identifiedBase = static_cast<Stoneship::IEntityBaseItem*>(root->getEntityManager()->getBase(stack.getItemBase()->getIdentifiedUID()));
 
 	if(identifiedBase == nullptr) // should never happen...
 	{
@@ -149,7 +164,7 @@ static void inv_info(const std::vector<Stoneship::String> &args)
 	}
 
 	Stoneship::ItemStack &stack = player.getInventory().getItems()[index];
-	Stoneship::ItemBase * base = stack.getItemBase();
+	Stoneship::IEntityBaseItem * base = stack.getItemBase();
 
 	std::cout << stack.getCount() << " x [" << base->getDisplayName() << "] (" << base->getBaseName() << ")" << std::endl;
 	std::cout << base->getDescription() << std::endl;
@@ -180,9 +195,9 @@ static void inv_add(const std::vector<Stoneship::String> &args)
 
 	try
 	{
-		Stoneship::EntityBase *base = root->getEntityManager()->getBase(uid, type);
+		Stoneship::IEntityBase *base = root->getEntityManager()->getBase(uid, type);
 
-		if(!player.getInventory().addItem(base, count))
+		if(player.getInventory().addItem(base, count) < count)
 		{
 			std::cout << "Inventory is full" << std::endl;
 		}
@@ -216,17 +231,44 @@ static void world_enter(const std::vector<Stoneship::String> &args)
 static void world_look(const std::vector<Stoneship::String> &args)
 {
 
-	std::cout << "You are standing in " << root->getWorldManager()->getDungeonName() << std::endl;
-	std::cout << "You see: " << std::endl;
+    Stoneship::IWorld *world = root->getWorldManager()->getCurrentWorld();
+    if(world != nullptr)
+    {
 
-	const std::vector<Stoneship::Entity*> &entities = root->getWorldManager()->getEntities();
-	for(uint32_t i = 0 ; i < entities.size(); ++i)
-	{
-		Stoneship::WorldEntityBase *wob = static_cast<Stoneship::WorldEntityBase*>(entities[i]->getBase());
+        std::cout << "You are standing in " << world->getWorldName() << std::endl;
+        std::cout << "You see: " << std::endl;
 
-		std::cout << "[" << i << "] A " << wob->getBaseName() << std::endl;
-		std::cout << "    Model: " << wob->getModelName() << " (Scaled x" << wob->getModelScale() << ")" << std::endl;
-	}
+        const std::vector<Stoneship::IEntity*> entities = world->getLoadedEntities();
+        for(uint32_t i = 0 ; i < entities.size(); ++i)
+        {
+            if(entities[i]->getEntityType() & Stoneship::IEntity::ENTITYTYPE_WORLD)
+            {
+                Stoneship::IEntityBaseWorld *wob = static_cast<Stoneship::IEntityBaseWorld*>(entities[i]->getBase());
+
+                std::cout << "[" << i << "] ";
+
+                if(entities[i]->getEntityType() & Stoneship::IEntity::ENTITYTYPE_ITEM)
+                {
+                    std::cout << static_cast<Stoneship::EntityItem*>(entities[i])->getCount() << " ";
+
+                }else
+                {
+                    std::cout << "1 ";
+                }
+
+                std::cout << wob->getBaseName() << std::endl;
+                std::cout << "    Model: " << wob->getModelName() << " (Scaled x" << wob->getModelScale() << ")" << std::endl;
+
+            }else
+            {
+                std::cout << "A special hidden entity you should actually not see. Please close your eyes." << std::endl;
+            }
+        }
+
+    }else
+    {
+        std::cout << "You have not entered a world yet" << std::endl;
+    }
 
 }
 
@@ -235,21 +277,30 @@ static void world_interact(const std::vector<Stoneship::String> &args)
 	uint32_t index;
 	std::istringstream(args[1]) >> index;
 
-	if(index > root->getWorldManager()->getEntities().size())
+	Stoneship::IWorld *world = root->getWorldManager()->getCurrentWorld();
+
+	if(world == nullptr)
+	{
+	    std::cout << "No world loaded" << std::endl;
+
+	    return;
+	}
+
+	if(index > world->getLoadedEntityCount())
 	{
 		std::cout << "Invalid entity index" << std::endl;
 		return;
 	}
 
-	Stoneship::Entity *target = root->getWorldManager()->getEntities()[index];
-	Stoneship::EntityBase *targetBase = target->getBase();
-	if(!(targetBase->getBaseType() & Stoneship::EntityBase::BASETYPE_WORLD))
+	Stoneship::IEntity *target = world->getLoadedEntities()[index];
+	Stoneship::IEntityBase *targetBase = target->getBase();
+	if(!(targetBase->getBaseType() & Stoneship::IEntityBase::BASETYPE_WORLD))
 	{
 		std::cout << "Can't interact. Not a World Object. That's wierd..." << std::endl;
 		return;
 	}
 
-	if(!static_cast<Stoneship::WorldEntityBase*>(targetBase)->onInteract(target, &player))
+	if(!static_cast<Stoneship::IEntityBaseWorld*>(targetBase)->onInteract(target, &player))
 	{
 		std::cout << "Can't interact with that" << std::endl;
 	}
@@ -347,7 +398,15 @@ static void manager_info(const std::vector<Stoneship::String> &args)
 	std::cout << "Loaded MGFs:                " << root->getMGFManager()->getLoadedMGFCount() << std::endl;
 	std::cout << "Registered Modify records:  -" << std::endl;
 	std::cout << "Cached Entity Bases         " << root->getEntityManager()->getBaseCacheSize() << std::endl;
-	std::cout << "Loaded Entities:            " << root->getWorldManager()->getEntities().size() << std::endl;
+
+	if(root->getWorldManager()->getCurrentWorld() != nullptr)
+	{
+	    std::cout << "Loaded Entities:            " << root->getWorldManager()->getCurrentWorld()->getLoadedEntityCount() << std::endl;
+
+	}else
+	{
+	    std::cout << "Loaded Entities:             -" << std::endl;
+	}
 }
 
 static void load(const std::vector<Stoneship::String> &args)

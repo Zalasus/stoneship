@@ -18,7 +18,8 @@ namespace Stoneship
 {
 
 	class Root;
-	class Entity;
+	class IEntity;
+	class IWorld;
 
 	class WorldManager
 	{
@@ -27,21 +28,15 @@ namespace Stoneship
 		WorldManager(Root *root);
 		~WorldManager();
 
-		void unloadEntities();
-
 		void enterWorld(UID worldUID);
-
-		String getDungeonName();
-		std::vector<Entity*> &getEntities();
-		void removeEntity(UID entityUID);
+		IWorld *getCurrentWorld();
 
 
 	private:
 
 		Root *mRoot;
 
-		String mDungeonName;
-		std::vector<Entity*> mEntities;
+		IWorld *mCurrentWorld;
 
 	};
 

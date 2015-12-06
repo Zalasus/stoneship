@@ -6,11 +6,12 @@
  */
 
 #include "EventPipeline.h"
+#include "IEntity.h"
 
 namespace Stoneship
 {
 
-    Event::Event(EventType type, Entity *entity, Actor *actor)
+    Event::Event(EventType type, IEntity *entity, IActor *actor)
     : mType(type),
       mEntity(entity),
       mActor(actor),
@@ -23,12 +24,12 @@ namespace Stoneship
         return mType;
     }
 
-    Entity *Event::getEntity() const
+    IEntity *Event::getEntity() const
     {
         return mEntity;
     }
 
-    Actor *Event::getActor() const
+    IActor *Event::getActor() const
     {
         return mActor;
     }

@@ -15,8 +15,8 @@
 namespace Stoneship
 {
 
-    class Entity;
-    class Actor;
+    class IEntity;
+    class IActor;
 
     class Event
     {
@@ -28,11 +28,11 @@ namespace Stoneship
             TYPE_PICKUP
         };
 
-        Event(EventType type, Entity *entity, Actor *actor);
+        Event(EventType type, IEntity *entity, IActor *actor);
 
         EventType getType() const;
-        Entity *getEntity() const;
-        Actor *getActor() const;
+        IEntity *getEntity() const;
+        IActor *getActor() const;
 
         void setCanceled(bool canceled);
         bool isCanceled() const;
@@ -41,8 +41,8 @@ namespace Stoneship
     private:
 
         EventType mType;
-        Entity *mEntity;
-        Actor *mActor;
+        IEntity *mEntity;
+        IActor *mActor;
 
         bool mCanceled;
     };

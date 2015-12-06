@@ -5,26 +5,26 @@
  *      Author: Zalasus
  */
 
-#ifndef INCLUDE_ITEMBASE_H_
-#define INCLUDE_ITEMBASE_H_
+#ifndef INCLUDE_IENTITYBASEITEM_H_
+#define INCLUDE_IENTITYBASEITEM_H_
 
+#include "IEntityBaseWorld.h"
+#include "IEntityBase.h"
 #include "Types.h"
 #include "String.h"
-#include "EntityBase.h"
-#include "WorldEntityBase.h"
 #include "Record.h"
 
 namespace Stoneship
 {
 	class ItemStack;
-	class Actor;
-	class Entity;
+	class IActor;
+	class IEntity;
 
-	class ItemBase : public WorldEntityBase
+	class IEntityBaseItem : public IEntityBaseWorld
 	{
 	public:
 
-		virtual ~ItemBase();
+		virtual ~IEntityBaseItem();
 
 		String getDisplayName() const;
 		String getDescription() const;
@@ -37,7 +37,9 @@ namespace Stoneship
 
 		void loadFromRecord(RecordAccessor record);
 
-		virtual bool onUse(ItemStack *stack, Actor *a) = 0;
+		virtual IEntity *createEntity(UID uid);
+
+		virtual bool onUse(ItemStack *stack, IActor *a) = 0;
 
 		inline bool isEssential() const { return mFlags & FLAGS_IS_ESSENTIAL; }
 		inline bool isCurrency() const { return mFlags & FLAGS_IS_CURRENCY; }
@@ -52,9 +54,9 @@ namespace Stoneship
 
 	protected:
 
-		ItemBase(UID uid);
+		IEntityBaseItem(UID uid);
 
-		bool _pickupOnInteract(Entity *entity, Actor *actor);
+		bool _pickupOnInteract(IEntity *entity, IActor *actor);
 
 	private:
 
@@ -71,4 +73,4 @@ namespace Stoneship
 }
 
 
-#endif /* INCLUDE_ITEMBASE_H_ */
+#endif /* INCLUDE_IENTITYBASEITEM_H_ */

@@ -230,13 +230,12 @@ C5: Dungeon
 
 
 D0: Entity
-	1: entity base data
-		uid: base uid
-		ushort: base type
-	100: entity data
+	10: position data
 		vector3: position
 		vector3: rotation
-	
+	F0: entity base data
+		uid: base uid
+		ushort: base type
 	
 FFF0: Modify
 	FFF9: modification data
@@ -349,12 +348,12 @@ Common subrecord types with typical fields they contain (these definitions may n
 	sstring: description
 	
 8: trading information
-	int: trading value
+	uint: trading value
 	
 9: inventory information
 	byte: item flags (0x01 = IS_ESSENTIAL, 0x02 = IS_CURRENCY, 0x04 = IS_UNIDENTIFIED, 0x10 = IS_UNIQUE)
 	byte: slot count (0 means item does not take up any slots)
-	int: max stack size (0 means unlimited, 1 means does not stack (formerly set by flag))
+	uint: max stack size (0 means unlimited, 1 means does not stack (formerly set by flag))
 	
 A: icon data
 	bstring: icon resource name
@@ -362,7 +361,17 @@ A: icon data
 B: identification data (only present if undentified flag in SR 9 is set)
 	uid: indentified item entity id
 	
+
+10: position data
+	vector3: position
+	vector3: rotation
 	
+F0: entity data
+	uid: base uid
+	short: base type id
+	
+F2: item entity data
+	uint: count
 	
 100: specific data
 	

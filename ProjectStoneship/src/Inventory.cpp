@@ -5,14 +5,14 @@
  *      Author: Zalasus
  */
 
+#include <IEntityBaseItem.h>
 #include "Inventory.h"
-#include "ItemBase.h"
 
 namespace Stoneship
 {
 
 
-	ItemStack::ItemStack(ItemBase *pItemBase, uint32_t pCount)
+	ItemStack::ItemStack(IEntityBaseItem *pItemBase, uint32_t pCount)
 	: mItemBase(pItemBase),
 	  mCount(pCount)
 	{
@@ -40,7 +40,7 @@ namespace Stoneship
 		}
 	}
 
-	ItemBase *ItemStack::getItemBase() const
+	IEntityBaseItem *ItemStack::getItemBase() const
 	{
 		return mItemBase;
 	}
@@ -84,16 +84,16 @@ namespace Stoneship
 		return mItems;
 	}
 
-	uint32_t Inventory::addItem(EntityBase *base, uint32_t count)
+	uint32_t Inventory::addItem(IEntityBase *base, uint32_t count)
 	{
 		uint32_t countRemaining = count;
 
-		if(!(base->getBaseType() & EntityBase::BASETYPE_ITEM))
+		if(!(base->getBaseType() & IEntityBase::BASETYPE_ITEM))
 		{
-			STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Can't add non-ItemBase-entity to inventory");
+			STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Can't add non-item base type " + base->getBaseName() + " to inventory");
 		}
 
-		ItemBase *itemBase = static_cast<ItemBase*>(base);
+		IEntityBaseItem *itemBase = static_cast<IEntityBaseItem*>(base);
 
 		if(itemBase->isStackable()) //is item stackable?
 		{

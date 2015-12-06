@@ -17,7 +17,7 @@ namespace Stoneship
 {
 
     class Root;
-    class EntityBase;
+    class IEntityBase;
 
 	class EntityManager
 	{
@@ -26,7 +26,7 @@ namespace Stoneship
 		EntityManager(Root *root);
 		~EntityManager();
 
-		EntityBase *getBase(const UID &uid, Record::Type type = Record::TYPE_LOOKUP_ALL);
+		IEntityBase *getBase(const UID &uid, Record::Type type = Record::TYPE_LOOKUP_ALL);
 
 		uint32_t getBaseCacheSize();
 		void collectGarbage();
@@ -36,7 +36,7 @@ namespace Stoneship
 
 		Root *mRoot;
 
-		std::vector<EntityBase*> mBaseCache;
+		std::vector<IEntityBase*> mBaseCache;
 		//std::unordered_map<uint64_t, EntityBase*> mBaseCache;
 	};
 

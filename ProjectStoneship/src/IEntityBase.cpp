@@ -5,35 +5,34 @@
  *      Author: zalasus
  */
 
-#include "EntityBase.h"
-
+#include <IEntityBase.h>
 #include "sas/SASEntityBases.h" // provided for base registration
 
 
 namespace Stoneship
 {
 
-	EntityBase::EntityBase()
+	IEntityBase::IEntityBase()
     : mUserCount(0)
 	{
 	}
 
-	EntityBase::EntityBase(UID uid)
+	IEntityBase::IEntityBase(UID uid)
     : mUID(uid),
 	  mUserCount(0)
 	{
 	}
 
-	EntityBase::~EntityBase()
+	IEntityBase::~IEntityBase()
 	{
 	}
 
-	UID EntityBase::getUID() const
+	UID IEntityBase::getUID() const
 	{
 		return mUID;
 	}
 
-	uint32_t EntityBase::getUserCount() const
+	uint32_t IEntityBase::getUserCount() const
 	{
 		return mUserCount;
 	}
@@ -53,7 +52,7 @@ namespace Stoneship
 		return mRecordType;
 	}
 
-	EntityBase *EntityBaseFactory::createEntityBase(UID uid)
+	IEntityBase *EntityBaseFactory::createEntityBase(UID uid)
 	{
 		return (mAllocator(uid));
 	}

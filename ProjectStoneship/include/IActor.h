@@ -5,19 +5,19 @@
  *      Author: zalasus
  */
 
-#ifndef INCLUDE_ACTOR_H_
-#define INCLUDE_ACTOR_H_
+#ifndef INCLUDE_IACTOR_H_
+#define INCLUDE_IACTOR_H_
 
 namespace Stoneship
 {
 
 	class Inventory;
 
-	class Actor
+	class IActor
 	{
 	public:
 
-		virtual ~Actor();
+		virtual ~IActor();
 
 		virtual Inventory &getInventory() = 0;
 
@@ -26,4 +26,4 @@ namespace Stoneship
 }
 
 
-#endif /* INCLUDE_ACTOR_H_ */
+#endif /* INCLUDE_IACTOR_H_ */

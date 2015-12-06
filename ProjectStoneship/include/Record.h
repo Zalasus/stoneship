@@ -9,9 +9,11 @@
 #define INCLUDE_RECORD_H_
 
 #include <istream>
+#include <sstream>
 #include <vector>
 
 #include "Types.h"
+#include "String.h"
 #include "MGFDataReader.h"
 
 namespace Stoneship
@@ -32,6 +34,12 @@ namespace Stoneship
 		bool operator==(const UID &right);
 
 		inline uint64_t toUInt64() const { return (static_cast<uint64_t>(ordinal) << 32) | id;};
+		inline String toString() const
+		{
+		    std::ostringstream str;
+		    str << std::hex << ordinal << ":" << std::hex << id;
+		    return str.str();
+		}
 
 		static const Ordinal SELF_REF_ORDINAL = 0xFFFF;
 	};
@@ -44,6 +52,7 @@ namespace Stoneship
 		typedef uint16_t Subtype;
 
 		static const Type TYPE_GROUP = 0x0;
+		static const Type TYPE_OUTDOOR = 0xC0;
 		static const Type TYPE_DUNGEON = 0xC5;
 		static const Type TYPE_ENTITY = 0xD0;
 		static const Type TYPE_MODIFY = 0xFFF0;
@@ -57,6 +66,9 @@ namespace Stoneship
 		static const Subtype SUBTYPE_INVENTORY = 0x9;
 		static const Subtype SUBTYPE_ICON = 0xA;
 		static const Subtype SUBTYPE_IDENTIFICATION = 0xB;
+		static const Subtype SUBTYPE_POSITION = 0x10;
+		static const Subtype SUBTYPE_ENTITY = 0xF0;
+		static const Subtype SUBTYPE_ENTITY_ITEM = 0xF2;
 		static const Subtype SUBTYPE_DATA = 0x100;
 		static const Subtype SUBTYPE_EDITOR = 0xFFF0;
 		static const Subtype SUBTYPE_MODIFY_METADATA = 0xFFF9;
@@ -156,14 +168,16 @@ namespace Stoneship
 	};
 
 
-	class RecordLoadable
+	class IRecordLoadable
 	{
 	public:
 
-	    virtual ~RecordLoadable();
+	    virtual ~IRecordLoadable();
 
 	    virtual void loadFromRecord(RecordAccessor rec) = 0;
 	    virtual void modifyFromRecord(RecordAccessor rec);
+
+	    virtual UID getUID() const = 0;
 
 	};
 }

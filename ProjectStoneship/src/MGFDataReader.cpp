@@ -46,21 +46,21 @@ namespace Stoneship
 
 	MGFDataReader &MGFDataReader::readULong(uint64_t &l)
 	{
-		_readIntegral<uint64_t>(l);
+		readIntegral<uint64_t>(l);
 
 		return *this;
 	}
 
 	MGFDataReader &MGFDataReader::readUInt(uint32_t &i)
 	{
-		_readIntegral<uint32_t>(i);
+		readIntegral<uint32_t>(i);
 
 		return *this;
 	}
 
 	MGFDataReader &MGFDataReader::readUShort(uint16_t &s)
 	{
-		_readIntegral<uint16_t>(s);
+		readIntegral<uint16_t>(s);
 
 		return *this;
 	}
@@ -262,7 +262,7 @@ namespace Stoneship
 
 
 	template <typename T>
-	void MGFDataReader::_readIntegral(T &v)
+	MGFDataReader &MGFDataReader::readIntegral(T &v)
 	{
 		union{ T vt; uint8_t vb[sizeof(T)];} vu;
 
@@ -277,6 +277,8 @@ namespace Stoneship
 		}
 
 		v = vu.vt;
+
+		return *this;
 
 	}
 

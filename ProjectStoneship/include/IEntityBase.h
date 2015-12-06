@@ -5,8 +5,8 @@
  *      Author: zalasus
  */
 
-#ifndef INCLUDE_ENTITYBASE_H_
-#define INCLUDE_ENTITYBASE_H_
+#ifndef INCLUDE_IENTITYBASE_H_
+#define INCLUDE_IENTITYBASE_H_
 
 #include <vector>
 
@@ -14,17 +14,19 @@
 #include "String.h"
 #include "Record.h"
 
-#define REGISTER_ENTITY_BASE(recordType, entityBaseClass) static EntityBase* create_ ## entityBaseClass ## _instance(UID uid) { return new entityBaseClass(uid); } static EntityBaseFactory entityBaseClass ## _factory(recordType, & create_ ## entityBaseClass ## _instance);
+#define REGISTER_ENTITY_BASE(recordType, entityBaseClass) static IEntityBase* create_ ## entityBaseClass ## _instance(UID uid) { return new entityBaseClass(uid); } static EntityBaseFactory entityBaseClass ## _factory(recordType, & create_ ## entityBaseClass ## _instance);
 
 
 namespace Stoneship
 {
 
-	class EntityBase : public RecordLoadable
+    class IEntity;
+
+	class IEntityBase : public IRecordLoadable
 	{
 	public:
 
-		friend class Entity;
+		friend class IEntity;
         friend class ItemStack; //TODO: I'd prefer a solution in which ItemStack just uses an Entity instance to do GC
 
 		typedef uint32_t BaseType;
@@ -32,9 +34,9 @@ namespace Stoneship
 		static const BaseType BASETYPE_WORLD = 2;
 		static const BaseType BASETYPE_SPECIAL = 4;
 
-		EntityBase();
-		EntityBase(UID uid);
-		virtual ~EntityBase();
+		IEntityBase();
+		IEntityBase(UID uid);
+		virtual ~IEntityBase();
 
 		virtual Record::Type getRecordType() const = 0;
 		virtual BaseType getBaseType() const = 0;
@@ -44,6 +46,8 @@ namespace Stoneship
 		UID getUID() const;
 
 		uint32_t getUserCount() const;
+
+		virtual IEntity *createEntity(UID entityUID) = 0;
 
 	private:
 
@@ -57,13 +61,13 @@ namespace Stoneship
 	{
 	public:
 
-		typedef EntityBase* (*EntityBaseAllocatorMethodPtr)(UID);
+		typedef IEntityBase* (*EntityBaseAllocatorMethodPtr)(UID);
 
 
 		EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc);
 
 		Record::Type getRecordType() const;
-		EntityBase *createEntityBase(UID uid);
+		IEntityBase *createEntityBase(UID uid);
 
 
 		static EntityBaseFactory *getFactoryForRecordType(Record::Type t);
@@ -81,4 +85,4 @@ namespace Stoneship
 
 
 
-#endif /* INCLUDE_ENTITYBASE_H_ */
+#endif /* INCLUDE_IENTITYBASE_H_ */

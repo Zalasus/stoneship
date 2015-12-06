@@ -5,10 +5,10 @@
  *      Author: Niklas Weissner
  */
 
+#include <IEntity.h>
 #include "Exception.h"
 #include "MGFManager.h"
 #include "MasterGameFile.h"
-#include "Entity.h"
 #include "Root.h"
 
 namespace Stoneship
@@ -147,16 +147,16 @@ namespace Stoneship
 	}
 #endif
 
-	void MGFManager::applyModifications(EntityBase *base)
+	void MGFManager::applyModifications(IRecordLoadable *loadable)
 	{
 		for(uint32_t i = 0; i < mLoadedGameFileCount; ++i) // modifications are applied incrementally. not sure if this is the most efficient way, but it should work
 		{
-			mGameFiles[i]->applyModifications(base);
+			mGameFiles[i]->applyModifications(loadable);
 		}
 
 		if(mCurrentSaveFile != nullptr)
 		{
-			mCurrentSaveFile->applyModifications(base);
+			mCurrentSaveFile->applyModifications(loadable);
 		}
 	}
 

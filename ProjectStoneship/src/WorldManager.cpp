@@ -9,8 +9,12 @@
 
 #include <iostream>
 
+#include "IEntity.h"
+#include "WorldManager.h"
+#include "IWorld.h"
+#include "WorldDungeon.h"
+#include "WorldOutdoor.h"
 #include "Exception.h"
-#include "Entity.h"
 #include "MasterGameFile.h"
 #include "Root.h"
 #include "MGFManager.h"
@@ -20,92 +24,53 @@ namespace Stoneship
 {
 
 	WorldManager::WorldManager(Root *root)
-	: mRoot(root)
+	: mRoot(root),
+	  mCurrentWorld(nullptr)
 	{
 	}
 
 	WorldManager::~WorldManager()
 	{
-		unloadEntities();
-	}
-
-	void WorldManager::unloadEntities()
-	{
-		for(uint32_t i = 0 ; i < mEntities.size(); ++i)
-		{
-			delete mEntities[i];
-		}
-
-		mEntities.clear();
+	    if(mCurrentWorld != nullptr)
+	    {
+	        delete mCurrentWorld;
+	    }
 	}
 
 	void WorldManager::enterWorld(UID worldUID)
 	{
-		unloadEntities();
+	    if(mCurrentWorld != nullptr)
+	    {
+	        delete mCurrentWorld;
+	        mCurrentWorld = nullptr;
+	    }
 
-		RecordAccessor worldRecord = mRoot->getMGFManager()->getRecordByTypeID(worldUID, Record::TYPE_DUNGEON); //only allow dungeons for now
+	    RecordAccessor worldRecord = mRoot->getMGFManager()->getRecordByID(worldUID); //TODO: We only have two possible types this lookup should yield. Make it typed
 
-		worldRecord.getReaderForSubrecord(Record::SUBTYPE_DATA).readBString(mDungeonName);
-
-		RecordAccessor entityGroup = worldRecord.getNextRecord();
-		if(entityGroup.getHeader().type != Record::TYPE_GROUP)
+		if(worldRecord.getHeader().type == Record::TYPE_DUNGEON)
 		{
-			return; //no entities
+		    mCurrentWorld = new WorldDungeon(worldUID);
+
+		}else if(worldRecord.getHeader().type == Record::TYPE_OUTDOOR)
+		{
+
+		    mCurrentWorld = new WorldOutdoor(worldUID);
+
+		}else
+		{
+		    STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, worldUID.toString() + " is not a world record");
 		}
 
-		//according to MGF specification, entity group records following dungeons must never be empty
-		//anyway, at least getFirstChildRecord() should check the bounds of... wait... it already does. nevermind.
-
-		RecordAccessor entityRecord = entityGroup.getFirstChildRecord();
-		for(uint32_t i = 0 ; i < entityGroup.getHeader().recordCount ; ++i)
-		{
-			UID baseUID;
-			Record::Type baseType;
-			entityRecord.getReaderForSubrecord(0x01)
-					.readStruct(baseUID)
-					.readUShort(baseType);
-
-			EntityBase *base = mRoot->getEntityManager()->getBase(baseUID, baseType);
-			if(base == nullptr)
-			{
-				STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Referenced base not found");
-			}
-
-			mEntities.push_back(new WorldEntity(UID(entityRecord.getGameFile()->getOrdinal(), entityRecord.getHeader().id), base, this));
-
-			if(i < entityGroup.getHeader().recordCount - 1)
-			{
-				entityRecord = entityRecord.getNextRecord();
-			}
-		}
+		mCurrentWorld->loadFromRecord(worldRecord);
 
 		mRoot->getEntityManager()->collectGarbage(); //remove all bases that are not used atm
 	}
 
-	String WorldManager::getDungeonName()
+	IWorld *WorldManager::getCurrentWorld()
 	{
-		return mDungeonName;
+	    return mCurrentWorld;
 	}
 
-	std::vector<Entity*> &WorldManager::getEntities()
-	{
-		return mEntities;
-	}
-
-	void WorldManager::removeEntity(UID entityUID)
-	{
-		auto it = mEntities.begin();
-		while(it != mEntities.end())
-		{
-			if((*it)->getUID() == entityUID)
-			{
-				mEntities.erase(it);
-				break;
-			}
-
-			it++;
-		}
-	}
 }
 
 

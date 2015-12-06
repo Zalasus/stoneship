@@ -197,11 +197,11 @@ namespace Stoneship
 
 
 
-	RecordLoadable::~RecordLoadable()
+	IRecordLoadable::~IRecordLoadable()
 	{
 	}
 
-	void RecordLoadable::modifyFromRecord(RecordAccessor rec)
+	void IRecordLoadable::modifyFromRecord(RecordAccessor rec)
 	{
 	    STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "Loadable does not support modification by record");
 	}

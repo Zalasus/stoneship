@@ -8,14 +8,14 @@
 #ifndef INCLUDE_PLAYER_H_
 #define INCLUDE_PLAYER_H_
 
+#include <IActor.h>
 #include "Types.h"
-#include "Actor.h"
 #include "Inventory.h"
 
 namespace Stoneship
 {
 
-	class Player : public Actor
+	class Player : public IActor
 	{
 	public:
 

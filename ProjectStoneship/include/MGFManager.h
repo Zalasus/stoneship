@@ -19,7 +19,7 @@ namespace Stoneship
 {
 
     class Root;
-    class EntityBase;
+    class IEntityBase;
 
 	class MGFManager
 	{
@@ -52,7 +52,7 @@ namespace Stoneship
 		 */
 		RecordAccessor getRecordByEditorName(const String &name, Record::Type type);
 
-		void applyModifications(EntityBase *base);
+		void applyModifications(IRecordLoadable *loadable);
 
 	private:
 

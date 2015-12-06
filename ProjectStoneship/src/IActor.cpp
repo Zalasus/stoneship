@@ -5,12 +5,12 @@
  *      Author: zalasus
  */
 
-#include "Actor.h"
+#include <IActor.h>
 
 namespace Stoneship
 {
 
-	Actor::~Actor()
+	IActor::~IActor()
 	{
 
 	}

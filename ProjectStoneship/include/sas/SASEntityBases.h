@@ -8,51 +8,51 @@
 #ifndef INCLUDE_SAS_SASENTITYBASES_H_
 #define INCLUDE_SAS_SASENTITYBASES_H_
 
+#include "IEntityBase.h"
+#include "IEntityBaseItem.h"
+#include "IEntityBaseWorld.h"
 #include "Types.h"
 #include "Record.h"
 #include "String.h"
-#include "EntityBase.h"
-#include "WorldEntityBase.h"
-#include "ItemBase.h"
 
 namespace Stoneship
 {
 
     class ItemStack;
-    class Entity;
+    class IEntity;
 
-	class EntityBase_Static : public WorldEntityBase
+	class EntityBase_Static : public IEntityBaseWorld
 	{
 	public:
 		EntityBase_Static(UID uid);
 
 		Record::Type getRecordType() const {return 0x800;}
-		EntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;};
+		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;};
 		String getBaseName() const {return "Static";}
 
 		void loadFromRecord(RecordAccessor record);
 		void modifyFromRecord(RecordAccessor record);
 
-		bool onUse(ItemStack *stack, Actor *actor);
-		bool onInteract(Entity *entity, Actor *actor);
+		bool onUse(ItemStack *stack, IActor *actor);
+		bool onInteract(IEntity *entity, IActor *actor);
 
 	};
 
-	class EntityBase_Book : public ItemBase
+	class EntityBase_Book : public IEntityBaseItem
 	{
 	public:
 
 		EntityBase_Book(UID uid);
 
 		Record::Type getRecordType() const {return 0x820;}
-		EntityBase::BaseType getBaseType() const {return BASETYPE_WORLD | BASETYPE_ITEM;}
+		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD | BASETYPE_ITEM;}
 		String getBaseName() const {return "Book";}
 
 		void loadFromRecord(RecordAccessor record);
 		void modifyFromRecord(RecordAccessor record);
 
-		bool onUse(ItemStack *stack, Actor *actor);
-		bool onInteract(Entity *entity, Actor *actor);
+		bool onUse(ItemStack *stack, IActor *actor);
+		bool onInteract(IEntity *entity, IActor *actor);
 
 		String getText() const;
 
@@ -63,7 +63,7 @@ namespace Stoneship
 
 	};
 
-	class EntityBase_Weapon : public ItemBase
+	class EntityBase_Weapon : public IEntityBaseItem
 	{
 	public:
 
@@ -78,14 +78,14 @@ namespace Stoneship
 		EntityBase_Weapon(UID uid);
 
 		Record::Type getRecordType() const {return 0x810;}
-		EntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
+		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Weapon";}
 
 		void loadFromRecord(RecordAccessor record);
 		void modifyFromRecord(RecordAccessor record);
 
-		bool onUse(ItemStack *stack, Actor *actor);
-		bool onInteract(Entity *entity, Actor *actor);
+		bool onUse(ItemStack *stack, IActor *actor);
+		bool onInteract(IEntity *entity, IActor *actor);
 
 		WeaponType getWeaponType() const;
 		uint32_t getDamage() const;
@@ -102,21 +102,21 @@ namespace Stoneship
 
 	};
 
-	class EntityBase_Stuff : public ItemBase
+	class EntityBase_Stuff : public IEntityBaseItem
 	{
 	public:
 
 		EntityBase_Stuff(UID uid);
 
 		Record::Type getRecordType() const {return 0x821;}
-		EntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
+		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Stuff";}
 
 		void loadFromRecord(RecordAccessor record);
 		void modifyFromRecord(RecordAccessor record);
 
-		bool onUse(ItemStack *stack, Actor *actor);
-		bool onInteract(Entity *entity, Actor *actor);
+		bool onUse(ItemStack *stack, IActor *actor);
+		bool onInteract(IEntity *entity, IActor *actor);
 	};
 
 

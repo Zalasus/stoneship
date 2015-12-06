@@ -49,6 +49,8 @@ namespace Stoneship
 
 		MGFDataReader &readZString(String &s);
 
+		template <typename T>
+		MGFDataReader &readIntegral(T &v);
 
 		template <typename T>
 		MGFDataReader &readStruct(T &s);
@@ -64,9 +66,6 @@ namespace Stoneship
 
 
 	private:
-
-		template <typename T>
-		void _readIntegral(T &v);
 
 		void _readChars(char* data, uint32_t size);
 

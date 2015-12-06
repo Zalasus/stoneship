@@ -5,11 +5,11 @@
  *      Author: Zalasus
  */
 
+#include <IEntityBase.h>
 #include "EntityManager.h"
 
 #include "Exception.h"
 #include "MGFManager.h"
-#include "EntityBase.h"
 #include "Root.h"
 
 namespace Stoneship
@@ -28,7 +28,7 @@ namespace Stoneship
 		}
 	}
 
-	EntityBase *EntityManager::getBase(const UID &uid, Record::Type type)
+	IEntityBase *EntityManager::getBase(const UID &uid, Record::Type type)
 	{
 		/*auto search = mBaseCache.find(uid.toUInt64());
 		if(search != mBaseCache.end())
@@ -56,7 +56,7 @@ namespace Stoneship
 			STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, String("Record type ") + rec.getHeader().type + " does not match any registered Entity Base types.");
 		}
 
-		EntityBase *base = factory->createEntityBase(uid);
+		IEntityBase *base = factory->createEntityBase(uid);
 
 		try
 		{

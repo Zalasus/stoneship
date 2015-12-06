@@ -15,27 +15,27 @@
 namespace Stoneship
 {
 
-    class ItemBase;
+    class IEntityBaseItem;
 
 	class ItemStack
 	{
 	public:
-		ItemStack(ItemBase *pItemBase, uint32_t pCount);
+		ItemStack(IEntityBaseItem *pItemBase, uint32_t pCount);
 		ItemStack(const ItemStack &s);
 		~ItemStack();
 
-		ItemBase *getItemBase() const;
+		IEntityBaseItem *getItemBase() const;
 		uint32_t getCount() const;
 		void setCount(uint32_t count);
 
 
 	private:
-		ItemBase *mItemBase;
+		IEntityBaseItem *mItemBase;
 		uint32_t mCount;
 	};
 
 
-	class EntityBase;
+	class IEntityBase;
 
 	class Inventory
 	{
@@ -52,7 +52,7 @@ namespace Stoneship
 		/**
 		 * @returns The actual amount of items that were added to the inventory
 		 */
-		uint32_t addItem(EntityBase *base, uint32_t count = 1);
+		uint32_t addItem(IEntityBase *base, uint32_t count = 1);
 		uint32_t addItem(const ItemStack &stack);
 
 		bool removeItem(uint32_t index, uint32_t count = 1);
