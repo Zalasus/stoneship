@@ -10,6 +10,7 @@
 #include "IEntityBaseWorld.h"
 #include "IWorld.h"
 #include "WorldManager.h"
+#include "Logger.h"
 
 namespace Stoneship
 {
@@ -58,6 +59,13 @@ namespace Stoneship
 	void EntityWorld::spawn(IWorld *w)
 	{
 	    mWorld = w;
+
+	    Logger::info("Spawned entity " + getUID().toString() + " in world " + w->getUID().toString());
+	}
+
+	void EntityWorld::despawn()
+	{
+	    Logger::info("Despawned entity " + getUID().toString() + " in world " + mWorld->getUID().toString());
 	}
 
 	void EntityWorld::remove()

@@ -15,6 +15,7 @@
 
     k_short 1 ; resource count
     k_byte 1
+    k_byte 0
     k_sstring 'sas_data/'
 
     k_int 6 ; record group count

@@ -8,12 +8,12 @@
 #include <Exception.h>
 #include <IEntityBase.h>
 #include <MGFManager.h>
+#include <StoneshipDefines.h>
 #include "MasterGameFile.h"
 
 #include "MGFDataReader.h"
 #include "MGFManager.h"
 #include "ResourceManager.h"
-#include "StoneshipConstants.h"
 
 namespace Stoneship
 {
@@ -78,7 +78,7 @@ namespace Stoneship
 
 		std::time_t timestampCTime;
 		timestampCTime = static_cast<time_t>(timestamp);
-		mTimestamp = *std::localtime(&timestampCTime);  //FIXME: Not portable! Timestamp in MGF is always UNIX format, but localtime() may use different format
+		mTimestamp = *std::localtime(&timestampCTime);  //FIXME: Not portable! Timestamp in MGF is always UNIX format, but localtime() may use different format. Check whether this is a real hazard and fix when neccessary
 
 		//load and check for dependencies
 		ds.readUShort(mDependencyCount);
@@ -106,23 +106,40 @@ namespace Stoneship
 		for(uint16_t i = 0; i < mResourceCount; i++)
 		{
 			uint8_t resType;
+			uint8_t resPrio;
 			String resPath;
 
 			ds.readUByte(resType)
+			  .readUByte(resPrio)
 			  .readSString(resPath);
+
+			ResourceManager::ResourcePathPriority rmPrio;
+			switch(resPrio)
+			{
+			case RES_PRIO_DEFAULT:
+			    rmPrio = ResourceManager::PRIORITY_DEFAULT;
+			    break;
+
+			case RES_PRIO_BEFORE:
+			    rmPrio = ResourceManager::PRIORITY_BEFORE_DEFAULT;
+			    break;
+
+			default:
+			    STONESHIP_EXCEPT(StoneshipException::RESOURCE_ERROR, "Unknown or unsupported priority given for resource");
+			}
 
 			switch(resType)
 			{
 			case RES_TYPE_FS:
-				mResourceManager->addResourcePath(resPath,ResourceManager::FILESYSTEM);
+				mResourceManager->addMGFResourcePath(resPath, mOrdinal,ResourceManager::PATH_FILESYSTEM, rmPrio);
 				break;
 
 			case RES_TYPE_ZIP:
-				mResourceManager->addResourcePath(resPath,ResourceManager::ZIP_FILE);
+				mResourceManager->addMGFResourcePath(resPath, mOrdinal, ResourceManager::PATH_ZIP_FILE, rmPrio);
 				break;
 
 			case RES_TYPE_GZIP:
-				mResourceManager->addResourcePath(resPath,ResourceManager::GZIP_FILE);
+				mResourceManager->addMGFResourcePath(resPath, mOrdinal, ResourceManager::PATH_GZIP_FILE, rmPrio);
 				break;
 
 			case RES_TYPE_SINGLE:

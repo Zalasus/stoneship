@@ -522,10 +522,13 @@ static void prompt()
 
 int main(int argc, char **argv)
 {
+    std::cout << "Initializing Stoneship v" << STONESHIP_VERSION << "..." << std::endl;
 
 	root = new Stoneship::Root();
 
-	std::cout << std::endl;
+	root->getResourceManager()->addDefaultResourcePath("res", Stoneship::ResourceManager::PATH_FILESYSTEM);
+
+	std::cout << std::endl << std::endl;
 	std::cout << "Project Stoneship Utility 1.0" << std::endl;
 	std::cout << "-----------------------------" << std::endl << std::endl;
 
@@ -544,6 +547,8 @@ int main(int argc, char **argv)
 			std::cout << "Error while loading: " << e.what() << std::endl;
 		}
 	}
+
+	root->getResourceManager()->initializeResources();
 
 	std::cout << "Loaded " << root->getMGFManager()->getLoadedMGFCount() << " MGF(s)" << std::endl;
 

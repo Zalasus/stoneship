@@ -32,7 +32,7 @@
 #include "ResourceManager.h"
 #include "Root.h"
 #include "SaveGameFile.h"
-#include "StoneshipConstants.h"
+#include <StoneshipDefines.h>
 #include "String.h"
 #include "Types.h"
 #include <IWorld.h>

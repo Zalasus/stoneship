@@ -122,6 +122,9 @@ namespace Stoneship
 		static const uint8_t RES_TYPE_FS = 1;
 		static const uint8_t RES_TYPE_ZIP = 2;
 		static const uint8_t RES_TYPE_GZIP = 3;
+
+		static const uint8_t RES_PRIO_DEFAULT = 0;
+		static const uint8_t RES_PRIO_BEFORE = 1;
 	};
 
 }

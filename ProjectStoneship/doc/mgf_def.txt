@@ -10,7 +10,7 @@ Additional type structures in KIDDML format:
 
 dependency = {sstring: filename, short: ordinal}
 recordHint = {short: type, int: offset, int: count}
-resource = {byte: type, sstring: path}
+resource = {byte: type, byte: priority, sstring: path}
 subrecord = {short: type, int: size, byte[~]: data} (6 bytes overhead)
 uid = {short: ordinal, int: id}
 record = {short: type, int: sizeInBytes, short: flags, int: recordId, byte[~]: data}
@@ -60,14 +60,61 @@ bit 2: If set, this bit indicated the creator of the MGF is aware that there are
 
 Resource files
 --------------
-A MGF may specify additional resource locations, which are used aside the default locations of the engine.
-Resource locations may be folders or archive files. The type field in a resource entry speciefies how to
-handle the resource given in the path field. The following values are possible:
+All resources used by the engine are adressed via a virtual file system which maps internal resource paths
+to the underlying system's file system. This virtual file system uses a system-independent, fixed naming scheme
+for it's paths, which is defined as follows:
+
+Folders are seperated by slash characters '/' (UNIX-Style paths)
+
+The file system originates from a root directory, designated by '/'. This, however, is
+an optional prefix, since the file system has no need for relative paths.
+Therefore '/mdl/sas' and 'mdl/sas' _always_ point to the same directory.
+
+Double slashes ('/snd/sas//foo.ogg') are ignored.
+
+On root level, every type of resource is stored in it's own subfolder. The following types are defined:
+	/mdl/    Model files
+	/mat/    Material files
+	/tex/    Texture files
+	/snd/    Sound files
+	/shd/    Shader programs
+	/loc/    Locale files
+	
+These associations are implicit and enforced, meaning when a model is requested, the '/mdl/...' part
+of it's path is added by the engine. Requesting '/mdl/cube.model' will result in '/mdl/mdl/cube.model' beeing
+looked up.
+
+By default, the engine maps the resource root to a folder named 'res/' in it's running directory. However, a MGF
+may specify additional resource locations, which are defined in it's resource location header field and are used
+aside the default location of the engine. Resource locations may be folders or archive files. The type field in a
+resource entry specifies how to handle the resource given in the path field. The following values are possible:
 
 	0: Single file
 	1: File system (for simple folders)
 	2: Zip file (resources are packed in a .zip archive)
 	3: Gzip file (Implementation is considered optional for now)
+	
+Real file system paths given in the resource path field should be relative. The engine internally replaces folder seperators
+to match the system's ones (so MGFs created under UNIX can be used in DOS environments like Microsoft Windows), however it
+does not remap absoulte paths, so a MGF defining 'C:/example/' as a resource path would be unusable under UNIX.
+	
+Resource locations are searched by priority until the wanted resource is found, with the default priority beeing:
+	1. 'res/'-Folder
+	2. Requesting MGF's locations
+	3. Other MGF's locations
+	
+This behaviour can, however, be altered by the priority field in a resource entry (independent of other entries in the same file).
+The following priority settings are defined:
+	0: Default priority (2nd when requested by same MGF, 3rd otherwise)
+	1: Before default (Always 1st, before 'res/'-Folder and other MGFs)
+	
+During loading resource paths are gathered and organized to best meet the defined priorities. When a MGF defined multiple paths with the
+same priority setting, they are organized in the order they were defined in the MGF's header. When multiple MGFs define one or more
+resource path with the same priority, the paths of the last loaded MGF get searched before the paths of the ones loaded before the last MGF.
+
+This priority system's purpose is to allow the easy creation of MGFs which override a game's default resources like a HD texture patch etc.
+In that case the modder could store the new textures in an archive file, define that file as a resource location with priority setting 1 of an
+otherwise empty MGF and instruct users to load the HD mod _after_ the main game files. 
 
 
 Size fields

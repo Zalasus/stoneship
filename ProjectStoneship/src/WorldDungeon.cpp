@@ -51,6 +51,8 @@ namespace Stoneship
         {
             if(*it == entity)
             {
+                (*it)->despawn();
+
                 delete *it;
                 it = mEntities.erase(it);
 
@@ -68,6 +70,8 @@ namespace Stoneship
         {
             if((*it)->getUID() == uid)
             {
+                (*it)->despawn();
+
                 delete *it;
                 it = mEntities.erase(it);
 
