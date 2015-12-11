@@ -64,6 +64,8 @@ namespace Stoneship
 		mCurrentWorld->loadFromRecord(worldRecord);
 
 		mRoot->getEntityManager()->collectGarbage(); //remove all bases that are not used atm
+
+		mRoot->getRenderManager()->rebuildSceneGraph();
 	}
 
 	IWorld *WorldManager::getCurrentWorld()

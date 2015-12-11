@@ -19,6 +19,7 @@
 #include "EntityManager.h"
 #include "EventPipeline.h"
 #include "Exception.h"
+#include "IniFile.h"
 #include "Inventory.h"
 #include <IEntityBaseItem.h>
 #include "Logger.h"

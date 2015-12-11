@@ -4,7 +4,7 @@
 
 ;--------file header-----------------------------------------------------------
     db 'NRPG3MGF'   ; magic id
-    k_bstring 'SAS' ; game id
+    k_bstring 'Stoneship' ; game id
     k_int 0         ; file flags
 
     k_sstring 'Zalasus'                                ; author

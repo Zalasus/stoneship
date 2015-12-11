@@ -11,8 +11,9 @@
 // ---------- Game/Engine specific defines ----------
 
 #define STONESHIP_VERSION "3.0.0"
-#define STONESHIP_GAMEID "SAS"
-
+#define STONESHIP_GAMEID "Stoneship"
+#define STONESHIP_DEFAULT_WINDOW_CAPTION "Stoneship"
+#define STONESHIP_DEFAULT_WINDOW_CAPTION_WIDE L"Stoneship"
 
 
 

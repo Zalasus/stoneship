@@ -64,6 +64,10 @@ All resources used by the engine are adressed via a virtual file system which ma
 to the underlying system's file system. This virtual file system uses a system-independent, fixed naming scheme
 for it's paths, which is defined as follows:
 
+!!! WARNING! Currently, the following definition is not neccessarily valid, as the engine uses
+             Irrlicht's virtual file system instead. Path syntax should be largely the same.
+             Priority handling, however, is just based on MGF loading order at the moment.
+
 Folders are seperated by slash characters '/' (UNIX-Style paths)
 
 The file system originates from a root directory, designated by '/'. This, however, is

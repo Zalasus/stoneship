@@ -47,7 +47,7 @@ namespace Stoneship
 
 	class WorldManager;
 
-	class EntityWorld : public IEntity
+	class EntityWorld : public IEntity, irr::scene::ISceneNode
 	{
 	public:
 		EntityWorld(UID uidOfEntity, IEntityBase *base); //uidOfEntity is the UID of the reference, not the referenced base!!!
@@ -62,17 +62,11 @@ namespace Stoneship
         void spawn(IWorld *w);
         void despawn();
 		void remove();
-		void setHidden(bool hidden);
-		bool isHidden() const;
 
 	private:
 
 		IWorld *mWorld;
-
-		bool mHidden;
-
 	};
-
 
 	class EntityItem : public EntityWorld
 	{

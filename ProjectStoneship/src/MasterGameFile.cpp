@@ -131,15 +131,15 @@ namespace Stoneship
 			switch(resType)
 			{
 			case RES_TYPE_FS:
-				mResourceManager->addMGFResourcePath(resPath, mOrdinal,ResourceManager::PATH_FILESYSTEM, rmPrio);
+				mResourceManager->addResourcePath(resPath, mOrdinal,ResourceManager::PATH_FILESYSTEM, rmPrio);
 				break;
 
 			case RES_TYPE_ZIP:
-				mResourceManager->addMGFResourcePath(resPath, mOrdinal, ResourceManager::PATH_ZIP_FILE, rmPrio);
+				mResourceManager->addResourcePath(resPath, mOrdinal, ResourceManager::PATH_ZIP_FILE, rmPrio);
 				break;
 
 			case RES_TYPE_GZIP:
-				mResourceManager->addMGFResourcePath(resPath, mOrdinal, ResourceManager::PATH_GZIP_FILE, rmPrio);
+				mResourceManager->addResourcePath(resPath, mOrdinal, ResourceManager::PATH_GZIP_FILE, rmPrio);
 				break;
 
 			case RES_TYPE_SINGLE:

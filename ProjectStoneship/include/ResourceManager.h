@@ -54,8 +54,7 @@ namespace Stoneship
 
 		ResourceManager(Root *root);
 
-		void addMGFResourcePath(const String &path, UID::Ordinal ordinal, ResourcePathType type, ResourcePathPriority prio);
-		void addDefaultResourcePath(const String &path, ResourcePathType type);
+		void addResourcePath(const String &path, UID::Ordinal ordinal, ResourcePathType type, ResourcePathPriority prio);
 
 		/**
 		 * @brief Creates index for all newly added paths and creates priority scheme
@@ -69,9 +68,6 @@ namespace Stoneship
 	private:
 
 		Root *mRoot;
-
-		static const ResourcePathExtension smPathExt[];
-
 	};
 
 }
