@@ -31,14 +31,14 @@ namespace Stoneship
 		switch(level)
 		{
 		case LOGLEVEL_SEVERE:
-			std::cerr << "[" << getTimestamp() << "][ERROR] " << msg << std::endl;
+			std::cerr << "[" << getTimestamp() << "][SEVE] " << msg << std::endl;
 			break;
 
 		case LOGLEVEL_WARNING:
-			std::cout  << "[" << getTimestamp() <<  "][WARNING] " << msg << std::endl;
+			std::cout  << "[" << getTimestamp() <<  "][WARN] " << msg << std::endl;
 			break;
 
-		case LOGLEVEL_NORMAL:
+		case LOGLEVEL_INFO:
 		default:
 			std::cout  << "[" << getTimestamp() << "][INFO] " << msg << std::endl;
 		}
@@ -46,12 +46,17 @@ namespace Stoneship
 
 	void Logger::info(const String &msg)
 	{
-		log(msg, LOGLEVEL_NORMAL);
+		log(msg, LOGLEVEL_INFO);
 	}
 
 	void Logger::warn(const String &msg)
 	{
 		log(msg, LOGLEVEL_WARNING);
+	}
+
+	void Logger::severe(const String &msg)
+	{
+	    log(msg, LOGLEVEL_SEVERE);
 	}
 
 }

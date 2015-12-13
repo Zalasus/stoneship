@@ -229,19 +229,25 @@ Subrecords marked with [*] may appear arbitrarily often, including never.
 Subrecords marked with [#] may appear arbitrarily often, but at least once.
 
 0: Group (alternate header format)
-	
+
+0A: Option
+	100: Option data
+		
+	FFF0: editor data
+		sstring: editor name
+
 0F: StringResource
 	0: Resource data
 		sstring: string data
-	FFFF: Editior data
-		bstring: resource name
+	FFF0: editor data
+		sstring: editor name
 
 B0: ScalesLib
 	1: Binary library data (see Scales specification)
 	2: [Optional] Source
 		istring: source data
-	FFFF: [Optional] Editor data
-		bstring: script file name
+	FFF0: editor data
+		sstring: editor name
 		
 
 B1: Global

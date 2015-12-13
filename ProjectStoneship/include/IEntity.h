@@ -47,7 +47,7 @@ namespace Stoneship
 
 	class WorldManager;
 
-	class EntityWorld : public IEntity, irr::scene::ISceneNode
+	class EntityWorld : public IEntity
 	{
 	public:
 		EntityWorld(UID uidOfEntity, IEntityBase *base); //uidOfEntity is the UID of the reference, not the referenced base!!!

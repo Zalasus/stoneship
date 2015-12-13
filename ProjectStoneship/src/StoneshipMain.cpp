@@ -18,8 +18,6 @@ int main(int argc, char **argv)
 
 	root->getOptions().load(argc, argv);
 
-	root->getRenderManager()->setScreen(new ScreenWorld());
-
 	try
 	{
 	    root->run();

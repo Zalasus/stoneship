@@ -19,14 +19,15 @@ namespace Stoneship
 
 		enum LogLevel
 		{
-			LOGLEVEL_NORMAL,
+			LOGLEVEL_INFO,
 			LOGLEVEL_WARNING,
 			LOGLEVEL_SEVERE
 		};
 
-		static void log(const String &msg, LogLevel = LOGLEVEL_NORMAL);
+		static void log(const String &msg, LogLevel = LOGLEVEL_INFO);
 		static void info(const String &msg);
 		static void warn(const String &msg);
+		static void severe(const String &msg);
 
 	};
 

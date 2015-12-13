@@ -47,8 +47,7 @@ namespace Stoneship
 
 	EntityWorld::EntityWorld(UID uid, IEntityBase *base)
 	: IEntity(uid, base),
-	  mWorld(nullptr),
-	  mHidden(false)
+	  mWorld(nullptr)
 	{
 	}
 
@@ -74,16 +73,6 @@ namespace Stoneship
 	    {
 	        mWorld->removeEntity(this);
 	    }
-	}
-
-	bool EntityWorld::isHidden() const
-	{
-		return mHidden;
-	}
-
-	void EntityWorld::setHidden(bool hidden)
-	{
-		mHidden = hidden;
 	}
 
 	void EntityWorld::loadFromRecord(RecordAccessor rec)

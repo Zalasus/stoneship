@@ -8,8 +8,6 @@
 #ifndef INCLUDE_ROOT_H_
 #define INCLUDE_ROOT_H_
 
-#include <IrrlichtDevice.h>
-
 #include "Types.h"
 #include "Options.h"
 
@@ -21,7 +19,6 @@ namespace Stoneship
     class WorldManager;
     class ResourceManager;
     class EventPipeline;
-    class RenderManager;
 
 	class Root
 	{
@@ -36,10 +33,7 @@ namespace Stoneship
 		EntityManager *getEntityManager();
 		WorldManager *getWorldManager();
 		ResourceManager *getResourceManager();
-		RenderManager *getRenderManager();
 		EventPipeline *getEventPipeline();
-
-		irr::IrrlichtDevice *getIrrlichtDevice();
 
 		/**
 		 * @brief Runs the game. Blocking call; returns when finished
@@ -51,18 +45,13 @@ namespace Stoneship
 
 	private:
 
-		irr::IrrlichtDevice *_createRendererDevice();
-
 		Options mOptions;
 
 		MGFManager *mMGFManager;
 		EntityManager *mEntityManager;
 		WorldManager *mWorldManager;
 		ResourceManager *mResourceManager;
-		RenderManager *mRenderManager;
 		EventPipeline *mEventPipeline;
-
-		irr::IrrlichtDevice *mIrrlichtDevice;
 
 		static Root *smSingleton;
 	};
