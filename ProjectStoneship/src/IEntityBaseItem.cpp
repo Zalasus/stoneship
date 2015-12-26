@@ -100,6 +100,16 @@ namespace Stoneship
 	    return new EntityItem(uid, this);
 	}
 
+	bool IEntityBaseItem::canInteract() const
+	{
+	    return true;
+	}
+
+	bool IEntityBaseItem::onInteract(IEntity *entity, IActor *actor)
+    {
+        return _pickupOnInteract(entity, actor);
+    }
+
 	bool IEntityBaseItem::_pickupOnInteract(IEntity *entity, IActor *actor)
 	{
 	    if(entity->getEntityType() & IEntity::ENTITYTYPE_ITEM)

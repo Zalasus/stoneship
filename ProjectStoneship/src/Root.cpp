@@ -30,7 +30,7 @@ namespace Stoneship
 	{
 	    if(smSingleton != nullptr)
 	    {
-	        Logger::warn("Created second instance of Root object. This indicates an error in the engine");
+	        Logger::warn("Created second instance of Root object.");
 
 	    }else
 	    {
@@ -125,6 +125,8 @@ namespace Stoneship
 
 	    Logger::info(String("Loaded ") + getMGFManager()->getLoadedMGFCount() + " MGF(s)");
 
+	    // now that all MGFs are loaded, we need to find an entry point
+	    getWorldManager()->enterWorld(UID(0xA));
 
 	    Logger::info("Stop signal received. Shutting down engine.");
 	}
@@ -137,7 +139,9 @@ namespace Stoneship
 	{
 	    if(smSingleton == nullptr)
 	    {
-	        smSingleton = new Root();
+	        Logger::warn("Created Root singleton using singleton method. ATM, this creates a memory leak and should be avoided.");
+
+	        smSingleton = new Root(); //TODO: technically, this method creates a memory leak. might be worth checking out
 	    }
 
 	    return smSingleton;

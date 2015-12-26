@@ -53,13 +53,16 @@ namespace Stoneship
 
 		static const Type TYPE_GROUP = 0x0;
 		static const Type TYPE_OUTDOOR = 0xC0;
+		static const Type TYPE_CHUNK_GROUP = 0xC1;
+		static const Type TYPE_CHUNK = 0xC2;
 		static const Type TYPE_DUNGEON = 0xC5;
 		static const Type TYPE_ENTITY = 0xD0;
 		static const Type TYPE_MODIFY = 0xFFF0;
 
 		static const Type TYPE_LOOKUP_ALL = 0xFFFF; //for lookups only!!!
 
-		static const Subtype SUBTYPE_WORLD_MODEL = 0x2;
+		static const Subtype SUBTYPE_SUBGROUP = 0x0;
+		static const Subtype SUBTYPE_WORLD_MODEL = 0x5;
 		static const Subtype SUBTYPE_DISPLAY_NAME = 0x6;
 		static const Subtype SUBTYPE_DESCRIPTION = 0x7;
 		static const Subtype SUBTYPE_TRADING = 0x8;

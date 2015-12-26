@@ -41,13 +41,22 @@ namespace Stoneship
 	{
 	public:
 
+	    typedef std::vector<ItemStack> ItemVector;
+
 		Inventory(uint32_t slots);
 
-		uint32_t getSlots() const;
-		uint32_t getUsedSlots();
-		inline uint32_t getFreeSlots() { return getSlots() - getUsedSlots(); };
+		uint32_t getSlotCount() const;
+		void setSlotCount(uint32_t i);
+		uint32_t getUsedSlotCount();
+		inline uint32_t getFreeSlotCount() { return getSlotCount() - getUsedSlotCount(); };
 
-		std::vector<ItemStack> &getItems();
+		const ItemVector &getItems() const;
+
+		/**
+		 * Copies all items from inv and adds them to this Inventory. Items already contained are incremented if needed
+		 * and are not affected otherwise.
+		 */
+		void copyItems(const Inventory &inv);
 
 		/**
 		 * @returns The actual amount of items that were added to the inventory
@@ -60,7 +69,7 @@ namespace Stoneship
 	private:
 
 		uint32_t mSlots;
-		std::vector<ItemStack> mItems;
+		ItemVector mItems;
 	};
 
 }

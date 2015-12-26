@@ -18,7 +18,7 @@
     k_byte 0
     k_sstring 'sas_data/'
 
-    k_int 6 ; record group count
+    k_int 7 ; record group count
 
 
     
@@ -329,6 +329,7 @@ dungeon_group_start:
         r_sub_begin SUB_DATA
             k_bstring 'Cloudkeep - Gatehouse'
         r_sub_end
+
     r_end
 
     ; world entity group
@@ -374,6 +375,37 @@ dungeon_group_end:
 
 ;------------------------------------------------------------------------------
     k_short 0
+    k_int (container_group_end - container_group_start)
+    k_short REC_CONTAINER
+    k_int 0x02
+container_group_start:
+    
+    r_begin REC_CONTAINER
+        r_sub_begin SUB_MODEL
+            k_bstring 'chest.model'
+            k_float 1.0
+        r_sub_end
+
+        r_sub_begin SUB_DISPLAY
+            k_sstring 'Chest'
+        r_sub_end
+
+        r_sub_begin SUB_DATA
+            k_int 20
+            k_int 1
+        r_sub_end
+
+        r_sub_begin SUB_CONTAINED_ITEM
+            s_uid 0,1
+            k_int 1
+        r_sub_end
+    r_end
+    
+container_group_end:
+
+
+;------------------------------------------------------------------------------
+    k_short 0
     k_int (world_group_end - world_group_start)
     k_short REC_OUTDOOR
     k_int 0x02
@@ -405,6 +437,10 @@ world_group_start:
                 k_short 0x800
             r_sub_end
         r_end
+
+        r_begin REC_ENTITY
+            r_sub_begin SUB_ENTITY
+                s_uid
 
     world_entity_group_end:
     

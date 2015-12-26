@@ -5,9 +5,9 @@
  *      Author: zalasus
  */
 
-#include <IEntityBase.h>
-#include "sas/SASEntityBases.h" // provided for base registration
+#include "IEntityBase.h"
 
+#include "Logger.h"
 
 namespace Stoneship
 {
@@ -40,11 +40,20 @@ namespace Stoneship
 
 
 
-	EntityBaseFactory::EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc)
+	EntityBaseFactory::EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc, const String &baseName)
 	: mRecordType(recordType),
 	  mAllocator(alloc)
 	{
-		smFactories.push_back(this);
+	    if(getFactoryForRecordType(recordType) != nullptr)
+	    {
+	        Logger::warn("Double registration for Entity Base '" + baseName + "'! Ignoring.");
+
+	    }else
+	    {
+	        Logger::info("Registered Entity Base type '" + baseName + "'");
+
+	        smFactories.push_back(this);
+	    }
 	}
 
 	Record::Type EntityBaseFactory::getRecordType() const
@@ -70,15 +79,5 @@ namespace Stoneship
 
 		return nullptr;
 	}
-
-	std::vector<EntityBaseFactory*> EntityBaseFactory::smFactories;
-
-
-	//for now, all EntityBase registrations need to be put here in order to guarantee the are created AFTER the vector in the factory
-
-	REGISTER_ENTITY_BASE(0x800, EntityBase_Static)
-	REGISTER_ENTITY_BASE(0x810, EntityBase_Weapon)
-	REGISTER_ENTITY_BASE(0x820, EntityBase_Book)
-	REGISTER_ENTITY_BASE(0x821, EntityBase_Stuff)
 
 }

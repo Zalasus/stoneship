@@ -50,11 +50,27 @@ namespace Stoneship
 		MGFDataReader &readZString(String &s);
 
 		template <typename T>
-		MGFDataReader &readIntegral(T &v);
+		MGFDataReader &readIntegral(T &v)
+		{
+            union{ T vt; uint8_t vb[sizeof(T)];} vu;
+
+            for(uint8_t i = 0; i < sizeof(T); ++i)
+            {
+                //TODO: find a better way to convert to little endian. this might be platform dependent
+
+                vu.vb[i] = _getNext();
+
+                //v |= static_cast<T>(getNext()) << ((sizeof(T)-1)*8);
+                //v = v >> 8; // Uhhmm... sure our bytes are always 8 bit long?
+            }
+
+            v = vu.vt;
+
+            return *this;
+		}
 
 		template <typename T>
 		MGFDataReader &readStruct(T &s);
-
 
 		void beginUnit(uint32_t size);
 		void endUnit();
@@ -63,6 +79,11 @@ namespace Stoneship
 		void skip(uint32_t amount);
 
 		bool hasEnded();
+
+
+		static uint32_t SEEKS;
+		static uint32_t TELLS;
+		static uint32_t GETCS;
 
 
 	private:

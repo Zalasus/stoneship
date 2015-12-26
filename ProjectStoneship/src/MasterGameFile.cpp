@@ -272,16 +272,7 @@ namespace Stoneship
 		STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Referenced ordinal not found in dependency table. This probably means a dependency was not loaded.");
 	}
 
-	RecordAccessor MasterGameFile::getRecord()
-	{
-		MGFDataReader ds(&mInputStream, this);
-
-		RecordHeader recordHeader;
-		ds.readStruct(recordHeader);
-
-		return RecordAccessor(recordHeader, &mInputStream, this);
-	}
-
+	//TODO: Typeless lookups are inefficient atm. Implement more dynamic matching to speed things up a bit
 	RecordAccessor MasterGameFile::getRecordByID(UID::ID id)
 	{
 		MGFDataReader ds(&mInputStream, this);
@@ -376,7 +367,6 @@ namespace Stoneship
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
 	}
 
-#ifdef _DEBUG
 	RecordAccessor MasterGameFile::getRecordByEditorName(const String &name, Record::Type type)
 	{
 		MGFDataReader ds(&mInputStream, this);
@@ -424,7 +414,6 @@ namespace Stoneship
 
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
 	}
-#endif
 
 	RecordAccessor MasterGameFile::getFirstRecord(Record::Type type)
 	{
@@ -514,7 +503,8 @@ namespace Stoneship
 
 	void MasterGameFile::_indexModifies(uint32_t recordCount)
 	{
-		RecordAccessor record = getRecord();
+	    MGFDataReader ds(mInputStream, this);
+		RecordAccessor record = ds.readRecord();
 
 		for(uint32_t i = 0; i < recordCount; ++i)
 		{

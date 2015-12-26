@@ -10,6 +10,7 @@
 
 #include "Types.h"
 #include "Record.h"
+#include "Inventory.h"
 
 namespace Stoneship
 {
@@ -25,6 +26,7 @@ namespace Stoneship
 		static const EntityType ENTITYTYPE_DEFAULT = 1;
 		static const EntityType ENTITYTYPE_WORLD = 2;
 		static const EntityType ENTITYTYPE_ITEM = 4;
+		static const EntityType ENTITYTYPE_CONTAINER = 8;
 
 		IEntity(UID uid, IEntityBase *base);
 		virtual ~IEntity();
@@ -66,6 +68,23 @@ namespace Stoneship
 	private:
 
 		IWorld *mWorld;
+	};
+
+	class EntityContainer : public EntityWorld
+	{
+	public:
+	    EntityContainer(UID uidOfEntity, IEntityBase *base); //uidOfEntity is the UID of the reference, not the referenced base!!!
+	    EntityContainer(const EntityWorld &e) = delete; //don't copy me!
+        ~EntityContainer();
+
+        virtual EntityType getEntityType() { return ENTITYTYPE_CONTAINER;}
+
+        virtual void loadFromRecord(RecordAccessor rec);
+
+	private:
+
+        Inventory mInventory;
+
 	};
 
 	class EntityItem : public EntityWorld

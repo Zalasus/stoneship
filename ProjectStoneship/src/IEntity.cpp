@@ -12,6 +12,8 @@
 #include "WorldManager.h"
 #include "Logger.h"
 
+#include "sas/SASEntityBases.h" //TODO: try not to merge engine and game specific content (see comments below)
+
 namespace Stoneship
 {
 
@@ -78,6 +80,28 @@ namespace Stoneship
 	void EntityWorld::loadFromRecord(RecordAccessor rec)
 	{
 
+	}
+
+
+
+	EntityContainer::EntityContainer(UID uidOfEntity, IEntityBase *base) //TODO: make second parameter of every IEntity child only accept correct Base types
+	: EntityWorld(uidOfEntity, base),
+	  mInventory(0)
+	{
+	    //TODO: no checking. see above comment
+
+	    EntityBase_Container *cont = static_cast<EntityBase_Container*>(base);
+	    mInventory.setSlotCount(cont->getInventory().getSlotCount());
+	    mInventory.copyItems(cont->getInventory());
+	}
+
+	EntityContainer::~EntityContainer()
+	{
+	}
+
+	void EntityContainer::loadFromRecord(RecordAccessor rec)
+	{
+	    //TODO: load item records here
 	}
 
 

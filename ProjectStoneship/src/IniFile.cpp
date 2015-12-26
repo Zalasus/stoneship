@@ -9,6 +9,8 @@
 
 #include <fstream>
 
+#include "Exception.h"
+
 namespace Stoneship
 {
 
@@ -21,6 +23,11 @@ namespace Stoneship
     {
         //Incredibly primitve parsing method. Makes you look like a Java programmer again >_<
         std::ifstream in(path, std::ios::in);
+
+        if(!in.good())
+        {
+            STONESHIP_EXCEPT(StoneshipException::IO_ERROR, "Could not open ini file");
+        }
 
         String currentSection = "";
 

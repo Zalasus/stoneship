@@ -25,39 +25,53 @@ namespace Stoneship
 		return timeString;
 	}
 
+	Logger::Logger(const String &name)
+	: mName(name),
+	  mEnableTimestamp(true)
+	{
+	}
+
 	void Logger::log(const String &msg, LogLevel level)
 	{
+
+	    if(mEnableTimestamp)
+	    {
+	        std::cout << "[" << getTimestamp() << "]";
+	    }
 
 		switch(level)
 		{
 		case LOGLEVEL_SEVERE:
-			std::cerr << "[" << getTimestamp() << "][SEVE] " << msg << std::endl;
+			std::cout << "[SEVE] " << msg << std::endl;
 			break;
 
 		case LOGLEVEL_WARNING:
-			std::cout  << "[" << getTimestamp() <<  "][WARN] " << msg << std::endl;
+			std::cout << "[WARN] " << msg << std::endl;
 			break;
 
 		case LOGLEVEL_INFO:
 		default:
-			std::cout  << "[" << getTimestamp() << "][INFO] " << msg << std::endl;
+			std::cout << "[INFO] " << msg << std::endl;
 		}
 	}
 
-	void Logger::info(const String &msg)
+	String Logger::getLoggerName()
 	{
-		log(msg, LOGLEVEL_INFO);
+	    return mName;
 	}
 
-	void Logger::warn(const String &msg)
-	{
-		log(msg, LOGLEVEL_WARNING);
-	}
+    void Logger::setEnableTimestamp(bool ts)
+    {
+        mEnableTimestamp = ts;
+    }
 
-	void Logger::severe(const String &msg)
-	{
-	    log(msg, LOGLEVEL_SEVERE);
-	}
+
+    Logger Logger::smDefaultLogger("Default");
+
+    Logger &Logger::getDefaultLogger()
+    {
+        return smDefaultLogger;
+    }
 
 }
 

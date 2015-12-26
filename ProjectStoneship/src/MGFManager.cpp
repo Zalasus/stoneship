@@ -10,6 +10,7 @@
 #include "MGFManager.h"
 #include "MasterGameFile.h"
 #include "Root.h"
+#include "Logger.h"
 
 namespace Stoneship
 {
@@ -36,6 +37,13 @@ namespace Stoneship
 
 	void MGFManager::loadMGF(const String& filename)
 	{
+	    if(getLoadedMGF(filename) != nullptr)
+	    {
+	        Logger::warn("Tried to load MGF '" + filename + "' when it was already loaded. Skipping");
+
+	        return;
+	    }
+
 		UID::Ordinal ordinal = mGameFiles.size();
 		MasterGameFile *mgf = new MasterGameFile(filename, ordinal, this, mRoot->getResourceManager());
 		mGameFiles.push_back(mgf);
@@ -109,6 +117,8 @@ namespace Stoneship
 			STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Requested record with invalid ordinal");
 		}
 
+		Logger::warn("Typeless lookup. Slooooowwww!!!");
+
 		return mgf->getRecordByID(id.id);
 	}
 
@@ -124,7 +134,6 @@ namespace Stoneship
 		return mgf->getRecordByTypeID(id.id, type);
 	}
 
-#ifdef _DEBUG
 	RecordAccessor MGFManager::getRecordByEditorName(const String &name, Record::Type type)
 	{
 		for(uint16_t i = 0; i < mLoadedGameFileCount; ++i)
@@ -145,7 +154,6 @@ namespace Stoneship
 
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record with editor name '" + name + "' not found in loaded MGFs");
 	}
-#endif
 
 	void MGFManager::applyModifications(IRecordLoadable *loadable)
 	{

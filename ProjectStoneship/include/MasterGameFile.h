@@ -73,19 +73,14 @@ namespace Stoneship
 		 */
 		UID::Ordinal localToGlobalOrdinal(UID::Ordinal local);
 
-		/**
-		 * @brief Creates accessor for a record at the current stream position
-		 */
-		virtual RecordAccessor getRecord();
+		RecordAccessor getRecordByID(UID::ID id);
+		RecordAccessor getRecordByTypeID(UID::ID id, Record::Type type);
 
-		virtual RecordAccessor getRecordByID(UID::ID id);
-		virtual RecordAccessor getRecordByTypeID(UID::ID id, Record::Type type);
+		RecordAccessor getRecordByEditorName(const String &name, Record::Type type);
 
-		virtual RecordAccessor getRecordByEditorName(const String &name, Record::Type type);
+		RecordAccessor getFirstRecord(Record::Type type);
 
-		virtual RecordAccessor getFirstRecord(Record::Type type);
-
-		virtual void applyModifications(IRecordLoadable *loadable);
+		void applyModifications(IRecordLoadable *loadable);
 
 	private:
 

@@ -9,9 +9,11 @@
 
 #include "Stoneship.h"
 
+using namespace Stoneship;
 
 int main(int argc, char **argv)
 {
+    Stoneship::Logger::getDefaultLogger().setEnableTimestamp(false); //get rid of those annoying timestamps
     Stoneship::Logger::info(Stoneship::String("Initializing Stoneship v") + STONESHIP_VERSION + "...");
 
 	Stoneship::Root *root = new Stoneship::Root();
@@ -24,8 +26,10 @@ int main(int argc, char **argv)
 
 	}catch(Stoneship::StoneshipException &e)
 	{
-	    Stoneship::Logger::log(e.getMessage(), Stoneship::Logger::LOGLEVEL_SEVERE);
+	    Stoneship::Logger::severe(e.getMessage());
 	}
+
+	Stoneship::Logger::info(Stoneship::String("Total tp: getcs=") + Stoneship::MGFDataReader::GETCS + " seeks=" + Stoneship::MGFDataReader::SEEKS + " tells=" + Stoneship::MGFDataReader::TELLS);
 
 	delete root;
 

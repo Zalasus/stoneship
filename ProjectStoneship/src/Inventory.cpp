@@ -62,12 +62,17 @@ namespace Stoneship
 	{
 	}
 
-	uint32_t Inventory::getSlots() const
+	uint32_t Inventory::getSlotCount() const
 	{
 		return mSlots;
 	}
 
-	uint32_t Inventory::getUsedSlots()
+	void Inventory::setSlotCount(uint32_t i)
+	{
+	    mSlots = i;
+	}
+
+	uint32_t Inventory::getUsedSlotCount()
 	{
 		uint32_t slotsUsed = 0;
 
@@ -79,9 +84,19 @@ namespace Stoneship
 		return slotsUsed;
 	}
 
-	std::vector<ItemStack> &Inventory::getItems()
+	const Inventory::ItemVector &Inventory::getItems() const
 	{
 		return mItems;
+	}
+
+	void Inventory::copyItems(const Inventory &inv)
+	{
+	    const ItemVector &iv = inv.getItems();
+
+	    for(uint32_t i = 0; i < iv.size(); ++i)
+	    {
+	        addItem(iv[i]);
+	    }
 	}
 
 	uint32_t Inventory::addItem(IEntityBase *base, uint32_t count)
@@ -138,7 +153,7 @@ namespace Stoneship
 			}
 
 			//create new stack if enough slots free
-			if(getFreeSlots() >= itemBase->getSlots())
+			if(getFreeSlotCount() >= itemBase->getSlots())
 			{
 				mItems.push_back(ItemStack(itemBase, newStackSize));
 				countRemaining -= newStackSize;

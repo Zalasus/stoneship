@@ -87,45 +87,49 @@ namespace Stoneship
         rec.getReaderForSubrecord(Record::SUBTYPE_DATA)
                 .readBString(mDungeonName);
 
-        rec = rec.getNextRecord();
-        if(rec.getHeader().type == Record::TYPE_GROUP)
+
+        RecordHeader header;
+        rec.getReaderForSubrecord(Record::SUBTYPE_SUBGROUP)
+                .readStruct(header);
+        RecordAccessor subgroup(header, rec.getGameFile(), header.dataSize);
+
+        if(subgroup.getHeader().recordCount > 0)
         {
-            //we've got entities!! is the list empty? TODO: This block looks really messy. May want to clean it up a bit
-            if(rec.getHeader().recordCount > 0)
+            //entity list is not empty
+
+            RecordAccessor child = subgroup.getFirstChildRecord();
+            for(uint32_t i = 0; i < subgroup.getHeader().recordCount; ++i)
             {
-                RecordAccessor child = rec.getFirstChildRecord();
-                for(uint32_t i = 0; i < rec.getHeader().recordCount; ++i)
+                UID entityUID = UID(child.getGameFile()->getOrdinal(), child.getHeader().id);
+
+                UID baseUID;
+                Record::Type baseType;
+                child.getReaderForSubrecord(Record::SUBTYPE_ENTITY)
+                        .readStruct<UID>(baseUID)
+                        .readIntegral<Record::Type>(baseType);
+
+                IEntityBase *base = Root::getSingleton()->getEntityManager()->getBase(baseUID, baseType);
+                if(base == nullptr)
                 {
-                    UID entityUID = UID(child.getGameFile()->getOrdinal(), child.getHeader().id);
-
-                    UID baseUID;
-                    Record::Type baseType;
-                    child.getReaderForSubrecord(Record::SUBTYPE_ENTITY)
-                            .readStruct<UID>(baseUID)
-                            .readIntegral<Record::Type>(baseType);
-
-                    IEntityBase *base = Root::getSingleton()->getEntityManager()->getBase(baseUID, baseType);
-                    if(base == nullptr)
-                    {
-                        STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Base " + baseUID.toString() + " for Entity " + entityUID.toString() + " not found");
-                    }
-
-                    //The base lookup might have accessed the MGF and thus changed the pointers location. Reset it. FIXME: we can't do this everytime. it's hard to debug where the rollback was omitted
-                    child.rollback();
-
-                    IEntity *entity = base->createEntity(entityUID);
-                    mEntities.push_back(entity);
-                    entity->loadFromRecord(child);
-                    entity->spawn(this);
-
-                    if(i < rec.getHeader().recordCount-1) //reached end of list yet?
-                    {
-                        //no, fetch next entity record
-                        child = child.getNextRecord();
-                    }
+                    STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Base " + baseUID.toString() + " for Entity " + entityUID.toString() + " not found");
                 }
-            }
-        }
+
+                //The base lookup might have accessed the MGF and thus changed the pointers location. Reset it. FIXME: we can't do this everytime. it's hard to debug where the rollback was omitted
+                child.rollback();
+
+                IEntity *entity = base->createEntity(entityUID);
+                mEntities.push_back(entity);
+                entity->loadFromRecord(child);
+                entity->spawn(this);
+
+                if(i < subgroup.getHeader().recordCount-1) //reached end of list yet?
+                {
+                    //no, fetch next entity record
+                    child = child.getNextRecord();
+                }
+            }// for each entity record
+        } //if entity list not empty
+
     }
 
 }

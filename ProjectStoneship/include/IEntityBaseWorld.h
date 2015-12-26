@@ -30,6 +30,7 @@ namespace Stoneship
 
 		virtual IEntity *createEntity(UID uid);
 
+		virtual bool canInteract() const = 0;
 		virtual bool onInteract(IEntity *entity, IActor *actor) = 0;
 
 	protected:

@@ -14,6 +14,7 @@
 #include "Types.h"
 #include "Record.h"
 #include "String.h"
+#include "Inventory.h"
 
 namespace Stoneship
 {
@@ -34,6 +35,8 @@ namespace Stoneship
 		void modifyFromRecord(RecordAccessor record);
 
 		bool onUse(ItemStack *stack, IActor *actor);
+
+		bool canInteract() const;
 		bool onInteract(IEntity *entity, IActor *actor);
 
 	};
@@ -52,7 +55,6 @@ namespace Stoneship
 		void modifyFromRecord(RecordAccessor record);
 
 		bool onUse(ItemStack *stack, IActor *actor);
-		bool onInteract(IEntity *entity, IActor *actor);
 
 		String getText() const;
 
@@ -85,7 +87,6 @@ namespace Stoneship
 		void modifyFromRecord(RecordAccessor record);
 
 		bool onUse(ItemStack *stack, IActor *actor);
-		bool onInteract(IEntity *entity, IActor *actor);
 
 		WeaponType getWeaponType() const;
 		uint32_t getDamage() const;
@@ -116,9 +117,32 @@ namespace Stoneship
 		void modifyFromRecord(RecordAccessor record);
 
 		bool onUse(ItemStack *stack, IActor *actor);
-		bool onInteract(IEntity *entity, IActor *actor);
 	};
 
+	class EntityBase_Container : public IEntityBaseWorld
+	{
+	public:
+	    EntityBase_Container(UID uid);
+
+	    Record::Type getRecordType() const {return 0x82A;}
+        IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;}
+        String getBaseName() const {return "Container";}
+
+        void loadFromRecord(RecordAccessor record);
+        void modifyFromRecord(RecordAccessor record);
+
+        bool canInteract() const;
+        bool onInteract(IEntity *entity, IActor *actor);
+
+        const Inventory &getInventory() const;
+
+        IEntity *createEntity(UID entityUID);
+
+	private:
+
+        Inventory mPredefindedInventory;
+
+	};
 
 }
 

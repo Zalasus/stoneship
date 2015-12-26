@@ -12,7 +12,8 @@ namespace Stoneship
 
 
     WorldOutdoor::WorldOutdoor(UID uid)
-    : IWorld(uid)
+    : IWorld(uid),
+      mChunkAddresses(nullptr)
     {
     }
 
@@ -51,6 +52,14 @@ namespace Stoneship
     {
         rec.getReaderForSubrecord(Record::SUBTYPE_DATA)
                 .readBString(mWorldName);
+
+
+        //create initial chunk map for faster loading without having to seek the MGF everytime
+        rec = rec.getNextRecord();
+        if(rec.getHeader().type == Record::TYPE_CHUNK_GROUP)
+        {
+
+        }
     }
 
 }

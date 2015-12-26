@@ -41,6 +41,9 @@ namespace Stoneship
 
 		virtual bool onUse(ItemStack *stack, IActor *a) = 0;
 
+		virtual bool canInteract() const; // true by default
+		virtual bool onInteract(IEntity *entity, IActor *actor); // if not overridden, this creates a pickup event by default
+
 		inline bool isEssential() const { return mFlags & FLAGS_IS_ESSENTIAL; }
 		inline bool isCurrency() const { return mFlags & FLAGS_IS_CURRENCY; }
 		inline bool isUnidentified() const { return mFlags & FLAGS_IS_UNIDENTIFIED; }

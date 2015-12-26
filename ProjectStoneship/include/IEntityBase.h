@@ -14,8 +14,10 @@
 #include "String.h"
 #include "Record.h"
 
-#define REGISTER_ENTITY_BASE(recordType, entityBaseClass) static IEntityBase* create_ ## entityBaseClass ## _instance(UID uid) { return new entityBaseClass(uid); } static EntityBaseFactory entityBaseClass ## _factory(recordType, & create_ ## entityBaseClass ## _instance);
-
+//These have to be used to frame the block in which entities are registered
+#define REGISTER_ENTITY_BEGIN std::vector<EntityBaseFactory*> EntityBaseFactory::smFactories;
+#define REGISTER_ENTITY_END ;
+#define REGISTER_ENTITY_BASE(recordType, entityBaseClass, baseName) static IEntityBase* create_ ## entityBaseClass ## _instance(UID uid) { return new entityBaseClass(uid); } static EntityBaseFactory entityBaseClass ## _factory(recordType, & create_ ## entityBaseClass ## _instance, # baseName);
 
 namespace Stoneship
 {
@@ -64,7 +66,7 @@ namespace Stoneship
 		typedef IEntityBase* (*EntityBaseAllocatorMethodPtr)(UID);
 
 
-		EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc);
+		EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc, const String &baseName);
 
 		Record::Type getRecordType() const;
 		IEntityBase *createEntityBase(UID uid);

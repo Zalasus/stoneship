@@ -81,7 +81,7 @@
 %define REC_OUTDOOR 0xC0
 %define REC_DUNGEON 0xC5
 %define REC_ENTITY 0xD0
-
+%define REC_CONTAINER 0x82A
 
 %define SUB_MODEL 0x02
 %define SUB_DISPLAY 0x06
@@ -94,6 +94,7 @@
 %define SUB_ENTITY 0xF0
 %define SUB_ENTITY_ITEM 0xF2
 %define SUB_DATA 0x100
+%define SUB_CONTAINED_ITEM 0x10F
 %define SUB_EDITOR 0xFFF0
 %define SUB_MODIFY_META 0xFFF9
 

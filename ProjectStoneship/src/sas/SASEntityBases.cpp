@@ -9,6 +9,8 @@
 
 #include <iostream>
 
+#include "IEntity.h"
+
 namespace Stoneship
 {
 
@@ -25,6 +27,11 @@ namespace Stoneship
 
 	void EntityBase_Static::modifyFromRecord(RecordAccessor record)
 	{
+	}
+
+	bool EntityBase_Static::canInteract() const
+	{
+	    return false;
 	}
 
 	bool EntityBase_Static::onInteract(IEntity *entity, IActor *actor)
@@ -71,11 +78,6 @@ namespace Stoneship
 		std::cout << mText << std::endl;
 
 		return true;
-	}
-
-	bool EntityBase_Book::onInteract(IEntity *entity, IActor *actor)
-	{
-		return _pickupOnInteract(entity, actor);
 	}
 
 	String EntityBase_Book::getText() const
@@ -139,11 +141,6 @@ namespace Stoneship
 		return false;
 	}
 
-	bool EntityBase_Weapon::onInteract(IEntity *entity, IActor *actor)
-	{
-		return _pickupOnInteract(entity, actor);
-	}
-
 
 
 	EntityBase_Stuff::EntityBase_Stuff(UID uid)
@@ -167,10 +164,65 @@ namespace Stoneship
 		return false;
 	}
 
-	bool EntityBase_Stuff::onInteract(IEntity *entity, IActor *actor)
+
+
+
+	EntityBase_Container::EntityBase_Container(UID uid)
+	: IEntityBaseWorld(uid),
+	  mPredefindedInventory(0)
 	{
-		return _pickupOnInteract(entity, actor);
 	}
+
+    void EntityBase_Container::loadFromRecord(RecordAccessor record)
+    {
+        uint32_t slotCount;
+        uint32_t containedItemCount;
+
+        record.getReaderForSubrecord(Record::SUBTYPE_DATA)
+                .readUInt(slotCount)
+                .readUInt(containedItemCount);
+
+        mPredefindedInventory.setSlotCount(slotCount);
+
+        /*for(uint32_t i = 0; i < containedItemCount; ++i)
+        {
+            record.getReaderForSubrecord()
+        }*/
+    }
+
+    void EntityBase_Container::modifyFromRecord(RecordAccessor record)
+    {
+
+    }
+
+    bool EntityBase_Container::canInteract() const
+    {
+        return true;
+    }
+
+    bool EntityBase_Container::onInteract(IEntity *entity, IActor *actor)
+    {
+        return true;
+    }
+
+    const Inventory &EntityBase_Container::getInventory() const
+    {
+        return mPredefindedInventory;
+    }
+
+    IEntity *EntityBase_Container::createEntity(UID entityUID)
+    {
+        return new EntityContainer(entityUID, this);
+    }
+
+
+    REGISTER_ENTITY_BEGIN
+        REGISTER_ENTITY_BASE(0x800, EntityBase_Static,    Static)
+        REGISTER_ENTITY_BASE(0x810, EntityBase_Weapon,    Weapon)
+        REGISTER_ENTITY_BASE(0x820, EntityBase_Book,      Book)
+        REGISTER_ENTITY_BASE(0x821, EntityBase_Stuff,     Stuff)
+        REGISTER_ENTITY_BASE(0x82A, EntityBase_Container, Container)
+    REGISTER_ENTITY_END
 
 }
 

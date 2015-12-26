@@ -35,6 +35,8 @@ namespace Stoneship
 
         String mWorldName;
 
+        uint32_t **mChunkAddresses;
+
     };
 
 }

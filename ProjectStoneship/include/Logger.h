@@ -24,10 +24,28 @@ namespace Stoneship
 			LOGLEVEL_SEVERE
 		};
 
-		static void log(const String &msg, LogLevel = LOGLEVEL_INFO);
-		static void info(const String &msg);
-		static void warn(const String &msg);
-		static void severe(const String &msg);
+		Logger(const String &name);
+
+		void log(const String &msg, LogLevel level = LOGLEVEL_INFO);
+
+        String getLoggerName();
+        void setEnableTimestamp(bool ts);
+
+
+        static Logger &getDefaultLogger();
+
+		static inline void info(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_INFO); }
+		static inline void warn(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_WARNING); }
+		static inline void severe(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_SEVERE); }
+
+
+	private:
+
+		String mName;
+		bool mEnableTimestamp;
+
+
+		static Logger smDefaultLogger;
 
 	};
 

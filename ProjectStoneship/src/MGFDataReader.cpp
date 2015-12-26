@@ -36,11 +36,14 @@ namespace Stoneship
 
 		mStream->seekg(pos);
 
+		SEEKS++;
+
 		return *this;
 	}
 
 	std::streampos MGFDataReader::tell()
 	{
+	    TELLS++;
 		return mStream->tellg();
 	}
 
@@ -250,6 +253,14 @@ namespace Stoneship
 		return false;
 	}
 
+	RecordAccessor MGFDataReader::readRecord()
+	{
+	    RecordHeader header;
+	    readStruct(header);
+
+        return RecordAccessor(header, mStream, mGameFile);
+	}
+
 	uint8_t MGFDataReader::_getNext()
 	{
 		if(hasEnded())
@@ -257,10 +268,16 @@ namespace Stoneship
 			_except(StoneshipException::IO_ERROR, String("Out of readable stream data (current: ") + (uint32_t)tell() + ", unit end: " + (uint32_t)mUnitEnd + ")");
 		}
 
+		GETCS++;
 		return mStream->get();
 	}
 
 
+	uint32_t MGFDataReader::SEEKS = 0;
+    uint32_t MGFDataReader::TELLS = 0;
+    uint32_t MGFDataReader::GETCS = 0;
+
+	/* Implementation moved to header for now
 	template <typename T>
 	MGFDataReader &MGFDataReader::readIntegral(T &v)
 	{
@@ -280,7 +297,7 @@ namespace Stoneship
 
 		return *this;
 
-	}
+	}*/
 
 	void MGFDataReader::_except(StoneshipException::ExceptionType type, const String &msg)
 	{

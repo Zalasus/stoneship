@@ -23,7 +23,20 @@ namespace Stoneship
 
 	void Options::load(int argc, char **argv)
 	{
-	    mIniFile.load(DEFAULT_INI_FILE_NAME);
+	    String cfgFile = DEFAULT_INI_FILE_NAME;
+	    try
+	    {
+	        mIniFile.load(cfgFile);
+
+	    }catch(StoneshipException &e)
+	    {
+	        if(e.getType() != StoneshipException::IO_ERROR)
+	        {
+	            throw;
+	        }
+
+	        Logger::warn("Could not load config file '" + cfgFile + "'. Using default values instead.");
+	    }
 	}
 
 	const IniFile &Options::getIniFile() const
