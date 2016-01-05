@@ -183,6 +183,16 @@ namespace Stoneship
 	    virtual UID getUID() const = 0;
 
 	};
+
+	class IRecordStoreable
+	{
+	public:
+
+	    virtual ~IRecordStoreable();
+
+	    virtual void storeToRecord(RecordBuilder rec) = 0;
+
+	};
 }
 
 #endif /* INCLUDE_RECORD_H_ */
