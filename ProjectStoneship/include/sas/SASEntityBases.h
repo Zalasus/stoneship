@@ -31,8 +31,10 @@ namespace Stoneship
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;};
 		String getBaseName() const {return "Static";}
 
-		void loadFromRecord(RecordAccessor record);
-		void modifyFromRecord(RecordAccessor record);
+		void loadFromRecord(RecordAccessor &record);
+		void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
+
+		void storeToRecord(RecordBuilder &record);
 
 		bool onUse(ItemStack *stack, IActor *actor);
 
@@ -51,12 +53,15 @@ namespace Stoneship
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD | BASETYPE_ITEM;}
 		String getBaseName() const {return "Book";}
 
-		void loadFromRecord(RecordAccessor record);
-		void modifyFromRecord(RecordAccessor record);
+		void loadFromRecord(RecordAccessor &record);
+		void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
+
+		void storeToRecord(RecordBuilder &record);
 
 		bool onUse(ItemStack *stack, IActor *actor);
 
 		String getText() const;
+		void setText(const String &text);
 
 
 	private:
@@ -83,8 +88,10 @@ namespace Stoneship
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Weapon";}
 
-		void loadFromRecord(RecordAccessor record);
-		void modifyFromRecord(RecordAccessor record);
+		void loadFromRecord(RecordAccessor &record);
+		void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
+
+        void storeToRecord(RecordBuilder &record);
 
 		bool onUse(ItemStack *stack, IActor *actor);
 
@@ -113,8 +120,10 @@ namespace Stoneship
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Stuff";}
 
-		void loadFromRecord(RecordAccessor record);
-		void modifyFromRecord(RecordAccessor record);
+		void loadFromRecord(RecordAccessor &record);
+		void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
+
+		void storeToRecord(RecordBuilder &record);
 
 		bool onUse(ItemStack *stack, IActor *actor);
 	};
@@ -128,8 +137,10 @@ namespace Stoneship
         IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;}
         String getBaseName() const {return "Container";}
 
-        void loadFromRecord(RecordAccessor record);
-        void modifyFromRecord(RecordAccessor record);
+        void loadFromRecord(RecordAccessor &record);
+        void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
+
+        void storeToRecord(RecordBuilder &record);
 
         bool canInteract() const;
         bool onInteract(IEntity *entity, IActor *actor);
@@ -139,6 +150,8 @@ namespace Stoneship
         IEntity *createEntity(UID entityUID);
 
 	private:
+
+        void _loadSingleContainedItem(MGFDataReader &reader);
 
         Inventory mPredefindedInventory;
 

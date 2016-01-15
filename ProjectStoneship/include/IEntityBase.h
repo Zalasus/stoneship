@@ -13,6 +13,8 @@
 #include "Types.h"
 #include "String.h"
 #include "Record.h"
+#include "IRecordLoadable.h"
+#include "IRecordStoreable.h"
 
 //These have to be used to frame the block in which entities are registered
 #define REGISTER_ENTITY_BEGIN std::vector<EntityBaseFactory*> EntityBaseFactory::smFactories;
@@ -24,7 +26,7 @@ namespace Stoneship
 
     class IEntity;
 
-	class IEntityBase : public IRecordLoadable
+	class IEntityBase : public IRecordLoadable, public IRecordStoreable
 	{
 	public:
 

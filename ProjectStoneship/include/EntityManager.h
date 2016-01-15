@@ -27,6 +27,7 @@ namespace Stoneship
 		~EntityManager();
 
 		IEntityBase *getBase(const UID &uid, Record::Type type = Record::TYPE_LOOKUP_ALL);
+		IEntityBase *manageBase(IEntityBase *base);
 
 		uint32_t getBaseCacheSize();
 		void collectGarbage();

@@ -15,6 +15,7 @@
 #include "Types.h"
 #include "String.h"
 #include "Record.h"
+#include "RecordAccessor.h"
 
 namespace Stoneship
 {
@@ -22,6 +23,7 @@ namespace Stoneship
     class MGFManager;
     class ResourceManager;
     class IEntityBase;
+    class IRecordLoadable;
 
 	class MasterGameFile
 	{
@@ -48,6 +50,7 @@ namespace Stoneship
 			UID uid;
 			Record::Type type;
 			std::streampos offset;
+			Record::ModifyType modType;
 		};
 
 		MasterGameFile(const String &filename, UID::Ordinal ordinal, MGFManager *mgfManager, ResourceManager *resourceManager);

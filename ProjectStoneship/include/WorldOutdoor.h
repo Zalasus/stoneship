@@ -28,7 +28,7 @@ namespace Stoneship
         void removeEntity(IEntity *entity);
         void removeEntity(UID uid);
 
-        void loadFromRecord(RecordAccessor rec);
+        void loadFromRecord(RecordAccessor &rec);
 
 
     private:

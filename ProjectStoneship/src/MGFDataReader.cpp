@@ -27,6 +27,11 @@ namespace Stoneship
 		return mGameFile;
 	}
 
+	std::istream *MGFDataReader::getStream()
+	{
+	    return mStream;
+	}
+
 	MGFDataReader& MGFDataReader::seek(std::streampos pos)
 	{
 		if(mStream->eof())
@@ -205,6 +210,10 @@ namespace Stoneship
 		seek(target);
 	}
 
+	void MGFDataReader::skipToEnd()
+	{
+	    seek(mUnitEnd);
+	}
 
 	void MGFDataReader::beginUnit(uint32_t size)
 	{
@@ -251,14 +260,6 @@ namespace Stoneship
 		_checkBounds(tell());
 
 		return false;
-	}
-
-	RecordAccessor MGFDataReader::readRecord()
-	{
-	    RecordHeader header;
-	    readStruct(header);
-
-        return RecordAccessor(header, mStream, mGameFile);
 	}
 
 	uint8_t MGFDataReader::_getNext()

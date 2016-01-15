@@ -19,6 +19,7 @@ namespace Stoneship
 		MGFDataReader(std::istream *stream, MasterGameFile *mgf = nullptr, uint32_t unitSize = 0);
 
 		MasterGameFile *getMasterGameFile();
+		std::istream *getStream();
 
 		//adapters for seekg/tellg with additional error checking and EOF handling
 		MGFDataReader &seek(std::streampos pos);
@@ -77,6 +78,7 @@ namespace Stoneship
 		uint32_t bytesRemainingInUnit();
 
 		void skip(uint32_t amount);
+		void skipToEnd();
 
 		bool hasEnded();
 

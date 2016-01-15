@@ -10,6 +10,8 @@
 
 #include "Types.h"
 #include "Record.h"
+#include "IRecordLoadable.h"
+#include "IRecordStoreable.h"
 #include "String.h"
 
 namespace Stoneship
@@ -17,7 +19,7 @@ namespace Stoneship
 
     class IEntity;
 
-	class IWorld : public IRecordLoadable
+	class IWorld : public IRecordLoadable, public IRecordStoreable
 	{
 	public:
 

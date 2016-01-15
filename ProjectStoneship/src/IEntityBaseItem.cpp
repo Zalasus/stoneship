@@ -29,7 +29,7 @@ namespace Stoneship
 	{
 	}
 
-	void IEntityBaseItem::loadFromRecord(RecordAccessor record)
+	void IEntityBaseItem::loadFromRecord(RecordAccessor &record)
 	{
 		record.getReaderForSubrecord(Record::SUBTYPE_DISPLAY_NAME)
 				.readBString(mName);
@@ -53,6 +53,42 @@ namespace Stoneship
 			record.getReaderForSubrecord(Record::SUBTYPE_IDENTIFICATION)
 					.readStruct(mIdentified);
 		}
+	}
+
+	void IEntityBaseItem::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
+	{
+	    if(record.getSubrecordCountForType(Record::SUBTYPE_DISPLAY_NAME))
+            record.getReaderForSubrecord(Record::SUBTYPE_DISPLAY_NAME)
+                .readBString(mName);
+
+	    if(record.getSubrecordCountForType(Record::SUBTYPE_DESCRIPTION))
+	        record.getReaderForSubrecord(Record::SUBTYPE_DESCRIPTION)
+                .readSString(mDescription);
+
+	    if(record.getSubrecordCountForType(Record::SUBTYPE_TRADING))
+	        record.getReaderForSubrecord(Record::SUBTYPE_TRADING)
+                .readUInt(mValue);
+
+	    if(record.getSubrecordCountForType(Record::SUBTYPE_INVENTORY))
+	        record.getReaderForSubrecord(Record::SUBTYPE_INVENTORY)
+                .readUByte(mFlags)
+                .readUByte(mSlots)
+                .readUInt(mMaxStackSize);
+
+	    if(record.getSubrecordCountForType(Record::SUBTYPE_ICON))
+	        record.getReaderForSubrecord(Record::SUBTYPE_ICON)
+                .readBString(mIconFile);
+
+        if(isUnidentified() && record.getSubrecordCountForType(Record::SUBTYPE_IDENTIFICATION))
+        {
+            record.getReaderForSubrecord(Record::SUBTYPE_IDENTIFICATION)
+                    .readStruct(mIdentified);
+        }
+	}
+
+	void IEntityBaseItem::storeToRecord(RecordBuilder &record)
+	{
+
 	}
 
 	String IEntityBaseItem::getDisplayName() const

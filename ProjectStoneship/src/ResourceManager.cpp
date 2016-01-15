@@ -7,8 +7,6 @@
 
 #include "ResourceManager.h"
 
-#include <IFileSystem.h>
-
 #include "Logger.h"
 #include "Root.h"
 

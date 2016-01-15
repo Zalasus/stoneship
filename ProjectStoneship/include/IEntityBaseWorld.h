@@ -37,7 +37,9 @@ namespace Stoneship
 
 		IEntityBaseWorld(UID uid);
 
-		void loadFromRecord(RecordAccessor record);
+		virtual void loadFromRecord(RecordAccessor &record);
+		virtual void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
+		virtual void storeToRecord(RecordBuilder &record);
 
 	private:
 

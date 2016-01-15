@@ -10,6 +10,8 @@
 
 #include "Types.h"
 #include "Record.h"
+#include "IRecordLoadable.h"
+#include "IRecordStoreable.h"
 #include "Inventory.h"
 
 namespace Stoneship
@@ -18,7 +20,7 @@ namespace Stoneship
     class IEntityBase;
     class IWorld;
 
-	class IEntity : public IRecordLoadable
+	class IEntity : public IRecordLoadable, public IRecordStoreable
 	{
 	public:
 
@@ -58,8 +60,8 @@ namespace Stoneship
 
 		virtual EntityType getEntityType() { return ENTITYTYPE_WORLD;}
 
-        virtual void loadFromRecord(RecordAccessor rec);
-
+        virtual void loadFromRecord(RecordAccessor &rec);
+        virtual void storeToRecord(RecordBuilder &rec);
 
         void spawn(IWorld *w);
         void despawn();
@@ -79,7 +81,8 @@ namespace Stoneship
 
         virtual EntityType getEntityType() { return ENTITYTYPE_CONTAINER;}
 
-        virtual void loadFromRecord(RecordAccessor rec);
+        virtual void loadFromRecord(RecordAccessor &rec);
+        virtual void storeToRecord(RecordBuilder &rec);
 
 	private:
 
@@ -96,7 +99,8 @@ namespace Stoneship
 
         virtual EntityType getEntityType() { return ENTITYTYPE_WORLD | ENTITYTYPE_ITEM;}
 
-        virtual void loadFromRecord(RecordAccessor rec);
+        virtual void loadFromRecord(RecordAccessor &rec);
+        virtual void storeToRecord(RecordBuilder &rec);
 
         uint32_t getCount() const;
         void setCount(uint32_t count);

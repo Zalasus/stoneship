@@ -10,6 +10,9 @@
 #include <iostream>
 
 #include "IEntity.h"
+#include "RecordBuilder.h"
+#include "Root.h"
+#include "EntityManager.h"
 
 namespace Stoneship
 {
@@ -20,13 +23,19 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Static::loadFromRecord(RecordAccessor record)
+	void EntityBase_Static::loadFromRecord(RecordAccessor &record)
 	{
 		IEntityBaseWorld::loadFromRecord(record);
 	}
 
-	void EntityBase_Static::modifyFromRecord(RecordAccessor record)
+	void EntityBase_Static::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
 	{
+	    IEntityBaseWorld::modifyFromRecord(record, modType);
+	}
+
+	void EntityBase_Static::storeToRecord(RecordBuilder &record)
+	{
+	    IEntityBaseWorld::storeToRecord(record);
 	}
 
 	bool EntityBase_Static::canInteract() const
@@ -46,31 +55,34 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Book::loadFromRecord(RecordAccessor record)
+	void EntityBase_Book::loadFromRecord(RecordAccessor &record)
 	{
 		IEntityBaseWorld::loadFromRecord(record);
 		IEntityBaseItem::loadFromRecord(record);
 
-		record.getReaderForSubrecord(Record::SUBTYPE_DATA)
+		record.getReaderForSubrecord(Record::SUBTYPE_TEXT)
 				.readIString(mText);
+
+		setDirty(false);
 	}
 
-	void EntityBase_Book::modifyFromRecord(RecordAccessor record)
+	void EntityBase_Book::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
 	{
-		//TODO: doing it this way is ugly and possibly dangerous. find a better method
+	    IEntityBaseItem::modifyFromRecord(record, modType);
 
-		try
+		if(record.getSubrecordCountForType(Record::SUBTYPE_TEXT))
 		{
-			record.getReaderForSubrecord(Record::SUBTYPE_DATA)
+			record.getReaderForSubrecord(Record::SUBTYPE_TEXT)
 					.readIString(mText);
-
-		}catch(StoneshipException &e)
-		{
-			if(e.getType() != StoneshipException::SUBRECORD_NOT_FOUND)
-			{
-				throw;
-			}
 		}
+	}
+
+	void EntityBase_Book::storeToRecord(RecordBuilder &record)
+	{
+	    IEntityBaseWorld::storeToRecord(record);
+	    IEntityBaseItem::storeToRecord(record);
+
+	    record.addSubrecord(Record::SUBTYPE_TEXT);
 	}
 
 	bool EntityBase_Book::onUse(ItemStack *stack, IActor *actor)
@@ -85,6 +97,14 @@ namespace Stoneship
 		return mText;
 	}
 
+	void EntityBase_Book::setText(const String &s)
+	{
+	    mText = s;
+
+	    setDirty(true);
+	}
+
+
 
 
 	EntityBase_Weapon::EntityBase_Weapon(UID uid)
@@ -96,7 +116,7 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Weapon::loadFromRecord(RecordAccessor record)
+	void EntityBase_Weapon::loadFromRecord(RecordAccessor &record)
 	{
 		IEntityBaseWorld::loadFromRecord(record);
 		IEntityBaseItem::loadFromRecord(record);
@@ -111,9 +131,28 @@ namespace Stoneship
 		mWeaponType = static_cast<WeaponType>(weaponType);
 	}
 
-	void EntityBase_Weapon::modifyFromRecord(RecordAccessor record)
+	void EntityBase_Weapon::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
 	{
-		loadFromRecord(record);
+        IEntityBaseWorld::modifyFromRecord(record, modType);
+	    IEntityBaseItem::modifyFromRecord(record, modType);
+
+		if(record.getSubrecordCountForType(Record::SUBTYPE_DATA))
+		{
+		    uint8_t weaponType;
+            record.getReaderForSubrecord(Record::SUBTYPE_DATA)
+                .readUByte(weaponType)
+                .readUInt(mDamage)
+                .readUInt(mDurability)
+                .readUInt(mReach);
+
+            mWeaponType = static_cast<WeaponType>(weaponType);
+		}
+	}
+
+	void EntityBase_Weapon::storeToRecord(RecordBuilder &record)
+	{
+	    IEntityBaseWorld::storeToRecord(record);
+	    IEntityBaseItem::storeToRecord(record);
 	}
 
 	EntityBase_Weapon::WeaponType EntityBase_Weapon::getWeaponType() const
@@ -148,16 +187,23 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Stuff::loadFromRecord(RecordAccessor record)
+	void EntityBase_Stuff::loadFromRecord(RecordAccessor &record)
 	{
 		IEntityBaseWorld::loadFromRecord(record);
 		IEntityBaseItem::loadFromRecord(record);
 	}
 
-	void EntityBase_Stuff::modifyFromRecord(RecordAccessor record)
+	void EntityBase_Stuff::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
 	{
-		loadFromRecord(record);
+	    IEntityBaseWorld::modifyFromRecord(record, modType);
+	    IEntityBaseItem::modifyFromRecord(record, modType);
 	}
+
+	void EntityBase_Stuff::storeToRecord(RecordBuilder &record)
+    {
+        IEntityBaseWorld::storeToRecord(record);
+        IEntityBaseItem::storeToRecord(record);
+    }
 
 	bool EntityBase_Stuff::onUse(ItemStack *stack, IActor *actor)
 	{
@@ -173,7 +219,7 @@ namespace Stoneship
 	{
 	}
 
-    void EntityBase_Container::loadFromRecord(RecordAccessor record)
+    void EntityBase_Container::loadFromRecord(RecordAccessor &record)
     {
         uint32_t slotCount;
         uint32_t containedItemCount;
@@ -184,15 +230,36 @@ namespace Stoneship
 
         mPredefindedInventory.setSlotCount(slotCount);
 
-        /*for(uint32_t i = 0; i < containedItemCount; ++i)
+        for(uint32_t i = 0; i < containedItemCount; ++i)
         {
-            record.getReaderForSubrecord()
-        }*/
+            MGFDataReader reader = record.getReaderForSubrecord(Record::SUBTYPE_CONTAINED_ITEM);
+
+            _loadSingleContainedItem(reader);
+        }
     }
 
-    void EntityBase_Container::modifyFromRecord(RecordAccessor record)
+    void EntityBase_Container::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
     {
+        IEntityBaseWorld::modifyFromRecord(record, modType);
 
+        // Appending -> we are adding item records
+        if(modType == Record::MODIFY_APPEND)
+        {
+            uint32_t itemCount = record.getSubrecordCountForType(Record::SUBTYPE_CONTAINED_ITEM);
+
+            while((itemCount--) > 0)
+            {
+                MGFDataReader reader = record.getReaderForSubrecord(Record::SUBTYPE_CONTAINED_ITEM);
+                _loadSingleContainedItem(reader);
+            }
+        }
+
+        //TODO: modifying/removing items
+    }
+
+    void EntityBase_Container::storeToRecord(RecordBuilder &record)
+    {
+        IEntityBaseWorld::storeToRecord(record);
     }
 
     bool EntityBase_Container::canInteract() const
@@ -215,6 +282,37 @@ namespace Stoneship
         return new EntityContainer(entityUID, this);
     }
 
+    void EntityBase_Container::_loadSingleContainedItem(MGFDataReader &reader)
+    {
+        UID itemUID;
+        uint32_t itemCount;
+
+        reader
+                .readStruct<UID>(itemUID)
+                .readUInt(itemCount)
+                .skipToEnd();
+
+        // store offset. base lookup may move stream pointer TODO: Ugly. Please find better way to avoid skipping through the file like this (indexing item records first?)
+        std::streampos pos = reader.tell();
+
+        IEntityBase *base = Root::getSingleton()->getEntityManager()->getBase(itemUID);
+        if(base == nullptr)
+        {
+            STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Could not find base for contained item " + itemUID.toString());
+        }
+
+        if(!(base->getBaseType() | IEntityBase::BASETYPE_ITEM))
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Specified UID for contained item is of non-item type");
+        }
+
+        IEntityBaseItem *itemBase = static_cast<IEntityBaseItem*>(base);
+
+        mPredefindedInventory.addItem(ItemStack(itemBase, itemCount));
+
+        //restore old position in case it changed
+        reader.seek(pos);
+    }
 
     REGISTER_ENTITY_BEGIN
         REGISTER_ENTITY_BASE(0x800, EntityBase_Static,    Static)

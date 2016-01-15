@@ -91,6 +91,13 @@ namespace Stoneship
 		return nullptr;
 	}
 
+	UID MGFManager::getNewUID(UID::Ordinal ordinal)
+	{
+	    static UID::ID lastID = 0xF000000;
+
+	    return UID(ordinal, lastID++);
+	}
+
 	void MGFManager::loadSGF(const String &savename)
 	{
 		if(mCurrentSaveFile != nullptr)
@@ -114,7 +121,7 @@ namespace Stoneship
 
 		if(mgf == nullptr)
 		{
-			STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Requested record with invalid ordinal");
+		    STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, String("Requested record with invalid ordinal. MGF ") + id.ordinal + " not loaded (UID: " + id.toString() + ")");
 		}
 
 		Logger::warn("Typeless lookup. Slooooowwww!!!");
@@ -128,7 +135,7 @@ namespace Stoneship
 
 		if(mgf == nullptr)
 		{
-			STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Requested record with invalid ordinal");
+			STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, String("Requested record with invalid ordinal. MGF ") + id.ordinal + " not loaded (UID: " + id.toString() + ")");
 		}
 
 		return mgf->getRecordByTypeID(id.id, type);

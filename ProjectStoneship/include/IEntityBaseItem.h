@@ -35,8 +35,6 @@ namespace Stoneship
 		String getIconFile() const;
 		UID getIdentifiedUID() const;
 
-		void loadFromRecord(RecordAccessor record);
-
 		virtual IEntity *createEntity(UID uid);
 
 		virtual bool onUse(ItemStack *stack, IActor *a) = 0;
@@ -58,6 +56,10 @@ namespace Stoneship
 	protected:
 
 		IEntityBaseItem(UID uid);
+
+		virtual void loadFromRecord(RecordAccessor &record);
+		virtual void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
+		virtual void storeToRecord(RecordBuilder &record);
 
 		bool _pickupOnInteract(IEntity *entity, IActor *actor);
 

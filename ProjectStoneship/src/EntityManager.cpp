@@ -96,6 +96,13 @@ namespace Stoneship
 		return base;
 	}
 
+	IEntityBase *EntityManager::manageBase(IEntityBase *base)
+	{
+	    mBaseCache.push_back(base);
+
+	    return base;
+	}
+
 	uint32_t EntityManager::getBaseCacheSize()
 	{
 		return mBaseCache.size();
@@ -106,9 +113,12 @@ namespace Stoneship
 		auto it = mBaseCache.begin();
 		while(it != mBaseCache.end())
 		{
-			if(!(*it)->getUserCount())
+		    IEntityBase *base = (*it);
+
+		    // if a base still has users, don't delete it! if it is dirty, we need to store it first, so don't delete it either
+			if(base->getUserCount() == 0 && !base->isDirty())
 			{
-				delete (*it);
+				delete base;
 
 				it = mBaseCache.erase(it);
 

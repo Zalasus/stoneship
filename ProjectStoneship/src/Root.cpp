@@ -104,7 +104,7 @@ namespace Stoneship
 
 	void Root::run()
 	{
-	    // add default resource path
+	    // add default resource path           TODO: this is ugly \/
 	    getResourceManager()->addResourcePath("res/", UID::SELF_REF_ORDINAL, ResourceManager::PATH_FILESYSTEM, ResourceManager::PRIORITY_BEFORE_DEFAULT);
 
 	    // load MGFs from config file

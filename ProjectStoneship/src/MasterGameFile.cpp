@@ -470,7 +470,7 @@ namespace Stoneship
 
 				RecordAccessor record(header, &mInputStream, this);
 
-				loadable->modifyFromRecord(record);
+				loadable->modifyFromRecord(record, mMods[i].modType);
 
 				return; // only one Mod record per UID per MGF may be specified, so we are done here
 			}
@@ -503,18 +503,21 @@ namespace Stoneship
 
 	void MasterGameFile::_indexModifies(uint32_t recordCount)
 	{
-	    MGFDataReader ds(mInputStream, this);
-		RecordAccessor record = ds.readRecord();
+	    MGFDataReader ds(&mInputStream, this);
+
+	    RecordHeader header;
+	    ds.readStruct(header);
+
+	    RecordAccessor record(header, &mInputStream, this);
 
 		for(uint32_t i = 0; i < recordCount; ++i)
 		{
 			ModHint mod;
 			mod.offset = record.getOffset();
-			uint8_t dummyByte;
 			record.getReaderForSubrecord(Record::SUBTYPE_MODIFY_METADATA)
 					.readStruct<UID>(mod.uid)
 					.readUShort(mod.type)
-					.readUByte(dummyByte);
+					.readUByte(mod.modType);
 
 			mMods.push_back(mod);
 

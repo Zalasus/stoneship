@@ -35,8 +35,8 @@ namespace Stoneship
         void removeEntity(UID uid);
 
 
-        void loadFromRecord(RecordAccessor rec);
-
+        void loadFromRecord(RecordAccessor &record);
+        void storeToRecord(RecordBuilder &record);
 
     private:
 

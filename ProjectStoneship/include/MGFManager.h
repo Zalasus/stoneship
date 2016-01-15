@@ -13,6 +13,7 @@
 #include "Types.h"
 #include "String.h"
 #include "Record.h"
+#include "RecordAccessor.h"
 
 
 namespace Stoneship
@@ -20,6 +21,8 @@ namespace Stoneship
 
     class Root;
     class IEntityBase;
+    class MasterGameFile;
+    class IRecordLoadable;
 
 	class MGFManager
 	{
@@ -32,6 +35,8 @@ namespace Stoneship
 		uint32_t getLoadedMGFCount() const;
 		MasterGameFile *getLoadedMGF(UID::Ordinal ordinal);
 		MasterGameFile *getLoadedMGF(const String &filename);
+
+		UID getNewUID(UID::Ordinal ordinal = UID::SELF_REF_ORDINAL);
 
 		void loadSGF(const String &savename);
 

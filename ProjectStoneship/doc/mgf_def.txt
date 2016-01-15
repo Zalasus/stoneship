@@ -42,7 +42,7 @@ resource[~]:	 resources (a list of paths/archive files where this MGFs BLOBs are
 (records)
 
 int:             record count (total count of records in the MGF)
-int:			 record group count
+int:			 record top group count
 record_group[~]: record groups
 
 byte:            end marker = 0xF0
@@ -63,10 +63,6 @@ Resource files
 All resources used by the engine are adressed via a virtual file system which maps internal resource paths
 to the underlying system's file system. This virtual file system uses a system-independent, fixed naming scheme
 for it's paths, which is defined as follows:
-
-!!! WARNING! Currently, the following definition is not neccessarily valid, as the engine uses
-             Irrlicht's virtual file system instead. Path syntax should be largely the same.
-             Priority handling, however, is just based on MGF loading order at the moment.
 
 Folders are seperated by slash characters '/' (UNIX-Style paths)
 
@@ -100,7 +96,7 @@ resource entry specifies how to handle the resource given in the path field. The
 	
 Real file system paths given in the resource path field should be relative. The engine internally replaces folder seperators
 to match the system's ones (so MGFs created under UNIX can be used in DOS environments like Microsoft Windows), however it
-does not remap absoulte paths, so a MGF defining 'C:/example/' as a resource path would be unusable under UNIX.
+can not remap absoulte paths, so a MGF defining 'C:/example/' as a resource path would be unusable under UNIX.
 	
 Resource locations are searched by priority until the wanted resource is found, with the default priority beeing:
 	1. 'res/'-Folder
@@ -130,9 +126,13 @@ and never contain the size of any other fields in the structure including the si
 Record groups
 -------------
 The main unit of record storage in a MGF are record groups. These containers list records of the same type and
-allow fast skipping through the file. Additionally, record groups may follow ordinary records that need a
-set of data that can't be stored in subrecords. For instance, a Dungeon record is followed by a group of Entity records,
-containing all Entities in this Dungeon.
+allow fast skipping through the file. Additionally, record groups may be embedded in subrecords(see chapter "Records") of 
+other records which need a set of data that can't be stored efficiently in subrecords or has a typical record structure (with UID etc.).
+For instance, a Dungeon record contains a subrecord of type 0, containing a group of Entity records, in turn containing all Entities in this Dungeon.
+
+Child records (records contained within a data field which still have a full record header) are only valid for records of type Group.
+Every other record type must either store all it's data in subrecords directly, or encapsulate a group record in the special Group-subrecord type.
+This convention ensures consitency in the structure of the record's data fields and stuff.
 
 Since record groups contain whole records as subunits, and records are not guaranteed to be read entirely by the
 application, the amount of remaining bytes in the record data field is no safe indicator whether a full record is still
@@ -263,22 +263,15 @@ Subrecords marked with [#] may appear arbitrarily often, but at least once.
 		
 	FFF0: editor data
 		sstring: editor name
-
-0F: StringResource
-	0: Resource data
-		sstring: string data
-	FFF0: editor data
-		sstring: editor name
-
-B0: ScalesLib
-	1: Binary library data (see Scales specification)
-	2: [Optional] Source
-		istring: source data
-	FFF0: editor data
-		sstring: editor name
 		
 
-B1: Global
+B0: ScalesClass (ID-less)
+	100: Binary class data (see Scales specification)
+	105: [Optional] Source
+	FFF0: editor data
+		
+
+B1: ScalesGlobal
 	0: [Optional] int value
 		int: value
 	1: [Optional] long value
@@ -289,21 +282,21 @@ B1: Global
 		double: value
 	4: [Optional] string value
 		istring: value
-	1F: Global data
+	100: Global data
+		bstring: namespace
 		bstring: name
 		byte: data type (as in Scales specification. Subrecord with this ID is required)
 		
 
 
 C0: Outdoor World
-	100: world data
-		bstring: world name
-	0: chunk group subgroup (contains set of chunk groups)
+	6: world display name
+	0: chunk group subgroup (contains group record of chunk groups)
 	
 C1: Chunk group
 	100: chunk group data
-		vector2i: origin coordinates (for row groups, y field is ignored)
-	0: chunk subgroup (contains set of chunks)
+		vector2i: origin coordinates (for row groups y field is ignored)
+	0: chunk subgroup (contains groups record of chunks)
 	
 C2: Chunk
 	100: chunk data
@@ -315,48 +308,40 @@ C2: Chunk
 
 		
 C5: Dungeon
-	100: dungeon data
+	6: dungeon display name
 		bstring: dungeon name
 	0: entity subgroup
 
 
 D0: Entity
 	10: position data
-		vector3f: position
-		vector3f: rotation
 	F0: entity base data
-		uid: base uid
-		ushort: base type
 	
 FFF0: Modify
 	FFF9: modification data
-		uid: record to modifify
-		ushort: record type
-		ubyte: reserved
+		uid: record to modify
+		ushort: record type to modify
+		ubyte: type of modification (0 = change, 1 = append)
 	
 FFFF: Reserved (Do not use!)
 
 		
-The following types are specific for ATOSAS and may not be valid in every game using NRPG3.
+The following types are specific for SAS and may not be valid in every game using NRPG3.
 
 (Entity base records)
 
 800: EntStatic
-	2: world object information
+	5: world model information
 
 801: EntPlant
-	1: [Optional] script class name
-	5: plant flags
-		byte: flags (bit 0 = fixed seed)
 	100: TreeGecko data
 		bstring: TreeGecko generator resource name
 		int: TreeGecko generator seed (ignored if not fixed)
 		
 	
 810: EntWeapon
-	2: world object information
-	
 	(common item data)
+	5: world model information
 	6: display name
 	7: description
 	8: trading information
@@ -371,9 +356,8 @@ The following types are specific for ATOSAS and may not be valid in every game u
 		uint: weapon reach
 		
 811: EntArmor
-	2: world object information
-	
 	(common item data)
+	5: world model information
 	6: display name
 	7: description
 	8: trading information
@@ -386,9 +370,8 @@ The following types are specific for ATOSAS and may not be valid in every game u
 		int: armor durability
 		
 820: EntBook
-	2: world object information
-	
 	(common item data)
+	5: world model information
 	6: display name
 	7: description
 	8: trading information
@@ -396,13 +379,11 @@ The following types are specific for ATOSAS and may not be valid in every game u
 	A: icon data
 	B: identification data
 	
-	100: book data
-		istring: book text in IGT format
+	105: book text
 		
 821: EntStuff
-	2: world object information
-	
 	(common item data)
+	5: world model information
 	6: display name
 	7: description
 	8: trading information
@@ -410,10 +391,21 @@ The following types are specific for ATOSAS and may not be valid in every game u
 	A: icon data
 	B: identification data
 	
+822: EntFood
+	(common item data)
+	5: world model information
+	6: display name
+	7: description
+	8: trading information
+	9: inventory information
+	A: icon data
+	B: identification data
 	
+	100: food data
+		float: nutrition value
 
 82A: EntContainer
-	2: world object data
+	5: world model data
 	6: display name
 	100: container data
 		int: slot count
@@ -430,7 +422,7 @@ Common subrecord types with typical fields they contain (these definitions may n
 	record_group: sub group record
 	
 	
-(the following subrecords are common for all item types)	
+(the following subrecords are common for all item types)
 	
 5: world model information
 	bstring: model resource name
@@ -461,7 +453,7 @@ B: identification data (only present if undentified flag in SR 9 is set)
 	vector3f: position
 	vector3f: rotation
 	
-F0: entity data
+F0: entity base data
 	uid: base uid
 	short: base type id
 	
@@ -469,6 +461,9 @@ F2: item entity data
 	uint: count
 	
 100: specific data
+	
+105: text data
+	istring: text
 	
 10F: contained item data (may appear for every item contained within enclosing record)
     uid: item uid

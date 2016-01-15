@@ -56,14 +56,13 @@ namespace Stoneship
 
 		MGFDataWriter &writeZString(const String &s);
 
+		template <typename T>
+		MGFDataWriter &writeIntegral(T v);
 
 	private:
 
 		void _writeNext(uint8_t b);
 		void _writeChars(const char *data, size_t size);
-
-		template <typename T>
-		void _writeIntegral(T v);
 
 		void _except(StoneshipException::ExceptionType type, const String &msg);
 

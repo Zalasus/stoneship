@@ -77,7 +77,12 @@ namespace Stoneship
 	    }
 	}
 
-	void EntityWorld::loadFromRecord(RecordAccessor rec)
+	void EntityWorld::loadFromRecord(RecordAccessor &rec)
+	{
+
+	}
+
+	void EntityWorld::storeToRecord(RecordBuilder &rec)
 	{
 
 	}
@@ -99,11 +104,15 @@ namespace Stoneship
 	{
 	}
 
-	void EntityContainer::loadFromRecord(RecordAccessor rec)
+	void EntityContainer::loadFromRecord(RecordAccessor &rec)
 	{
 	    //TODO: load item records here
 	}
 
+	void EntityContainer::storeToRecord(RecordBuilder &rec)
+    {
+
+    }
 
 
 	EntityItem::EntityItem(UID uid, IEntityBase *base)
@@ -126,11 +135,16 @@ namespace Stoneship
 	    return mCount;
 	}
 
-	void EntityItem::loadFromRecord(RecordAccessor rec)
+	void EntityItem::loadFromRecord(RecordAccessor &rec)
 	{
 	    rec.getReaderForSubrecord(Record::SUBTYPE_ENTITY_ITEM)
 	            .readUInt(mCount);
 	}
+
+	void EntityItem::storeToRecord(RecordBuilder &rec)
+    {
+
+    }
 }
 
 

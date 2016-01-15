@@ -21,10 +21,12 @@ namespace Stoneship
     : mUID(uid),
 	  mUserCount(0)
 	{
+	    Logger::info("Allocated entity base " + mUID.toString());
 	}
 
 	IEntityBase::~IEntityBase()
 	{
+	    Logger::info("Deallocated entity base " + mUID.toString());
 	}
 
 	UID IEntityBase::getUID() const

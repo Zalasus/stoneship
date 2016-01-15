@@ -48,7 +48,7 @@ namespace Stoneship
 
     }
 
-    void WorldOutdoor::loadFromRecord(RecordAccessor rec)
+    void WorldOutdoor::loadFromRecord(RecordAccessor &rec)
     {
         rec.getReaderForSubrecord(Record::SUBTYPE_DATA)
                 .readBString(mWorldName);

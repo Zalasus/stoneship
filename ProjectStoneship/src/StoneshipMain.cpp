@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "Stoneship.h"
+#include "sas/SASEntityBases.h"
 
 using namespace Stoneship;
 
@@ -20,8 +21,22 @@ int main(int argc, char **argv)
 
 	root->getOptions().load(argc, argv);
 
+	Stoneship::UID newUID = root->getMGFManager()->getNewUID();
+	Stoneship::EntityBase_Book *book = new EntityBase_Book(newUID);
+	root->getEntityManager()->manageBase(book);
+	book->setText("This book was created during gameplay. Wooo!");
+
 	try
 	{
+
+	    IEntityBase *base = root->getEntityManager()->getBase(newUID);
+	    if(base == nullptr || !(base->getBaseType() & Stoneship::IEntityBase::BASETYPE_ITEM))
+	    {
+	        STONESHIP_EXCEPT(Stoneship::StoneshipException::ENTITY_ERROR, "Entity not found or wrong type of entity");
+	    }
+
+	    static_cast<Stoneship::IEntityBaseItem*>(base)->onUse(nullptr, nullptr);
+
 	    root->run();
 
 	}catch(Stoneship::StoneshipException &e)

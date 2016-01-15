@@ -82,16 +82,12 @@ namespace Stoneship
         }
     }
 
-    void WorldDungeon::loadFromRecord(RecordAccessor rec)
+    void WorldDungeon::loadFromRecord(RecordAccessor &rec)
     {
         rec.getReaderForSubrecord(Record::SUBTYPE_DATA)
                 .readBString(mDungeonName);
 
-
-        RecordHeader header;
-        rec.getReaderForSubrecord(Record::SUBTYPE_SUBGROUP)
-                .readStruct(header);
-        RecordAccessor subgroup(header, rec.getGameFile(), header.dataSize);
+        RecordAccessor subgroup = rec.getSubgroup();
 
         if(subgroup.getHeader().recordCount > 0)
         {
@@ -132,6 +128,18 @@ namespace Stoneship
 
     }
 
+    void WorldDungeon::storeToRecord(RecordBuilder &record)
+    {
+        record.beginSubrecord(Record::SUBTYPE_DISPLAY_NAME)
+                .writeBString(mDungeonName);
+        record.endSubrecord();
+
+        RecordBuilder entityGroup = record.beginSubgroup();
+
+
+            entityGroup.endRecord();
+        record.endSubgroup();
+    }
 }
 
 

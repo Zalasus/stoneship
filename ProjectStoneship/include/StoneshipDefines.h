@@ -15,6 +15,12 @@
 #define STONESHIP_DEFAULT_WINDOW_CAPTION "Stoneship"
 
 
+//---------- Performance oriented stuff -------------
+
+//reduced the amount of file stream seekg() used in the code for filesystems with heavy caching or
+//other factors which make seekg less perfomant for forward searches than skipping byte by byte
+#define STONESHIP_IO_AVOID_SEEKS
+
 
 //---------- System specific defines ----------
 
