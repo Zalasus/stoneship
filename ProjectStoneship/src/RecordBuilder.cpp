@@ -10,30 +10,33 @@
 namespace Stoneship
 {
 
-    RecordBuilder::RecordBuilder(Record::Type type, MGFDataWriter &writer)
-    : mType(type),
-      mWriter(writer),
+    RecordBuilder::RecordBuilder(MGFDataWriter &writer, Record::Type type, RecordHeader::FlagType flags, UID::ID id, Record::Type groupType)
+    : mWriter(writer),
+	  mType(type),
+	  mFlags(flags),
+	  mID(id),
+	  mGroupType(groupType),
       mChildRecordCount(0)
     {
     }
 
-    void RecordBuilder::beginRecord(RecordHeader::FlagType flags, UID::ID id, Record::Type groupType)
+    void RecordBuilder::beginRecord()
     {
-        mWriter.writeIntegral<Record::Type>(mType);
+        mWriter.writeIntegral(mType);
 
         mRecordSizeFieldOffset = mWriter.tell();
         mWriter.writeIntegral<RecordHeader::SizeType>(0xDEADBEEF); // this field is overwritten by endRecord()
 
         if(mType == Record::TYPE_GROUP)
         {
-            mWriter.writeIntegral<Record::Type>(groupType);
+            mWriter.writeIntegral(mGroupType);
             mChildRecordCountFieldOffset = mWriter.tell();
             mWriter.writeIntegral<RecordHeader::ChildRecordCountType>(0xDEADBEEF);  // this field is overwritten by endRecord()
 
         }else
         {
-            mWriter.writeIntegral<RecordHeader::FlagType>(flags);
-            mWriter.writeIntegral<UID::ID>(id);
+            mWriter.writeIntegral<RecordHeader::FlagType>(mFlags);
+            mWriter.writeIntegral<UID::ID>(mID);
         }
     }
 
@@ -46,7 +49,13 @@ namespace Stoneship
         mWriter.seek(mRecordSizeFieldOffset);
         mWriter.writeIntegral<RecordHeader::SizeType>(size);
 
-        if(asdsag)
+        if(mType == Record::TYPE_GROUP)
+        {
+
+        }else
+        {
+
+        }
 
         mWriter.seek(pos);
     }
@@ -74,11 +83,11 @@ namespace Stoneship
         mWriter.seek(pos);
     }
 
-    RecordBuilder RecordBuilder::beginSubgroup()
+    RecordBuilder RecordBuilder::beginSubgroup(Record::Type groupType)
     {
         MGFDataWriter &writer = beginSubrecord(Record::SUBTYPE_SUBGROUP);
 
-        return RecordBuilder(Record::TYPE_GROUP, writer);
+        return RecordBuilder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, groupType);
     }
 
     void RecordBuilder::endSubgroup()
@@ -93,7 +102,7 @@ namespace Stoneship
             STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Tried to create child record in non-GROUP type record.");
         }
 
-        return RecordBuilder(type, mWriter);
+        return RecordBuilder(mWriter, type);
     }
 }
 

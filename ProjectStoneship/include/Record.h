@@ -41,6 +41,7 @@ namespace Stoneship
 		}
 
 		static const Ordinal SELF_REF_ORDINAL = 0xFFFF;
+		static const ID NO_ID = 0xFFFFFFFF;
 	};
 
 	struct Record
@@ -60,6 +61,7 @@ namespace Stoneship
 		static const Type TYPE_DUNGEON = 0xC5;
 		static const Type TYPE_ENTITY = 0xD0;
 		static const Type TYPE_MODIFY = 0xFFF0;
+		static const Type TYPE_RESERVED = 0xFFFF;
 
 		static const Type TYPE_LOOKUP_ALL = 0xFFFF; //for lookups only!!!
 

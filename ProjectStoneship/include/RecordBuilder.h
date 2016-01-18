@@ -18,15 +18,15 @@ namespace Stoneship
     {
     public:
 
-        RecordBuilder(Record::Type type, MGFDataWriter &writer);
+        RecordBuilder(MGFDataWriter &writer, Record::Type type, RecordHeader::FlagType flags = 0, UID::ID id = UID::NO_ID, Record::Type groupType = Record::TYPE_RESERVED);
 
-        void beginRecord(RecordHeader::FlagType flags, UID::ID id, Record::Type groupType);
+        void beginRecord();
         void endRecord();
 
         MGFDataWriter &beginSubrecord(Record::Subtype type);
         void endSubrecord();
 
-        RecordBuilder beginSubgroup();
+        RecordBuilder beginSubgroup(Record::Type groupType);
         void endSubgroup();
 
         RecordBuilder createChildBuilder(Record::Type type);
@@ -40,8 +40,11 @@ namespace Stoneship
 
     private:
 
-        Record::Type mType;
         MGFDataWriter &mWriter;
+        Record::Type mType;
+        RecordHeader::FlagType mFlags;
+        UID::ID mID;
+        Record::Type mGroupType;
 
         std::streampos mRecordSizeFieldOffset;
         std::streampos mChildRecordCountFieldOffset; // for GROUP records only
