@@ -15,6 +15,13 @@
 #define STONESHIP_DEFAULT_WINDOW_CAPTION "Stoneship"
 
 
+// ---------- Default paths -----------
+//NOTE: These paths might have to be adjusted to meet requirements on other platforms
+
+#define STONESHIP_DEFAULT_RESOURCE_PATH "./res/"
+#define STONESHIP_DEFAULT_MGF_PATH "./mgf/"
+
+
 //---------- Performance oriented stuff -------------
 
 //reduced the amount of file stream seekg() used in the code for filesystems with heavy caching or

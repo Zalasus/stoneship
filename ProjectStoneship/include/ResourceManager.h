@@ -28,12 +28,6 @@ namespace Stoneship
 			PATH_GZIP_FILE
 		};
 
-		enum ResourcePathPriority
-		{
-		    PRIORITY_DEFAULT,
-		    PRIORITY_BEFORE_DEFAULT
-		};
-
 		enum ResourceType
 		{
 		    RES_MODEL,
@@ -54,7 +48,7 @@ namespace Stoneship
 
 		ResourceManager(Root *root);
 
-		void addResourcePath(const String &path, UID::Ordinal ordinal, ResourcePathType type, ResourcePathPriority prio);
+		void addResourcePath(const String &path, ResourcePathType type, UID::Ordinal ordinal = UID::SELF_REF_ORDINAL);
 
 		/**
 		 * @brief Creates index for all newly added paths and creates priority scheme

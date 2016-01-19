@@ -1,0 +1,61 @@
+Stoneship code style convetions
+===============================
+
+
+modifier order is: static const int. Don't you dare putting const after the type!!!
+Always use class. use struct only for dumb classes without any more functionality than constructors to initialize public elements.
+public member variables do not exist except in dumb structs
+absolutely no using's. always use full namespace identifier. omit only in local namespace. no, std is NOT an exception
+please don't bother keeping your lines under the 80 column mark. write readable code instead
+use spaces and parentheses to make expressions more readable and unambiguous, but don't overdo it
+english code only. no exceptions. (Betrifft nicht die Lokalisation des Programms)
+stop hating goto. if it's more elegant than anything else, go ahead. but beware of velociraptors when you do.
+single line comments start with space: // this is a comment
+acceptable task markers are: "TODO:" for general to-do, "FIXME:" for bug causing lines
+multi line comments are encouraged for anything longer than like... 3 lines
+Documentation comments are always multiline and use doxygen syntax /** with @ as tag marker
+includes for anything outside project scope in <>. use "" elsewhere
+headers always *.h no *.hpp or others
+include guards are obligatory. shouldn't even have to mention that
+use forward declaration instead of inclusion whenever possible
+no unused includes
+visibility order in classes is public, protected, private
+no egyptian braces anywhere. closing brace must be on same column as opening one (except for arrays and stuff. make something up for them)
+always use stdint.h, never write unsigned int, write uint32_t instead (except when interfacing nonconforming code)
+no cstrings
+never ever suppress warnings
+when using compiler specific stuff, stick to gcc. no pragmas and shit like that
+when writing system dependent code, use macros for substitutions
+every definition belongs in a cpp file.
+really dumb functions, like those just one step away from beeing constexpr may be defined in the header using inline keyword
+use function macros wisely. write them so a ; after invocation does not break them
+use exceptions over errnos
+no polymorphism for exceptions
+throw by value, catch by reference
+RAII!!! no stray news and deletes
+no RTTI! if possible, use static_cast. if not, don't cast.
+RTTI is okay when you implement it yourself using interfaces and the like. use it to check static_casts when neccessary
+no smart pointers except when absolutely neccessary. suppress any "using a smart pointer would be easier" thoughts
+write readable code. write plenty of comments for any non-straightforward solution. refer to additional papers when neccessary
+if you are feeling comfortable with iterators, use them. don't be ashamed to use classical array access
+prefer stl over own code. prefer own code over boost.
+when your code needs autoconfig, your programming needs adjustment
+
+
+
+Naming conventions
+------------------
+
+CamelCase preferred
+Classes, Structs, Namespaces upper case
+Variables, Funtions lower case
+non-static member variables prefixed with m
+static member variables prefixed with sm
+private member functions prefixed with underscore
+public member functions not prefixed
+static functions also not prefixed
+Abstract classes prefixed with I
+Constants, macros all caps. Use underscore instead of CamelCase
+typedefs always in upper case
+if your identifier can't be spoken entirely without breathing between syllables, it's too long
+

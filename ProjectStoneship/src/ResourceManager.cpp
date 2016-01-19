@@ -18,15 +18,8 @@ namespace Stoneship
 	{
 	}
 
-	void ResourceManager::addResourcePath(const String &path, UID::Ordinal ordinal, ResourcePathType type, ResourcePathPriority prio)
+	void ResourceManager::addResourcePath(const String &path, ResourcePathType type, UID::Ordinal ordinal)
 	{
-		if(prio != PRIORITY_DEFAULT)
-		{
-		    Logger::warn("Resource priority different than default used. This is not implemented at the moment. Setting to default instead.");
-
-		    prio = PRIORITY_DEFAULT;
-		}
-
 		Logger::info("Added '" + path + "' as resource path with ordinal " + ordinal);
 	}
 

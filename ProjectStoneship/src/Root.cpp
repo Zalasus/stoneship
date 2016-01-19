@@ -104,8 +104,9 @@ namespace Stoneship
 
 	void Root::run()
 	{
-	    // add default resource path           TODO: this is ugly \/
-	    getResourceManager()->addResourcePath("res/", UID::SELF_REF_ORDINAL, ResourceManager::PATH_FILESYSTEM, ResourceManager::PRIORITY_BEFORE_DEFAULT);
+	    // add default resource path
+	    getResourceManager()->addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
+
 
 	    // load MGFs from config file
 	    const std::vector<IniFile::IniEntry> &mgfEntries = getOptions().getIniFile().getEntriesInSection("mgf");
@@ -125,9 +126,13 @@ namespace Stoneship
 
 	    Logger::info(String("Loaded ") + getMGFManager()->getLoadedMGFCount() + " MGF(s)");
 
+
+	    getScriptRoot()->getClass("Stoneship:Init")->invokeStatic("init");
 	    // now that all MGFs are loaded, we need to find an entry point
 	    getWorldManager()->enterWorld(UID(0xA));
 
+
+	    // we are done here. give control back to implementation
 	    Logger::info("Stop signal received. Shutting down engine.");
 	}
 

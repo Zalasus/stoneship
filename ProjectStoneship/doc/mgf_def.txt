@@ -25,7 +25,7 @@ The following lines are a KIDDML representation of the MGF format.
 
 byte[8]: 		 magic id = "NRPG3MGF"
 bstring:		 game id
-int:			 file flags
+short:			 file flags
 
 (meta information)
 sstring:		 author (name of MGF's author)
@@ -50,12 +50,8 @@ byte:            end marker = 0xF0
 
 File flags
 ----------
-The file header has a 32-bit-field for 32 boolean flags. The following bits
-are defined:
-
-bit 0: If set, this bit indicates the MGF is evil and should not be loaded
-bit 1: If set, this bit incicates the MGF was created by a total idiot
-bit 2: If set, this bit indicated the creator of the MGF is aware that there are way too many bits in the flag field
+The file header has a 16-bit-field for 16 boolean flags. At the moment, none of the flags
+are used, because why would you use flags for anything?
 
 
 Resource files
@@ -94,9 +90,10 @@ resource entry specifies how to handle the resource given in the path field. The
 	2: Zip file (resources are packed in a .zip archive)
 	3: Gzip file (Implementation is considered optional for now)
 	
-Real file system paths given in the resource path field should be relative. The engine internally replaces folder seperators
-to match the system's ones (so MGFs created under UNIX can be used in DOS environments like Microsoft Windows), however it
-can not remap absoulte paths, so a MGF defining 'C:/example/' as a resource path would be unusable under UNIX.
+Real file system paths given in the resource path field should be relative. The engine accepts both '/' and '\' as directory
+seperators, and internally replaces them to match the system's ones (so MGFs created under UNIX can be used in DOS environments
+like Microsoft Windows). However, it can not remap absoulte paths, so a MGF defining 'C:/example/' as a resource path would be
+unusable under UNIX.
 	
 Resource locations are searched by priority until the wanted resource is found, with the default priority beeing:
 	1. 'res/'-Folder
@@ -155,13 +152,13 @@ IDs / UIDs
 ----------
 Each record (see next chapter) holds an 4-byte wide identifier that is used to uniquely reference the object/entity/etc
 defined by the record. The special ID 0xFFFFFFFF is used for records without the need for reference by other records.
-It is the only ID that is allowed to exist more than once in MGFs.
+It is the only ID that is allowed to exist more than once each MGF.
 
 Wherever a record refers to another record, a 6-byte wide identifier is used. This so-called UID (unique identifier)
 consists of the ordinal number of the MGF that defines the referenced record (a short field that prepends the int ID field)
 and the 4-byte-ID of the referenced record. If, however, a record refers to another record defined in the same MGF, the special
-MGF ordinal 0xFFFF is used. This special MGF ordinal is also used during in savegames and while playing for objects/entities/etc
-that are not defined in any MGF but were created during gameplay.
+MGF ordinal 0xFFFF is used. This special MGF ordinal is also used in savegames for objects/entities/etc
+that are not defined in any MGF but were created during gameplay. Thus, the currently loaded savegame will always have the ordinal 0xFFFF.
 Please note that the endianness of the ordinal/ID is treated as if both fields were seperate structures: {short, int}
 
 This system restricts NRPG3 to a maximum possible MGF count of 65.535 with 4.294.967.296 IDs each. This amount
@@ -170,8 +167,8 @@ should be sufficient for any application the engine might have in it's lifespan.
 
 Records
 -------
-The main data unit in a MGF is a record. A MGF may contain up to (2^32)-1 = 4294967295 records (Only in theory.
-Amounts this high will most likely fail as indices in MGFs are only 32 bits wide).
+The main data unit in a MGF is a record. A MGF may contain up to (2^32)-1 = 4294967295 records (Only in theory. In practice, amounts
+this high will most likely fail on 32-bit platforms as NRPG relies heavily on offset indices).
 
 Every record has a 16 bit wide type ID that gives information on the type of the record's content. A table of
 type IDs is given below.
@@ -186,8 +183,9 @@ For more information on these IDs, see the previous chapter "IDs / UIDs"
 
 For additional data, every record contains a flag byte. The meanings of the flag bits are as follows:
 
-	Bit 0 -> DELETED:        If set, this record is scratched, and should not be bought
-	Bit 1 -> FULLOFEELS:     If set, your hovercraft is full of eels (The sane reader can consider this bit as unused)
+	Bit 0 -> DELETED:           If set, this record is scratched, and should not be bought
+	Bit 1 -> FULLOFEELS:        If set, your hovercraft is full of eels (The sane reader can consider this bit as unused)
+	Bit 2 -> EDATA_PRESENT:     If set, this record contains an _EDITOR_DATA subrecord (does not apply for GROUP records)
 
 The data of records is stored in subrecords which consist of an 16 bit type ID that is specific for the record's
 type ID, meaning that subrecords with equal type IDs must not necessarily contain the same type of data unless
