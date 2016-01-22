@@ -19,6 +19,11 @@ namespace Stoneship
     {
     }
 
+    UID::Ordinal IWorld::getCreatedBy()
+    {
+        return mUID.ordinal;
+    }
+
     UID IWorld::getUID() const
     {
         return mUID;

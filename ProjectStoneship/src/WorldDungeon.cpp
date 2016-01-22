@@ -110,7 +110,7 @@ namespace Stoneship
                     STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Base " + baseUID.toString() + " for Entity " + entityUID.toString() + " not found");
                 }
 
-                //The base lookup might have accessed the MGF and thus changed the pointers location. Reset it. FIXME: we can't do this everytime. it's hard to debug where the rollback was omitted
+                // The base lookup might have accessed the MGF and thus changed the pointers location. Reset it. TODO: we can't do this everytime. it's hard to debug where the rollback was omitted
                 child.rollback();
 
                 IEntity *entity = base->createEntity(entityUID);
@@ -118,13 +118,13 @@ namespace Stoneship
                 entity->loadFromRecord(child);
                 entity->spawn(this);
 
-                if(i < subgroup.getHeader().recordCount-1) //reached end of list yet?
+                if(i < subgroup.getHeader().recordCount-1) // reached end of list yet?
                 {
-                    //no, fetch next entity record
+                    // no, fetch next entity record
                     child = child.getNextRecord();
                 }
             }// for each entity record
-        } //if entity list not empty
+        } // if entity list not empty
 
     }
 
@@ -134,8 +134,22 @@ namespace Stoneship
                 .writeBString(mDungeonName);
         record.endSubrecord();
 
-        RecordBuilder entityGroup = record.beginSubgroup();
+        RecordBuilder entityGroup = record.beginSubgroup(Record::TYPE_ENTITY);
 
+            for(uint32_t i = 0; i < mEntities.size(); ++i)
+            {
+                IEntity *entity = mEntities[i];
+
+                if(entity->getUID().ordinal != getUID().ordinal)
+                {
+                    // skip this entity if it was not
+                    continue;
+                }
+
+                RecordBuilder entityBuilder = entityGroup.createChildBuilder(Record::TYPE_ENTITY,0, mEntities[i]->getUID());
+
+
+            }
 
             entityGroup.endRecord();
         record.endSubgroup();

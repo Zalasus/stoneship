@@ -39,6 +39,11 @@ namespace Stoneship
 		return mUserCount;
 	}
 
+	UID::Ordinal IEntityBase::getCreatedBy()
+	{
+	    return mUID.ordinal;
+	}
+
 
 
 
@@ -48,7 +53,7 @@ namespace Stoneship
 	{
 	    if(getFactoryForRecordType(recordType) != nullptr)
 	    {
-	        Logger::warn("Double registration for Entity Base '" + baseName + "'! Ignoring.");
+	        Logger::warn("Double registration of Entity Base '" + baseName + "'! Ignoring.");
 
 	    }else
 	    {

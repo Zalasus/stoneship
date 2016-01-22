@@ -28,9 +28,9 @@ namespace Stoneship
 		IEntityBaseWorld::loadFromRecord(record);
 	}
 
-	void EntityBase_Static::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
+	void EntityBase_Static::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
 	{
-	    IEntityBaseWorld::modifyFromRecord(record, modType);
+	    IEntityBaseWorld::loadFromModifyRecord(record, modType);
 	}
 
 	void EntityBase_Static::storeToRecord(RecordBuilder &record)
@@ -51,38 +51,9 @@ namespace Stoneship
 
 
 	EntityBase_Book::EntityBase_Book(UID uid)
-	: IEntityBaseItem(uid)
+	: IEntityBaseItem(uid),
+	  mText("", this)
 	{
-	}
-
-	void EntityBase_Book::loadFromRecord(RecordAccessor &record)
-	{
-		IEntityBaseWorld::loadFromRecord(record);
-		IEntityBaseItem::loadFromRecord(record);
-
-		record.getReaderForSubrecord(Record::SUBTYPE_TEXT)
-				.readIString(mText);
-
-		setDirty(false);
-	}
-
-	void EntityBase_Book::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
-	{
-	    IEntityBaseItem::modifyFromRecord(record, modType);
-
-		if(record.getSubrecordCountForType(Record::SUBTYPE_TEXT))
-		{
-			record.getReaderForSubrecord(Record::SUBTYPE_TEXT)
-					.readIString(mText);
-		}
-	}
-
-	void EntityBase_Book::storeToRecord(RecordBuilder &record)
-	{
-	    IEntityBaseWorld::storeToRecord(record);
-	    IEntityBaseItem::storeToRecord(record);
-
-	    record.addSubrecord(Record::SUBTYPE_TEXT);
 	}
 
 	bool EntityBase_Book::onUse(ItemStack *stack, IActor *actor)
@@ -100,8 +71,6 @@ namespace Stoneship
 	void EntityBase_Book::setText(const String &s)
 	{
 	    mText = s;
-
-	    setDirty(true);
 	}
 
 
@@ -131,10 +100,10 @@ namespace Stoneship
 		mWeaponType = static_cast<WeaponType>(weaponType);
 	}
 
-	void EntityBase_Weapon::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
+	void EntityBase_Weapon::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
 	{
-        IEntityBaseWorld::modifyFromRecord(record, modType);
-	    IEntityBaseItem::modifyFromRecord(record, modType);
+        IEntityBaseWorld::loadFromModifyRecord(record, modType);
+	    IEntityBaseItem::loadFromModifyRecord(record, modType);
 
 		if(record.getSubrecordCountForType(Record::SUBTYPE_DATA))
 		{
@@ -193,10 +162,10 @@ namespace Stoneship
 		IEntityBaseItem::loadFromRecord(record);
 	}
 
-	void EntityBase_Stuff::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
+	void EntityBase_Stuff::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
 	{
-	    IEntityBaseWorld::modifyFromRecord(record, modType);
-	    IEntityBaseItem::modifyFromRecord(record, modType);
+	    IEntityBaseWorld::loadFromModifyRecord(record, modType);
+	    IEntityBaseItem::loadFromModifyRecord(record, modType);
 	}
 
 	void EntityBase_Stuff::storeToRecord(RecordBuilder &record)
@@ -238,9 +207,9 @@ namespace Stoneship
         }
     }
 
-    void EntityBase_Container::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
+    void EntityBase_Container::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
     {
-        IEntityBaseWorld::modifyFromRecord(record, modType);
+        IEntityBaseWorld::loadFromModifyRecord(record, modType);
 
         // Appending -> we are adding item records
         if(modType == Record::MODIFY_APPEND)

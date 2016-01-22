@@ -26,17 +26,19 @@ namespace Stoneship
         WorldDungeon(UID uid);
         ~WorldDungeon();
 
-        String getWorldName() const;
+        // override IWorld
+        virtual String getWorldName() const;
+        virtual const std::vector<IEntity*> &getLoadedEntities();
+        virtual uint32_t getLoadedEntityCount() const;
+        virtual void removeEntity(IEntity *entity);
+        virtual void removeEntity(UID uid);
 
-        const std::vector<IEntity*> &getLoadedEntities();
-        uint32_t getLoadedEntityCount() const;
+        // override IRecordReflector
+        virtual void loadFromRecord(RecordAccessor &record);
+        virtual void loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType);
+        virtual void storeToRecord(RecordBuilder &record);
+        virtual void storeToModifyRecord(RecordBuilder &record);
 
-        void removeEntity(IEntity *entity);
-        void removeEntity(UID uid);
-
-
-        void loadFromRecord(RecordAccessor &record);
-        void storeToRecord(RecordBuilder &record);
 
     private:
 

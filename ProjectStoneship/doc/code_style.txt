@@ -19,7 +19,7 @@ headers always *.h no *.hpp or others
 include guards are obligatory. shouldn't even have to mention that
 use forward declaration instead of inclusion whenever possible
 no unused includes
-visibility order in classes is public, protected, private
+Getters prefixed with get*, setters with set* boolean getters may use is* instead
 no egyptian braces anywhere. closing brace must be on same column as opening one (except for arrays and stuff. make something up for them)
 always use stdint.h, never write unsigned int, write uint32_t instead (except when interfacing nonconforming code)
 no cstrings
@@ -41,7 +41,36 @@ if you are feeling comfortable with iterators, use them. don't be ashamed to use
 prefer stl over own code. prefer own code over boost.
 when your code needs autoconfig, your programming needs adjustment
 
+order of elements in classes:
 
+public:
+	
+	typedefs, member type definitions (structs, enums...)
+	
+	constructors
+	destructor
+	
+	// overrides <class>
+	overridden methods from class
+
+	// interface
+	pure-virtual methods
+	virtual methods
+	
+	non-virtual methods
+	
+	static methods
+	
+protected:
+	
+private:
+
+	private methods
+	
+	member variables
+	
+	static members/constants
+	
 
 Naming conventions
 ------------------

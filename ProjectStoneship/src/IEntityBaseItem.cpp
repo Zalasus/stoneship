@@ -55,7 +55,7 @@ namespace Stoneship
 		}
 	}
 
-	void IEntityBaseItem::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
+	void IEntityBaseItem::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
 	{
 	    if(record.getSubrecordCountForType(Record::SUBTYPE_DISPLAY_NAME))
             record.getReaderForSubrecord(Record::SUBTYPE_DISPLAY_NAME)

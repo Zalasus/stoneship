@@ -23,28 +23,24 @@ namespace Stoneship
 	{
 	public:
 
+        IEntityBaseWorld(UID uid);
 		virtual ~IEntityBaseWorld();
 
-		String getModelName() const;
-		float getModelScale() const;
-
+		// override IEntityBase
 		virtual IEntity *createEntity(UID uid);
 
+		// interface
 		virtual bool canInteract() const = 0;
 		virtual bool onInteract(IEntity *entity, IActor *actor) = 0;
 
-	protected:
+		String getModelName() const;
+        float getModelScale() const;
 
-		IEntityBaseWorld(UID uid);
-
-		virtual void loadFromRecord(RecordAccessor &record);
-		virtual void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
-		virtual void storeToRecord(RecordBuilder &record);
 
 	private:
 
-		String mModelName;
-		float mModelScale;
+		SubrecordField<String, Record::SUBTYPE_WORLD_MODEL_NAME> mModelName;
+		SubrecordField<float, Record::SUBTYPE_SCALE> mModelScale;
 
 	};
 

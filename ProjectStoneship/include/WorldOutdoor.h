@@ -20,23 +20,23 @@ namespace Stoneship
         WorldOutdoor(UID uid);
         ~WorldOutdoor();
 
+        // override IWorld
         String getWorldName() const;
-
         const std::vector<IEntity*> &getLoadedEntities();
         uint32_t getLoadedEntityCount() const;
-
         void removeEntity(IEntity *entity);
         void removeEntity(UID uid);
 
-        void loadFromRecord(RecordAccessor &rec);
+        // override IRecordReflector
+        virtual void loadFromRecord(RecordAccessor &record);
+        virtual void loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType);
+        virtual void storeToRecord(RecordBuilder &record);
+        virtual void storeToModifyRecord(RecordBuilder &record);
 
 
     private:
 
         String mWorldName;
-
-        uint32_t **mChunkAddresses;
-
     };
 
 }

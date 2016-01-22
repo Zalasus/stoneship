@@ -12,8 +12,7 @@ namespace Stoneship
 
 
     WorldOutdoor::WorldOutdoor(UID uid)
-    : IWorld(uid),
-      mChunkAddresses(nullptr)
+    : IWorld(uid)
     {
     }
 

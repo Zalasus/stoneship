@@ -424,7 +424,6 @@ Common subrecord types with typical fields they contain (these definitions may n
 	
 5: world model information
 	bstring: model resource name
-	float: model scale
 	
 6: display name
 	bstring: name
@@ -450,6 +449,9 @@ B: identification data (only present if undentified flag in SR 9 is set)
 10: position data
 	vector3f: position
 	vector3f: rotation
+	
+11: scale data
+	float: scale
 	
 F0: entity base data
 	uid: base uid

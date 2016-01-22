@@ -26,10 +26,21 @@ namespace Stoneship
         MGFDataWriter &beginSubrecord(Record::Subtype type);
         void endSubrecord();
 
+        /**
+         * Starts a subrecord of _SUBGROUP type and creates and initializes a Builder for contained GROUP record. Headers are
+         * written by this method, so the caller can use the returned Builder for IO operations right away. It is, however, neccessary
+         * for the caller to call endRecord() on the returned Builder. This call would usually be followed by a call to endSubgroup()
+         */
         RecordBuilder beginSubgroup(Record::Type groupType);
         void endSubgroup();
 
-        RecordBuilder createChildBuilder(Record::Type type);
+        /**
+         * Creates a Builder for new child record. This method merely creates the Builder and does not write any
+         * record headers, so the caller has to invoke beginRecord() on the returned Builder before any IO operations.
+         * In accordance with the MGF spec, only GROUP records may contain child records, so this method will throw if
+         * called on a non-GROUP type record.
+         */
+        RecordBuilder createChildBuilder(Record::Type type, RecordHeader::FlagType flags, UID::ID id);
 
         /**
          * Finalizes the current record, writes length fields and footers and initializes new

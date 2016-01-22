@@ -27,17 +27,12 @@ namespace Stoneship
 	public:
 		EntityBase_Static(UID uid);
 
+		// override IEntityBase
 		Record::Type getRecordType() const {return 0x800;}
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;};
 		String getBaseName() const {return "Static";}
 
-		void loadFromRecord(RecordAccessor &record);
-		void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
-
-		void storeToRecord(RecordBuilder &record);
-
-		bool onUse(ItemStack *stack, IActor *actor);
-
+		// override IEntityBaseWorld
 		bool canInteract() const;
 		bool onInteract(IEntity *entity, IActor *actor);
 
@@ -49,16 +44,15 @@ namespace Stoneship
 
 		EntityBase_Book(UID uid);
 
+		// override IEntityBase
 		Record::Type getRecordType() const {return 0x820;}
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD | BASETYPE_ITEM;}
 		String getBaseName() const {return "Book";}
 
-		void loadFromRecord(RecordAccessor &record);
-		void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
-
-		void storeToRecord(RecordBuilder &record);
-
+		// override IEntityBaseItem
 		bool onUse(ItemStack *stack, IActor *actor);
+
+        // interact events from IEntityBaseWorld not overridden. they create pickup event by default
 
 		String getText() const;
 		void setText(const String &text);
@@ -66,7 +60,7 @@ namespace Stoneship
 
 	private:
 
-		String mText;
+		SubrecordField<String, Record::SUBTYPE_TEXT> mText;
 
 	};
 
@@ -84,16 +78,15 @@ namespace Stoneship
 
 		EntityBase_Weapon(UID uid);
 
+		// override IEntityBase
 		Record::Type getRecordType() const {return 0x810;}
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Weapon";}
 
-		void loadFromRecord(RecordAccessor &record);
-		void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
-
-        void storeToRecord(RecordBuilder &record);
-
+        // override IEntityBaseItem
 		bool onUse(ItemStack *stack, IActor *actor);
+
+        // interact events from IEntityBaseWorld not overridden. they create pickup event by default
 
 		WeaponType getWeaponType() const;
 		uint32_t getDamage() const;
@@ -116,16 +109,15 @@ namespace Stoneship
 
 		EntityBase_Stuff(UID uid);
 
+		// override IEntityBase
 		Record::Type getRecordType() const {return 0x821;}
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Stuff";}
 
-		void loadFromRecord(RecordAccessor &record);
-		void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
-
-		void storeToRecord(RecordBuilder &record);
-
+		// override IEntityBaseItem
 		bool onUse(ItemStack *stack, IActor *actor);
+
+        // interact events from IEntityBaseWorld not overridden. they create pickup event by default
 	};
 
 	class EntityBase_Container : public IEntityBaseWorld
@@ -133,21 +125,24 @@ namespace Stoneship
 	public:
 	    EntityBase_Container(UID uid);
 
+	    // override IEntityBase
 	    Record::Type getRecordType() const {return 0x82A;}
         IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;}
         String getBaseName() const {return "Container";}
+        IEntity *createEntity(UID entityUID); // this Base needs a custom Entity that has an Inventory
 
-        void loadFromRecord(RecordAccessor &record);
-        void modifyFromRecord(RecordAccessor &record, Record::ModifyType modType);
+        // override IRecordReflector
+        virtual void loadFromRecord(RecordAccessor &record);
+        virtual void loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType);
+        virtual void storeToRecord(RecordBuilder &record);
+        virtual void storeToModifyRecord(RecordBuilder &record);
 
-        void storeToRecord(RecordBuilder &record);
-
+        // override IEntityBaseWorld
         bool canInteract() const;
         bool onInteract(IEntity *entity, IActor *actor);
 
         const Inventory &getInventory() const;
 
-        IEntity *createEntity(UID entityUID);
 
 	private:
 

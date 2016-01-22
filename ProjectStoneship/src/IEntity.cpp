@@ -45,6 +45,11 @@ namespace Stoneship
 		return mBase;
 	}
 
+	UID::Ordinal IEntity::getCreatedBy()
+	{
+	    return mUID.ordinal;
+	}
+
 
 
 	EntityWorld::EntityWorld(UID uid, IEntityBase *base)
@@ -113,6 +118,11 @@ namespace Stoneship
     {
 
     }
+
+	Inventory &EntityContainer::getInventory()
+	{
+	    return mInventory;
+	}
 
 
 	EntityItem::EntityItem(UID uid, IEntityBase *base)

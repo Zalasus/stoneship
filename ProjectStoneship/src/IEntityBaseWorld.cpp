@@ -15,7 +15,8 @@ namespace Stoneship
 
 	IEntityBaseWorld::IEntityBaseWorld(UID uid)
 	: IEntityBase(uid),
-	  mModelScale(0)
+	  mModelName("", this),
+	  mModelScale(1, this)
 	{
 	}
 
@@ -37,26 +38,6 @@ namespace Stoneship
 	IEntity *IEntityBaseWorld::createEntity(UID uid)
 	{
 	    return new EntityWorld(uid, this);
-	}
-
-	void IEntityBaseWorld::loadFromRecord(RecordAccessor &record)
-	{
-		record.getReaderForSubrecord(Record::SUBTYPE_WORLD_MODEL)
-				.readBString(mModelName)
-				.readFloat(mModelScale);
-	}
-
-	void IEntityBaseWorld::modifyFromRecord(RecordAccessor &record, Record::ModifyType modType)
-	{
-	    if(record.getSubrecordCountForType(Record::SUBTYPE_WORLD_MODEL))
-	        record.getReaderForSubrecord(Record::SUBTYPE_WORLD_MODEL)
-                .readBString(mModelName)
-                .readFloat(mModelScale);
-	}
-
-	void IEntityBaseWorld::storeToRecord(RecordBuilder &record)
-	{
-
 	}
 
 }

@@ -42,21 +42,24 @@ namespace Stoneship
 
     void RecordBuilder::endRecord()
     {
+        // store our current position. to finish the record, we need to update it's header
         std::streamoff pos = mWriter.tell();
 
-        RecordHeader::SizeType size = pos - mRecordSizeFieldOffset - sizeof(mRecordSizeFieldOffset) - sizeof(RecordHeader::FlagType) - sizeof(UID::ID);
+        // determine size of record data field, subtracting remaining header fields
+        RecordHeader::SizeType size = pos - mRecordSizeFieldOffset - sizeof(RecordHeader::SizeType) - sizeof(RecordHeader::FlagType) - sizeof(UID::ID);
 
         mWriter.seek(mRecordSizeFieldOffset);
         mWriter.writeIntegral<RecordHeader::SizeType>(size);
 
         if(mType == Record::TYPE_GROUP)
         {
+            // in a group record, we have to overwrite the child record count field
 
-        }else
-        {
-
+            mWriter.seek(mChildRecordCountFieldOffset);
+            mWriter.writeIntegral(mChildRecordCount);
         }
 
+        // we are done. return to record footer
         mWriter.seek(pos);
     }
 
@@ -87,7 +90,10 @@ namespace Stoneship
     {
         MGFDataWriter &writer = beginSubrecord(Record::SUBTYPE_SUBGROUP);
 
-        return RecordBuilder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, groupType);
+        RecordBuilder builder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, groupType);
+        builder.beginRecord();
+
+        return builder;
     }
 
     void RecordBuilder::endSubgroup()
@@ -95,14 +101,19 @@ namespace Stoneship
         endSubrecord();
     }
 
-    RecordBuilder RecordBuilder::createChildBuilder(Record::Type type)
+    RecordBuilder RecordBuilder::createChildBuilder(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
     {
         if(mType != Record::TYPE_GROUP)
         {
             STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Tried to create child record in non-GROUP type record.");
         }
 
-        return RecordBuilder(mWriter, type);
+        RecordBuilder builder(mWriter, type, flags, id);
+
+        // since child records are entirely up to the entity creating it, we don't write headers for them
+        //builder.beginRecord();
+
+        return builder;
     }
 }
 

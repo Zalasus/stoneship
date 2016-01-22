@@ -67,7 +67,7 @@ namespace Stoneship
 
 		typedef uint16_t Subtype;
 		static const Subtype SUBTYPE_SUBGROUP = 0x0;
-		static const Subtype SUBTYPE_WORLD_MODEL = 0x5;
+		static const Subtype SUBTYPE_WORLD_MODEL_NAME = 0x5;
 		static const Subtype SUBTYPE_DISPLAY_NAME = 0x6;
 		static const Subtype SUBTYPE_DESCRIPTION = 0x7;
 		static const Subtype SUBTYPE_TRADING = 0x8;
@@ -75,6 +75,7 @@ namespace Stoneship
 		static const Subtype SUBTYPE_ICON = 0xA;
 		static const Subtype SUBTYPE_IDENTIFICATION = 0xB;
 		static const Subtype SUBTYPE_POSITION = 0x10;
+        static const Subtype SUBTYPE_SCALE = 0x11;
 		static const Subtype SUBTYPE_ENTITY = 0xF0;
 		static const Subtype SUBTYPE_ENTITY_ITEM = 0xF2;
 		static const Subtype SUBTYPE_DATA = 0x100;
@@ -106,6 +107,7 @@ namespace Stoneship
 		};
 
 		inline bool isDeleted() {return flags | 0x01;};
+		inline bool isEDataPresent() {return flags | 0x04;};
 
 		static const uint32_t SIZE_IN_FILE = 12;
 	};
