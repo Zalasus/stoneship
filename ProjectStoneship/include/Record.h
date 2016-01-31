@@ -42,6 +42,7 @@ namespace Stoneship
 
 		static const Ordinal SELF_REF_ORDINAL = 0xFFFF;
 		static const ID NO_ID = 0xFFFFFFFF;
+		static const UID NO_UID;
 	};
 
 	struct Record
@@ -71,15 +72,16 @@ namespace Stoneship
 		static const Subtype SUBTYPE_DISPLAY_NAME = 0x6;
 		static const Subtype SUBTYPE_DESCRIPTION = 0x7;
 		static const Subtype SUBTYPE_TRADING = 0x8;
-		static const Subtype SUBTYPE_INVENTORY = 0x9;
-		static const Subtype SUBTYPE_ICON = 0xA;
-		static const Subtype SUBTYPE_IDENTIFICATION = 0xB;
+		static const Subtype SUBTYPE_INVENTORY = 0xA;
+		static const Subtype SUBTYPE_ICON = 0xB;
+		static const Subtype SUBTYPE_IDENTIFICATION = 0xC;
 		static const Subtype SUBTYPE_POSITION = 0x10;
         static const Subtype SUBTYPE_SCALE = 0x11;
 		static const Subtype SUBTYPE_ENTITY = 0xF0;
 		static const Subtype SUBTYPE_ENTITY_ITEM = 0xF2;
 		static const Subtype SUBTYPE_DATA = 0x100;
 		static const Subtype SUBTYPE_TEXT = 0x105;
+		static const Subtype SUBTYPE_CONTAINER = 0x10E;
 		static const Subtype SUBTYPE_CONTAINED_ITEM = 0x10F;
 		static const Subtype SUBTYPE_EDITOR = 0xFFF0;
 		static const Subtype SUBTYPE_MODIFY_METADATA = 0xFFF9;

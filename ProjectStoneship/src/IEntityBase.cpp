@@ -39,9 +39,9 @@ namespace Stoneship
 		return mUserCount;
 	}
 
-	UID::Ordinal IEntityBase::getCreatedBy()
+	UID IEntityBase::getCreatedUID()
 	{
-	    return mUID.ordinal;
+	    return mUID;
 	}
 
 

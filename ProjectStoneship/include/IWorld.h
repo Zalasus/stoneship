@@ -26,7 +26,7 @@ namespace Stoneship
 	    virtual ~IWorld();
 
 	    // overrides IRecordReflector
-       virtual UID::Ordinal getCreatedBy();
+       virtual UID getCreatedUID();
 
 	    // interface
 	    virtual String getWorldName() const = 0;

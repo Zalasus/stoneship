@@ -23,21 +23,6 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Static::loadFromRecord(RecordAccessor &record)
-	{
-		IEntityBaseWorld::loadFromRecord(record);
-	}
-
-	void EntityBase_Static::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
-	{
-	    IEntityBaseWorld::loadFromModifyRecord(record, modType);
-	}
-
-	void EntityBase_Static::storeToRecord(RecordBuilder &record)
-	{
-	    IEntityBaseWorld::storeToRecord(record);
-	}
-
 	bool EntityBase_Static::canInteract() const
 	{
 	    return false;
@@ -58,19 +43,19 @@ namespace Stoneship
 
 	bool EntityBase_Book::onUse(ItemStack *stack, IActor *actor)
 	{
-		std::cout << mText << std::endl;
+		std::cout << mText.get() << std::endl;
 
 		return true;
 	}
 
 	String EntityBase_Book::getText() const
 	{
-		return mText;
+		return mText.get();
 	}
 
 	void EntityBase_Book::setText(const String &s)
 	{
-	    mText = s;
+	    mText.set(s);
 	}
 
 
@@ -78,50 +63,11 @@ namespace Stoneship
 
 	EntityBase_Weapon::EntityBase_Weapon(UID uid)
 	: IEntityBaseItem(uid),
-	  mWeaponType(SWORD_ONE_HAND),
-	  mDamage(0),
-	  mDurability(0),
-	  mReach(0)
+	  mWeaponType(TYPE_SWORD_ONE_HAND, this),
+	  mDamage(0, this),
+	  mDurability(0, this),
+	  mReach(0, this)
 	{
-	}
-
-	void EntityBase_Weapon::loadFromRecord(RecordAccessor &record)
-	{
-		IEntityBaseWorld::loadFromRecord(record);
-		IEntityBaseItem::loadFromRecord(record);
-
-		uint8_t weaponType;
-		record.getReaderForSubrecord(Record::SUBTYPE_DATA)
-			.readUByte(weaponType)
-			.readUInt(mDamage)
-			.readUInt(mDurability)
-			.readUInt(mReach);
-
-		mWeaponType = static_cast<WeaponType>(weaponType);
-	}
-
-	void EntityBase_Weapon::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
-	{
-        IEntityBaseWorld::loadFromModifyRecord(record, modType);
-	    IEntityBaseItem::loadFromModifyRecord(record, modType);
-
-		if(record.getSubrecordCountForType(Record::SUBTYPE_DATA))
-		{
-		    uint8_t weaponType;
-            record.getReaderForSubrecord(Record::SUBTYPE_DATA)
-                .readUByte(weaponType)
-                .readUInt(mDamage)
-                .readUInt(mDurability)
-                .readUInt(mReach);
-
-            mWeaponType = static_cast<WeaponType>(weaponType);
-		}
-	}
-
-	void EntityBase_Weapon::storeToRecord(RecordBuilder &record)
-	{
-	    IEntityBaseWorld::storeToRecord(record);
-	    IEntityBaseItem::storeToRecord(record);
 	}
 
 	EntityBase_Weapon::WeaponType EntityBase_Weapon::getWeaponType() const
@@ -156,24 +102,6 @@ namespace Stoneship
 	{
 	}
 
-	void EntityBase_Stuff::loadFromRecord(RecordAccessor &record)
-	{
-		IEntityBaseWorld::loadFromRecord(record);
-		IEntityBaseItem::loadFromRecord(record);
-	}
-
-	void EntityBase_Stuff::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
-	{
-	    IEntityBaseWorld::loadFromModifyRecord(record, modType);
-	    IEntityBaseItem::loadFromModifyRecord(record, modType);
-	}
-
-	void EntityBase_Stuff::storeToRecord(RecordBuilder &record)
-    {
-        IEntityBaseWorld::storeToRecord(record);
-        IEntityBaseItem::storeToRecord(record);
-    }
-
 	bool EntityBase_Stuff::onUse(ItemStack *stack, IActor *actor)
 	{
 		return false;
@@ -190,45 +118,45 @@ namespace Stoneship
 
     void EntityBase_Container::loadFromRecord(RecordAccessor &record)
     {
-        uint32_t slotCount;
-        uint32_t containedItemCount;
+        IEntityBaseWorld::loadFromRecord(record);
 
-        record.getReaderForSubrecord(Record::SUBTYPE_DATA)
-                .readUInt(slotCount)
-                .readUInt(containedItemCount);
+        // load item records
+        uint32_t itemCount = record.getSubrecordCountForType(Record::SUBTYPE_CONTAINED_ITEM);
 
-        mPredefindedInventory.setSlotCount(slotCount);
-
-        for(uint32_t i = 0; i < containedItemCount; ++i)
+        while((itemCount--) > 0)
         {
             MGFDataReader reader = record.getReaderForSubrecord(Record::SUBTYPE_CONTAINED_ITEM);
-
             _loadSingleContainedItem(reader);
         }
     }
 
-    void EntityBase_Container::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
+    void EntityBase_Container::loadFromModifyRecord(RecordAccessor &record)
     {
-        IEntityBaseWorld::loadFromModifyRecord(record, modType);
+        IEntityBaseWorld::loadFromModifyRecord(record);
 
-        // Appending -> we are adding item records
-        if(modType == Record::MODIFY_APPEND)
+        // adding item records TODO: modifying/removing items
+        uint32_t itemCount = record.getSubrecordCountForType(Record::SUBTYPE_CONTAINED_ITEM);
+
+        while((itemCount--) > 0)
         {
-            uint32_t itemCount = record.getSubrecordCountForType(Record::SUBTYPE_CONTAINED_ITEM);
-
-            while((itemCount--) > 0)
-            {
-                MGFDataReader reader = record.getReaderForSubrecord(Record::SUBTYPE_CONTAINED_ITEM);
-                _loadSingleContainedItem(reader);
-            }
+            MGFDataReader reader = record.getReaderForSubrecord(Record::SUBTYPE_CONTAINED_ITEM);
+            _loadSingleContainedItem(reader);
         }
-
-        //TODO: modifying/removing items
     }
 
     void EntityBase_Container::storeToRecord(RecordBuilder &record)
     {
         IEntityBaseWorld::storeToRecord(record);
+
+        Inventory::ItemVector &items = mPredefindedInventory.get().getItems();
+
+        for(uint32_t i = 0; i < items.size(); ++i)
+        {
+            record.beginSubrecord(Record::SUBTYPE_CONTAINED_ITEM)
+                    .writeStruct<UID>(items[i].getItemBase()->getUID())
+                    .writeUInt(items[i].getCount());
+            record.endSubrecord();
+        }
     }
 
     bool EntityBase_Container::canInteract() const
@@ -241,7 +169,7 @@ namespace Stoneship
         return true;
     }
 
-    const Inventory &EntityBase_Container::getInventory() const
+    Inventory &EntityBase_Container::getPredefinedInventory()
     {
         return mPredefindedInventory;
     }

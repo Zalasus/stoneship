@@ -32,13 +32,14 @@ namespace Stoneship
 		uint32_t getBaseCacheSize();
 		void collectGarbage();
 
+		void storeCache(MGFDataWriter &writer);
+		void storeCacheMods(MGFDataWriter &writer);
 
 	private:
 
 		Root *mRoot;
 
 		std::vector<IEntityBase*> mBaseCache;
-		//std::unordered_map<uint64_t, EntityBase*> mBaseCache;
 	};
 
 }

@@ -18,10 +18,12 @@ namespace Stoneship
 
 	IEntityBaseItem::IEntityBaseItem(UID uid)
 	: IEntityBaseWorld(uid),
-	  mFlags(0),
-	  mValue(0),
-	  mSlots(0),
-	  mMaxStackSize(0)
+	  mName("", this),
+	  mDescription("", this),
+	  mValue(0, this),
+	  mInventory(this),
+	  mIconFile("empty.png", this),
+	  mIdentified(UID::NO_UID, this)
 	{
 	}
 
@@ -29,66 +31,24 @@ namespace Stoneship
 	{
 	}
 
-	void IEntityBaseItem::loadFromRecord(RecordAccessor &record)
+	bool IEntityBaseItem::mustStore(SubrecordFieldS *field)
 	{
-		record.getReaderForSubrecord(Record::SUBTYPE_DISPLAY_NAME)
-				.readBString(mName);
+	    if(field == &mIdentified)
+	    {
+	        return isToBeIdentified();
+	    }
 
-		record.getReaderForSubrecord(Record::SUBTYPE_DESCRIPTION)
-				.readSString(mDescription);
-
-		record.getReaderForSubrecord(Record::SUBTYPE_TRADING)
-				.readUInt(mValue);
-
-		record.getReaderForSubrecord(Record::SUBTYPE_INVENTORY)
-				.readUByte(mFlags)
-				.readUByte(mSlots)
-				.readUInt(mMaxStackSize);
-
-		record.getReaderForSubrecord(Record::SUBTYPE_ICON)
-				.readBString(mIconFile);
-
-		if(isUnidentified())
-		{
-			record.getReaderForSubrecord(Record::SUBTYPE_IDENTIFICATION)
-					.readStruct(mIdentified);
-		}
+	    return IEntityBaseWorld::mustStore(field);
 	}
 
-	void IEntityBaseItem::loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType)
+	bool IEntityBaseItem::mustLoad(SubrecordFieldS *field)
 	{
-	    if(record.getSubrecordCountForType(Record::SUBTYPE_DISPLAY_NAME))
-            record.getReaderForSubrecord(Record::SUBTYPE_DISPLAY_NAME)
-                .readBString(mName);
-
-	    if(record.getSubrecordCountForType(Record::SUBTYPE_DESCRIPTION))
-	        record.getReaderForSubrecord(Record::SUBTYPE_DESCRIPTION)
-                .readSString(mDescription);
-
-	    if(record.getSubrecordCountForType(Record::SUBTYPE_TRADING))
-	        record.getReaderForSubrecord(Record::SUBTYPE_TRADING)
-                .readUInt(mValue);
-
-	    if(record.getSubrecordCountForType(Record::SUBTYPE_INVENTORY))
-	        record.getReaderForSubrecord(Record::SUBTYPE_INVENTORY)
-                .readUByte(mFlags)
-                .readUByte(mSlots)
-                .readUInt(mMaxStackSize);
-
-	    if(record.getSubrecordCountForType(Record::SUBTYPE_ICON))
-	        record.getReaderForSubrecord(Record::SUBTYPE_ICON)
-                .readBString(mIconFile);
-
-        if(isUnidentified() && record.getSubrecordCountForType(Record::SUBTYPE_IDENTIFICATION))
+	    if(field == &mIdentified)
         {
-            record.getReaderForSubrecord(Record::SUBTYPE_IDENTIFICATION)
-                    .readStruct(mIdentified);
+            return isToBeIdentified();
         }
-	}
 
-	void IEntityBaseItem::storeToRecord(RecordBuilder &record)
-	{
-
+        return IEntityBaseWorld::mustLoad(field);
 	}
 
 	String IEntityBaseItem::getDisplayName() const
@@ -96,9 +56,19 @@ namespace Stoneship
 		return mName;
 	}
 
+	void IEntityBaseItem::setDisplayName(const String &s)
+	{
+	    mName = s;
+	}
+
 	String IEntityBaseItem::getDescription() const
 	{
 		return mDescription;
+	}
+
+	void IEntityBaseItem::setDescription(const String &s)
+	{
+	    mDescription = s;
 	}
 
 	uint32_t IEntityBaseItem::getValue() const
@@ -106,19 +76,34 @@ namespace Stoneship
 		return mValue;
 	}
 
+	void IEntityBaseItem::setValue(uint32_t i)
+	{
+	    mValue = i;
+	}
+
 	uint8_t IEntityBaseItem::getSlots() const
 	{
-		return mSlots;
+		return mInventory.getSlotCount();
+	}
+
+	void IEntityBaseItem::setSlots(uint8_t i)
+	{
+	    mInventory.setSlotCount(i);
 	}
 
 	uint32_t IEntityBaseItem::getMaxStackSize() const
 	{
-		return mMaxStackSize;
+		return mInventory.getMaxStackSize();
+	}
+
+	void IEntityBaseItem::setMaxStackSize(uint8_t i)
+	{
+	    mInventory.setMaxStackSize(i);
 	}
 
 	bool IEntityBaseItem::isStackable() const
 	{
-		return mMaxStackSize != 1;
+		return getMaxStackSize() != 1;
 	}
 
 	String IEntityBaseItem::getIconFile() const
@@ -126,9 +111,19 @@ namespace Stoneship
 		return mIconFile;
 	}
 
+	void IEntityBaseItem::setIconFile(const String &s)
+	{
+	    mIconFile = s;
+	}
+
 	UID IEntityBaseItem::getIdentifiedUID() const
 	{
 		return mIdentified;
+	}
+
+	void IEntityBaseItem::setIdentifiedUID(UID id)
+	{
+	    mIdentified = id;
 	}
 
 	IEntity *IEntityBaseItem::createEntity(UID uid)

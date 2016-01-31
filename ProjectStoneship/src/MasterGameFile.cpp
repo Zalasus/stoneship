@@ -456,11 +456,11 @@ namespace Stoneship
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
 	}
 
-	void MasterGameFile::applyModifications(IRecordLoadable *loadable)
+	void MasterGameFile::applyModifications(RecordReflector *reflector)
 	{
 		for(uint32_t i = 0; i < mMods.size(); ++i)
 		{
-			if(mMods[i].uid == loadable->getUID())
+			if(mMods[i].uid == reflector->getCreatedUID())
 			{
 				MGFDataReader ds(&mInputStream, this);
 				ds.seek(mMods[i].offset);
@@ -470,7 +470,7 @@ namespace Stoneship
 
 				RecordAccessor record(header, &mInputStream, this);
 
-				loadable->modifyFromRecord(record, mMods[i].modType);
+				reflector->loadFromModifyRecord(record);
 
 				return; // only one Mod record per UID per MGF may be specified, so we are done here
 			}

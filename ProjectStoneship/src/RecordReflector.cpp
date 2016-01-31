@@ -7,6 +7,8 @@
 
 #include "RecordReflector.h"
 
+#include "Exception.h"
+
 namespace Stoneship
 {
 
@@ -16,21 +18,42 @@ namespace Stoneship
 
     void RecordReflector::loadFromRecord(RecordAccessor &record)
     {
-        const std::vector<SubrecordFieldS*> &fields = getTrackedFields();
+        const std::vector<SubrecordFieldS*> &fields = getReflectedFields();
 
         for(uint32_t i = 0; i < fields.size(); ++i)
         {
             SubrecordFieldS *field = fields[i];
 
-            MGFDataReader reader = record.getReaderForSubrecord(field->getSubtype());
+            // load only fields reported to be required
+            if(!mustLoad(field))
+            {
+                continue;
+            }
 
-            field->read(reader);
+            try
+            {
+                MGFDataReader reader = record.getReaderForSubrecord(field->getSubtype());
+                field->read(reader);
+
+            }catch(StoneshipException &e)
+            {
+                if(e.getType() == StoneshipException::SUBRECORD_NOT_FOUND)
+                {
+                    STONESHIP_EXCEPT(StoneshipException::SUBRECORD_NOT_FOUND, "Error loading " + getCreatedUID().toString() + ". Non-optional subrecord field " + field->getSubtype() + " was not found in record.");
+
+                }else
+                {
+                    throw;
+                }
+            }
+
+
         }
     }
 
     void RecordReflector::loadFromModifyRecord(RecordAccessor &record)
     {
-        const std::vector<SubrecordFieldS*> &fields = getTrackedFields();
+        const std::vector<SubrecordFieldS*> &fields = getReflectedFields();
 
         for(uint32_t i = 0; i < fields.size(); ++i)
         {
@@ -47,11 +70,16 @@ namespace Stoneship
 
     void RecordReflector::storeToRecord(RecordBuilder &b)
     {
-        const std::vector<SubrecordFieldS*> &fields = getTrackedFields();
+        const std::vector<SubrecordFieldS*> &fields = getReflectedFields();
 
         for(uint32_t i = 0; i < fields.size(); ++i)
         {
             SubrecordFieldS *field = fields[i];
+
+            if(!mustStore(field))
+            {
+                continue;
+            }
 
             MGFDataWriter writer = b.beginSubrecord(field->getSubtype());
 
@@ -63,7 +91,7 @@ namespace Stoneship
 
     void RecordReflector::storeToModifyRecord(RecordBuilder &b)
     {
-        const std::vector<SubrecordFieldS*> &fields = getTrackedFields();
+        const std::vector<SubrecordFieldS*> &fields = getReflectedFields();
 
         for(uint32_t i = 0; i < fields.size(); ++i)
         {
@@ -78,6 +106,42 @@ namespace Stoneship
                 b.endSubrecord();
             }
         }
+    }
+
+    bool RecordReflector::mustStore(SubrecordFieldS *field)
+    {
+        return true;
+    }
+
+    bool RecordReflector::mustLoad(SubrecordFieldS *field)
+    {
+        return true;
+    }
+
+    bool RecordReflector::isDirty() const
+    {
+        for(uint32_t i = 0; i < mReflectedVect.size(); ++i)
+        {
+            if(mReflectedVect[i]->isDirty())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void RecordReflector::clean()
+    {
+        for(uint32_t i = 0; i < mReflectedVect.size(); ++i)
+        {
+            mReflectedVect[i]->setDirty(false);
+        }
+    }
+
+    void RecordReflector::_registerForReflection(SubrecordFieldS *field)
+    {
+        mReflectedVect.push_back(field);
     }
 
 }

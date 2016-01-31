@@ -12,6 +12,7 @@
 #include "Types.h"
 #include "String.h"
 #include "Record.h"
+#include "SubrecordField.h"
 
 namespace Stoneship
 {

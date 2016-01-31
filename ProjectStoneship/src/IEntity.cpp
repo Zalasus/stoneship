@@ -45,9 +45,9 @@ namespace Stoneship
 		return mBase;
 	}
 
-	UID::Ordinal IEntity::getCreatedBy()
+	UID IEntity::getCreatedUID()
 	{
-	    return mUID.ordinal;
+	    return mUID;
 	}
 
 

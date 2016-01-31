@@ -23,7 +23,7 @@ namespace Stoneship
     class MGFManager;
     class ResourceManager;
     class IEntityBase;
-    class IRecordLoadable;
+    class RecordReflector;
 
 	class MasterGameFile
 	{
@@ -83,7 +83,8 @@ namespace Stoneship
 
 		RecordAccessor getFirstRecord(Record::Type type);
 
-		void applyModifications(IRecordLoadable *loadable);
+		void applyModifications(RecordReflector *reflector);
+
 
 	private:
 

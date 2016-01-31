@@ -37,6 +37,8 @@ namespace Stoneship
 		return id == right.id && ordinal == right.ordinal;
 	}
 
+	const UID UID::NO_UID(SELF_REF_ORDINAL, NO_ID);
+
 
 	//reader function specializations
 	template <>

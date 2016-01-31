@@ -405,7 +405,7 @@ The following types are specific for SAS and may not be valid in every game usin
 82A: EntContainer
 	5: world model data
 	6: display name
-	100: container data
+	10E: container data
 		int: slot count
 		int: contained item count
 	10F: contained item*
@@ -434,15 +434,15 @@ Common subrecord types with typical fields they contain (these definitions may n
 8: trading information
 	uint: trading value
 	
-9: inventory information
+A: inventory information
 	byte: item flags (0x01 = IS_ESSENTIAL, 0x02 = IS_CURRENCY, 0x04 = IS_UNIDENTIFIED, 0x10 = IS_UNIQUE)
 	byte: slot count (0 means item does not take up any slots)
 	uint: max stack size (0 means unlimited, 1 means does not stack (formerly set by flag))
 	
-A: icon data
+B: icon data
 	bstring: icon resource name
 	
-B: identification data (only present if undentified flag in SR 9 is set)
+C: identification data (only present if undentified flag in SR 9 is set)
 	uid: indentified item entity id
 	
 
@@ -464,6 +464,10 @@ F2: item entity data
 	
 105: text data
 	istring: text
+
+10E: container data
+	uint: slot count
+	uint: contained item count
 	
 10F: contained item data (may appear for every item contained within enclosing record)
     uid: item uid

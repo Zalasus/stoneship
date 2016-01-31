@@ -44,7 +44,7 @@ namespace Stoneship
 		virtual ~IEntityBase();
 
 		// overrides IRecordReflector
-		virtual UID::Ordinal getCreatedBy();
+		virtual UID getCreatedUID();
 
 		// interface
 		virtual Record::Type getRecordType() const = 0;

@@ -162,7 +162,7 @@ namespace Stoneship
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record with editor name '" + name + "' not found in loaded MGFs");
 	}
 
-	void MGFManager::applyModifications(IRecordLoadable *loadable)
+	void MGFManager::applyModifications(RecordReflector *loadable)
 	{
 		for(uint32_t i = 0; i < mLoadedGameFileCount; ++i) // modifications are applied incrementally. not sure if this is the most efficient way, but it should work
 		{

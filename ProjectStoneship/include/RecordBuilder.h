@@ -47,7 +47,7 @@ namespace Stoneship
          * record header of given type after footer of current record. This object can now be used
          * to build new record.
          */
-        void endRecordBeginNew(Record::Type type);
+        void endRecordBeginNew(Record::Type type, RecordHeader::FlagType flags = 0, UID::ID id = UID::NO_ID, Record::Type groupType = Record::TYPE_RESERVED);
 
     private:
 

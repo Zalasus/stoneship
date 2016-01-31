@@ -68,13 +68,11 @@ namespace Stoneship
 	{
 	public:
 
-		enum WeaponType
-		{
-			SWORD_ONE_HAND = 0,
-			SWORD_TWO_HAND = 1,
-			BOW = 2,
-			BLUNT = 3
-		};
+		typedef uint8_t WeaponType;
+		static const WeaponType TYPE_SWORD_ONE_HAND = 0;
+		static const WeaponType TYPE_SWORD_TWO_HAND = 1;
+		static const WeaponType TYPE_BOW = 2;
+		static const WeaponType TYPE_BLUNT = 3;
 
 		EntityBase_Weapon(UID uid);
 
@@ -96,10 +94,10 @@ namespace Stoneship
 
 	private:
 
-		WeaponType mWeaponType;
-		uint32_t mDamage;
-		uint32_t mDurability;
-		uint32_t mReach;
+		SubrecordField<WeaponType, Record::SUBTYPE_DATA> mWeaponType;
+		SubrecordField<uint32_t, Record::SUBTYPE_DATA> mDamage;
+		SubrecordField<uint32_t, Record::SUBTYPE_DATA> mDurability;
+		SubrecordField<uint32_t, Record::SUBTYPE_DATA> mReach;
 
 	};
 
@@ -133,7 +131,7 @@ namespace Stoneship
 
         // override IRecordReflector
         virtual void loadFromRecord(RecordAccessor &record);
-        virtual void loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType);
+        virtual void loadFromModifyRecord(RecordAccessor &record);
         virtual void storeToRecord(RecordBuilder &record);
         virtual void storeToModifyRecord(RecordBuilder &record);
 
@@ -141,14 +139,14 @@ namespace Stoneship
         bool canInteract() const;
         bool onInteract(IEntity *entity, IActor *actor);
 
-        const Inventory &getInventory() const;
+        Inventory &getPredefinedInventory();
 
 
 	private:
 
         void _loadSingleContainedItem(MGFDataReader &reader);
 
-        Inventory mPredefindedInventory;
+        SubrecordField<Inventory, Record::SUBTYPE_CONTAINER> mPredefindedInventory;
 
 	};
 

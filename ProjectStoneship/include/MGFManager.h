@@ -22,7 +22,7 @@ namespace Stoneship
     class Root;
     class IEntityBase;
     class MasterGameFile;
-    class IRecordLoadable;
+    class RecordReflector;
 
 	class MGFManager
 	{
@@ -57,7 +57,7 @@ namespace Stoneship
 		 */
 		RecordAccessor getRecordByEditorName(const String &name, Record::Type type);
 
-		void applyModifications(IRecordLoadable *loadable);
+		void applyModifications(RecordReflector *reflector);
 
 	private:
 

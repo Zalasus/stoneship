@@ -5,9 +5,11 @@
  *      Author: Zalasus
  */
 
-#include <IEntityBase.h>
 #include "EntityManager.h"
 
+#include <algorithm>
+
+#include "IEntityBase.h"
 #include "Exception.h"
 #include "MGFManager.h"
 #include "Root.h"
@@ -89,8 +91,6 @@ namespace Stoneship
 
 
 		// store new base in cache
-		//std::pair<uint64_t, EntityBase*> basePair(uid.toUInt64(), base);
-		//mBaseCache.insert(basePair);
 		mBaseCache.push_back(base);
 
 		return base;
@@ -115,8 +115,8 @@ namespace Stoneship
 		{
 		    IEntityBase *base = (*it);
 
-		    // if a base still has users, don't delete it! if it is dirty, we need to store it first, so don't delete it either
-			if(base->getUserCount() == 0 && !base->isDirty())
+		    // don't delete a base that's still used, is dirty or was created ingame
+			if((base->getUserCount() == 0) && !base->isDirty() && (base->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL))
 			{
 				delete base;
 
@@ -129,4 +129,76 @@ namespace Stoneship
 		}
 	}
 
+	void EntityManager::storeCache(MGFDataWriter &writer)
+	{
+	    // first, we sort the cache so we can archive proper grouping in the MGF
+
+	    // lambda for comparing record type of two Base objects
+	    auto compare = [](IEntityBase *a, IEntityBase *b) -> bool { return a->getRecordType() < b->getRecordType();};
+
+	    std::sort(mBaseCache.begin(), mBaseCache.end(), compare);
+
+
+	    // next, iterate over records and store them
+	    Record::Type lastGroup = Record::TYPE_RESERVED;
+	    uint32_t groupCount = 0;
+	    bool hasDirtyThings = false;
+	    RecordBuilder groupBuilder(writer, Record::TYPE_RESERVED);
+
+	    for(uint32_t i = 0; i < mBaseCache.size(); ++i)
+        {
+            IEntityBase *base = mBaseCache[i];
+
+            // first, check if and where we have to store this Base
+            if(base->getCreatedUID().ordinal != UID::SELF_REF_ORDINAL)
+            {
+                // this base was not created during runtime but loaded from a MGF. whether we need to store it or not depends on it's dirty state.
+
+                // if base is dirty, we need to store a MODIFY record to allow recreation of it's current state without modifiying the MGF that created it
+                // for proper grouping, this pass is delayed to a second pass, which is done by another function.
+                if(base->isDirty())
+                {
+                    hasDirtyThings = true;
+                }
+
+                // if it isn't dirty it's state can be recreated entirely by that MGF, so we don't have to store it anywhere.
+                continue;
+            }
+            // this base was created during runtime or loaded from savegame (which is volatile). no MODIFY needed, regardless of dirty state
+            // just store it as-is
+
+
+            // do we need to start a new group?
+            if(lastGroup != base->getRecordType())
+            {
+                // different record type than last base. have we written a header already?
+                if(groupCount > 0)
+                {
+                    // yes -> write a footer and start new group using that handy function
+                    groupBuilder.endRecordBeginNew(Record::TYPE_GROUP, 0, UID::NO_ID, base->getRecordType());
+
+                }else
+                {
+                    // no, this is our first record group. re-initialize builder accordingly and write header
+                    groupBuilder = RecordBuilder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, base->getRecordType());
+                    groupBuilder.beginRecord();
+                }
+
+                ++groupCount;
+                lastGroup = base->getRecordType();
+            }
+
+
+            RecordBuilder childBuilder = groupBuilder.createChildBuilder(base->getRecordType(), 0, base->getUID().id);
+            base->storeToRecord(childBuilder);
+            childBuilder.endRecord();
+        }
+
+	    // have we written any groups?
+	    if(groupCount > 0)
+	    {
+	        // yes. write final footer
+	        groupBuilder.endRecord();
+	    }
+	}
 }

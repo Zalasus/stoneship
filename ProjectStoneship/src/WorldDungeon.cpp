@@ -84,8 +84,7 @@ namespace Stoneship
 
     void WorldDungeon::loadFromRecord(RecordAccessor &rec)
     {
-        rec.getReaderForSubrecord(Record::SUBTYPE_DATA)
-                .readBString(mDungeonName);
+        IWorld::loadFromRecord(rec);
 
         RecordAccessor subgroup = rec.getSubgroup();
 
