@@ -18,6 +18,8 @@ namespace Stoneship
 
     class Root;
     class IEntityBase;
+    class MGFDataReader;
+    class MGFDataWriter;
 
 	class EntityManager
 	{

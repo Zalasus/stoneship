@@ -53,12 +53,11 @@ namespace Stoneship
 			Record::ModifyType modType;
 		};
 
-		MasterGameFile(const String &filename, UID::Ordinal ordinal, MGFManager *mgfManager, ResourceManager *resourceManager);
+		MasterGameFile(const String &filename, UID::Ordinal ordinal);
 		virtual ~MasterGameFile();
 
-		virtual void load();
-		virtual void unload();
-		virtual void store();
+		void load();
+		void store();
 
 		const String &getFilename() const;
 		UID::Ordinal getOrdinal() const;
@@ -94,8 +93,6 @@ namespace Stoneship
 		String mFilename;
 		std::ifstream mInputStream;
 		UID::Ordinal mOrdinal;
-		MGFManager *mMGFManager;
-		ResourceManager *mResourceManager;
 
 		bool mLoaded;
 

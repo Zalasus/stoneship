@@ -45,7 +45,7 @@ namespace Stoneship
 	    }
 
 		UID::Ordinal ordinal = mGameFiles.size();
-		MasterGameFile *mgf = new MasterGameFile(filename, ordinal, this, mRoot->getResourceManager());
+		MasterGameFile *mgf = new MasterGameFile(filename, ordinal);
 		mGameFiles.push_back(mgf);
 
 		mgf->load();
@@ -97,22 +97,6 @@ namespace Stoneship
 
 	    return UID(ordinal, lastID++);
 	}
-
-	void MGFManager::loadSGF(const String &savename)
-	{
-		if(mCurrentSaveFile != nullptr)
-		{
-			mCurrentSaveFile->unload();
-
-			delete mCurrentSaveFile;
-
-			mCurrentSaveFile = nullptr;
-		}
-
-		mCurrentSaveFile = new MasterGameFile(savename, UID::SELF_REF_ORDINAL, this, mRoot->getResourceManager());
-		mCurrentSaveFile->load();
-	}
-
 
 	//TODO: These functions look almost identical. I don't like that
 	RecordAccessor MGFManager::getRecordByID(UID id)

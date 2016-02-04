@@ -52,28 +52,39 @@ namespace Stoneship
 		return mStream->tellg();
 	}
 
-	MGFDataReader &MGFDataReader::readULong(uint64_t &l)
+	MGFDataReader &MGFDataReader::operator >> (endr_t)
 	{
-		readIntegral<uint64_t>(l);
+	    skipToEnd();
+
+	    return *this;
+	}
+
+	template <>
+	MGFDataReader &MGFDataReader::operator >> <uint64_t>(uint64_t &l)
+	{
+		_stupidlyReadIntegral<uint64_t>(l);
 
 		return *this;
 	}
 
-	MGFDataReader &MGFDataReader::readUInt(uint32_t &i)
+    template <>
+	MGFDataReader &MGFDataReader::operator >> <uint32_t>(uint32_t &i)
 	{
-		readIntegral<uint32_t>(i);
+		_stupidlyReadIntegral<uint32_t>(i);
 
 		return *this;
 	}
 
-	MGFDataReader &MGFDataReader::readUShort(uint16_t &s)
+    template <>
+    MGFDataReader &MGFDataReader::operator >> <uint16_t>(uint16_t &s)
 	{
-		readIntegral<uint16_t>(s);
+		_stupidlyReadIntegral<uint16_t>(s);
 
 		return *this;
 	}
 
-	MGFDataReader &MGFDataReader::readUByte(uint8_t &b)
+    template <>
+	MGFDataReader &MGFDataReader::operator >> <uint8_t>(uint8_t &b)
 	{
 		b = _getNext();
 
@@ -81,7 +92,8 @@ namespace Stoneship
 	}
 
 	//FIXME: Portability issue. This could fail if target platform uses different floating point format than the advised IEEE 754
-	MGFDataReader &MGFDataReader::readFloat(float &f)
+    template <>
+	MGFDataReader &MGFDataReader::operator >> <float>(float &f)
 	{
 		union
 		{
@@ -100,7 +112,8 @@ namespace Stoneship
 	}
 
 	//FIXME: Portability issue. This could fail if target platform uses different floating point format than the advised IEEE 754
-	MGFDataReader &MGFDataReader::readDouble(double &d)
+    template <>
+	MGFDataReader &MGFDataReader::operator >> <double>(double &d)
 	{
 		union
 		{
@@ -118,77 +131,14 @@ namespace Stoneship
 		return *this;
 	}
 
-	MGFDataReader &MGFDataReader::readBString(String &s)
-	{
-		uint8_t len;
-		readUByte(len);
-		char *buf = new char[len];
-
-		for(uint8_t i = 0; i < len; ++i)
-		{
-			buf[i] = _getNext();
-		}
-
-		s = String(buf, len);
-
-		delete[] buf;
-
-		return *this;
-	}
-
-	MGFDataReader &MGFDataReader::readSString(String &s)
-	{
-		uint16_t len;
-		readUShort(len);
-		char *buf = new char[len];
-
-		for(uint16_t i = 0; i < len; ++i)
-		{
-			buf[i] = _getNext();
-		}
-
-		s = String(buf, len);
-
-		delete[] buf;
-
-		return *this;
-	}
-
-	MGFDataReader &MGFDataReader::readIString(String &s)
+    template <>
+	MGFDataReader &MGFDataReader::operator >> <String>(String &s)
 	{
 		uint32_t len;
-		readUInt(len);
+		*this >> len;
 		char *buf = new char[len];
 
 		for(uint32_t i = 0; i < len; ++i)
-		{
-			buf[i] = _getNext();
-		}
-
-		s = String(buf, len);
-
-		delete[] buf;
-
-		return *this;
-	}
-
-	MGFDataReader &MGFDataReader::readZString(String &s)
-	{
-		std::streamoff off = tell();
-
-		size_t len = 0;
-		while(_getNext() != 0)
-		{
-			++len;
-		}
-
-
-		seek(off);
-
-
-		char *buf = new char[len];
-
-		for(size_t i = 0; i < len; ++i)
 		{
 			buf[i] = _getNext();
 		}

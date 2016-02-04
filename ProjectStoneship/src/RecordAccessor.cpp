@@ -121,7 +121,7 @@ namespace Stoneship
         while(mInternalReader.bytesRemainingInUnit())
         {
             SubrecordHeader header;
-            mInternalReader.readStruct(header);
+            mInternalReader >> header;
 
             if(header.type == subtype) //found fitting subrecord
             {
@@ -157,7 +157,7 @@ namespace Stoneship
         MGFDataReader ds(mStream, mGameFile);
 
         RecordHeader header;
-        ds.readStruct(header);
+        ds >> header;
 
         return RecordAccessor(header, mStream, mGameFile);
     }
@@ -173,7 +173,7 @@ namespace Stoneship
         rollback();
 
         RecordHeader header;
-        mInternalReader.readStruct(header);
+        mInternalReader >> header;
 
         return RecordAccessor(header, mStream, mGameFile);
     }
@@ -187,8 +187,7 @@ namespace Stoneship
         }
 
         RecordHeader header;
-        getReaderForSubrecord(Record::SUBTYPE_SUBGROUP)
-            .readStruct<RecordHeader>(header);
+        getReaderForSubrecord(Record::SUBTYPE_SUBGROUP) >> header;
 
         if(header.type != Record::TYPE_GROUP)
         {
@@ -216,7 +215,7 @@ namespace Stoneship
         while(mInternalReader.bytesRemainingInUnit())
         {
             SubrecordHeader header;
-            mInternalReader.readStruct(header);
+            mInternalReader >> header;
 
             ++mSubrecordCount;
 
@@ -232,7 +231,7 @@ namespace Stoneship
 
         for(uint32_t i = 0; i < mSubrecordCount; ++i)
         {
-            mInternalReader.readStruct<SubrecordHeader>(mSubrecordHeaders[i]);
+            mInternalReader >> mSubrecordHeaders[i];
 
             mInternalReader.skip(mSubrecordHeaders[i].dataSize);
         }

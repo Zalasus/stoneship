@@ -40,72 +40,44 @@ namespace Stoneship
 		return mStream->tellp();
 	}
 
-	MGFDataWriter &MGFDataWriter::writeULong(uint64_t l)
+	template <>
+	MGFDataWriter &MGFDataWriter::operator << <uint64_t>(const uint64_t &l)
 	{
-		_writeIntegral<uint64_t>(l);
+		_stupidlyWriteIntegral<uint64_t>(l);
 
 		return *this;
 	}
 
-	MGFDataWriter &MGFDataWriter::writeUInt(uint32_t i)
+	template <>
+	MGFDataWriter &MGFDataWriter::operator << <uint32_t>(const uint32_t &i)
 	{
-		_writeIntegral<uint32_t>(i);
+		_stupidlyWriteIntegral<uint32_t>(i);
 
 		return *this;
 	}
 
-	MGFDataWriter &MGFDataWriter::writeUShort(uint16_t s)
+	template <>
+	MGFDataWriter &MGFDataWriter::operator << <uint16_t>(const uint16_t &s)
 	{
-		_writeIntegral<uint16_t>(s);
+		_stupidlyWriteIntegral<uint16_t>(s);
 
 		return *this;
 	}
 
-	MGFDataWriter &MGFDataWriter::writeUByte(uint8_t b)
+	template <>
+	MGFDataWriter &MGFDataWriter::operator << <uint8_t>(const uint8_t &b)
 	{
 		_writeNext(b);
 
 		return *this;
 	}
 
-	MGFDataWriter &MGFDataWriter::writeBString(const String &s)
+	template <>
+	MGFDataWriter &MGFDataWriter::operator << <String>(const String &s)
 	{
-		size_t len = (s.length() > 0xFF) ? 0xFF : s.length();
+ 		*this << s.length();
 
-		writeUByte(len);
-
-		_writeChars(s.c_str(), len);
-
-		return *this;
-	}
-
-	MGFDataWriter &MGFDataWriter::writeSString(const String &s)
-	{
-		size_t len = (s.length() > 0xFFFF) ? 0xFFFF : s.length();
-
-		writeUShort(len);
-
-		_writeChars(s.c_str(), len);
-
-		return *this;
-	}
-
-	MGFDataWriter &MGFDataWriter::writeIString(const String &s)
-	{
-		size_t len = (s.length() > 0xFFFFFFFF) ? 0xFFFFFFFF : s.length();
-
-		writeUInt(len);
-
-		_writeChars(s.c_str(), len);
-
-		return *this;
-	}
-
-	MGFDataWriter &MGFDataWriter::writeZString(const String &s)
-	{
 		_writeChars(s.c_str(), s.length());
-
-		_writeNext(0);
 
 		return *this;
 	}
@@ -120,23 +92,7 @@ namespace Stoneship
 
 	void MGFDataWriter::_writeNext(uint8_t c)
 	{
-		/*if(hasEnded())
-		{
-			_except(StoneshipException::IO_ERROR, String("Out of writeable stream data (current: ") + (uint32_t)tell() + ", unit end: " + (uint32_t)mUnitEnd + ")");
-		}*/
-
 		mStream->put(c);
-	}
-
-
-	template <typename T>
-	void MGFDataWriter::_writeIntegral(T v)
-	{
-		for(uint8_t i = 0; i < sizeof(T); ++i)
-		{
-			_writeNext(v & 0xFF);
-			v = v >> 8;
-		}
 	}
 
 	void MGFDataWriter::_except(StoneshipException::ExceptionType type, const String &msg)

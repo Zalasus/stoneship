@@ -7,6 +7,9 @@
 
 #include "RecordReflector.h"
 
+#include "SubrecordField.h"
+#include "RecordAccessor.h"
+#include "RecordBuilder.h"
 #include "Exception.h"
 
 namespace Stoneship

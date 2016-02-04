@@ -27,7 +27,6 @@ namespace Stoneship
         virtual void write(MGFDataWriter &writer) = 0;
         virtual void read(MGFDataReader &read) = 0;
         virtual Record::Subtype getSubtype() const = 0;
-        virtual bool isOptional() = 0;
 
         bool isDirty() const;
         void setDirty(bool dirty);
@@ -38,17 +37,17 @@ namespace Stoneship
         bool mDirty;
     };
 
-    template <typename T, Record::Subtype RT>
+    template <typename T>
     class SubrecordField : public SubrecordFieldS
     {
     public:
 
-        SubrecordField(const T &v, RecordReflector *reflector);
+        SubrecordField(const T &v, Record::Subtype subtype, RecordReflector *reflector);
 
         // override SubrecordFieldS
         virtual void write(MGFDataWriter &writer);
         virtual void read(MGFDataReader &reader);
-        Record::Subtype getSubtype() const;
+        virtual Record::Subtype getSubtype() const;
 
         const T &get() const;
         void set(const T &v);
@@ -64,42 +63,56 @@ namespace Stoneship
     private:
 
         T mV;
+        Record::Subtype mSubtype;
     };
 
 
 
 
-    template <typename T, Record::Subtype RT>
-    SubrecordField<T, RT>::SubrecordField(const T &v, RecordReflector *reflector)
+    template <typename T>
+    SubrecordField<T>::SubrecordField(const T &v, Record::Subtype subtype, RecordReflector *reflector)
     : SubrecordFieldS(reflector),
-      mV(v)
+      mV(v),
+      mSubtype(subtype)
     {
     }
 
-    template <typename T, Record::Subtype RT>
-    const T &SubrecordField<T, RT>::get() const
+    template <typename T>
+    const T &SubrecordField<T>::get() const
     {
         return mV;
     }
 
-    template <typename T, Record::Subtype RT>
-    void SubrecordField<T, RT>::set(const T &v)
+    template <typename T>
+    void SubrecordField<T>::set(const T &v)
     {
         mV = v;
         mDirty = true;
     }
 
-    template <typename T, Record::Subtype RT>
-    void SubrecordField<T, RT>::setClean(const T &v)
+    template <typename T>
+    void SubrecordField<T>::setClean(const T &v)
     {
         mV = v;
         mDirty = false;
     }
 
-    template <typename T, Record::Subtype RT>
-    Record::Subtype SubrecordField<T, RT>::getSubtype() const
+    template <typename T>
+    void SubrecordField<T>::read(MGFDataReader &reader)
     {
-        return RT;
+        reader >> mV >> MGFDataReader::endr;
+    }
+
+    template <typename T>
+    void SubrecordField<T>::write(MGFDataWriter &writer)
+    {
+        writer << mV;
+    }
+
+    template <typename T>
+    Record::Subtype SubrecordField<T>::getSubtype() const
+    {
+        return mSubtype;
     }
 
     /*template <typename T, Record::Subtype RT>

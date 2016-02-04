@@ -47,8 +47,6 @@ namespace Stoneship
 
     private:
 
-        virtual UID::Ordinal getCreatedBy() = 0;
-
         void _registerForReflection(SubrecordFieldS *field);
 
         std::vector<SubrecordFieldS*> mReflectedVect;

@@ -22,21 +22,21 @@ namespace Stoneship
 
     void RecordBuilder::beginRecord()
     {
-        mWriter.writeIntegral(mType);
+        mWriter << mType;
 
         mRecordSizeFieldOffset = mWriter.tell();
-        mWriter.writeIntegral<RecordHeader::SizeType>(0xDEADBEEF); // this field is overwritten by endRecord()
+        mWriter << static_cast<RecordHeader::SizeType>(0xDEADBEEF); // this field is overwritten by endRecord()
 
         if(mType == Record::TYPE_GROUP)
         {
-            mWriter.writeIntegral(mGroupType);
+            mWriter << mGroupType;
             mChildRecordCountFieldOffset = mWriter.tell();
-            mWriter.writeIntegral<RecordHeader::ChildRecordCountType>(0xDEADBEEF);  // this field is overwritten by endRecord()
+            mWriter << static_cast<RecordHeader::ChildRecordCountType>(0xDEADBEEF);  // this field is overwritten by endRecord()
 
         }else
         {
-            mWriter.writeIntegral<RecordHeader::FlagType>(mFlags);
-            mWriter.writeIntegral<UID::ID>(mID);
+            mWriter << mFlags;
+            mWriter << mID;
         }
     }
 
@@ -49,14 +49,14 @@ namespace Stoneship
         RecordHeader::SizeType size = pos - mRecordSizeFieldOffset - sizeof(RecordHeader::SizeType) - sizeof(RecordHeader::FlagType) - sizeof(UID::ID);
 
         mWriter.seek(mRecordSizeFieldOffset);
-        mWriter.writeIntegral<RecordHeader::SizeType>(size);
+        mWriter << size;
 
         if(mType == Record::TYPE_GROUP)
         {
             // in a group record, we have to overwrite the child record count field
 
             mWriter.seek(mChildRecordCountFieldOffset);
-            mWriter.writeIntegral(mChildRecordCount);
+            mWriter << mChildRecordCount;
         }
 
         // we are done. return to record footer
@@ -66,10 +66,10 @@ namespace Stoneship
     MGFDataWriter &RecordBuilder::beginSubrecord(Record::Subtype type)
     {
 
-        mWriter.writeIntegral<Record::Subtype>(type);
+        mWriter << type;
 
         mSubrecordSizeFieldOffset = mWriter.tell();
-        mWriter.writeIntegral<SubrecordHeader::SizeType>(0xDEADBEEF); // this is overwritten by endSubrecord()
+        mWriter << static_cast<SubrecordHeader::SizeType>(0xDEADBEEF); // this is overwritten by endSubrecord()
 
         return mWriter;
     }
@@ -81,7 +81,7 @@ namespace Stoneship
         SubrecordHeader::SizeType size = pos - mSubrecordSizeFieldOffset - sizeof(SubrecordHeader::SizeType);
 
         mWriter.seek(mSubrecordSizeFieldOffset);
-        mWriter.writeIntegral<SubrecordHeader::SizeType>(size);
+        mWriter << size;
 
         mWriter.seek(pos);
     }

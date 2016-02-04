@@ -7,6 +7,9 @@
 
 #include "WorldOutdoor.h"
 
+#include "RecordAccessor.h"
+#include "RecordBuilder.h"
+
 namespace Stoneship
 {
 
@@ -50,7 +53,7 @@ namespace Stoneship
     void WorldOutdoor::loadFromRecord(RecordAccessor &rec)
     {
         rec.getReaderForSubrecord(Record::SUBTYPE_DATA)
-                .readBString(mWorldName);
+                >> mWorldName;
 
 
         //create initial chunk map for faster loading without having to seek the MGF everytime

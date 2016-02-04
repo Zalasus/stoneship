@@ -5,24 +5,26 @@
  *      Author: Zalasus
  */
 
-#include <Exception.h>
-#include <IEntityBase.h>
-#include <MGFManager.h>
-#include <StoneshipDefines.h>
+
 #include "MasterGameFile.h"
 
 #include "MGFDataReader.h"
+#include "MGFDataWriter.h"
 #include "MGFManager.h"
 #include "ResourceManager.h"
+#include "Exception.h"
+#include "IEntityBase.h"
+#include "MGFManager.h"
+#include "StoneshipDefines.h"
+#include "Root.h"
+#include "EntityManager.h"
 
 namespace Stoneship
 {
 
-	MasterGameFile::MasterGameFile(const String &filename, UID::Ordinal ordinal, MGFManager *mgfManager, ResourceManager *resourceManager)
+	MasterGameFile::MasterGameFile(const String &filename, UID::Ordinal ordinal)
 	: mFilename(filename),
 	  mOrdinal(ordinal),
-	  mMGFManager(mgfManager),
-	  mResourceManager(resourceManager),
 	  mLoaded(false),
 	  mFlags(0),
 	  mDependencyCount(0),
@@ -33,6 +35,22 @@ namespace Stoneship
 	  mRecordCount(0),
 	  mRecordGroupCount(0)
 	{
+	    if(ordinal == UID::SELF_REF_ORDINAL)
+	    {
+	        // this is a SGF. that means it's dependencies are all loaded MGFs at the time of this objects instantiation
+
+	        MGFManager *mgfm = Root::getSingleton()->getMGFManager();
+
+	        mDependencyCount = mgfm->getLoadedMGFCount();
+	        mDependencies = new Dependency[mDependencyCount];
+
+	        for(uint32_t i = 0; i < mDependencyCount; ++i)
+	        {
+	            mDependencies[i].ordinal = mgfm->getLoadedMGF(i)->getOrdinal();
+	            mDependencies[i].filename = mgfm->getLoadedMGF(i)->getFilename();
+	        }
+	    }
+
 	}
 
 	MasterGameFile::~MasterGameFile()
@@ -56,14 +74,14 @@ namespace Stoneship
 		MGFDataReader ds(&mInputStream, this);
 
 		uint64_t magic;
-		ds.readULong(magic);
+		ds >> magic;
 		if(magic != 0x46474D334750524E) // "NRPG3MGF"
 		{
 			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Not a Master Game File: Invalid Magic ID");
 		}
 
 		String gameID;
-		ds.readBString(gameID);
+		ds >> gameID;
 		if(gameID != STONESHIP_GAMEID)
 		{
 			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Incompatible game (Found: '" + gameID + "')");
@@ -71,17 +89,17 @@ namespace Stoneship
 
 		uint64_t timestamp;
 
-		ds.readUInt(mFlags)
-		  .readSString(mAuthor)
-		  .readSString(mDescription)
-		  .readULong(timestamp);
+		ds >> mFlags
+		   >> mAuthor
+		   >> mDescription
+		   >> timestamp;
 
 		std::time_t timestampCTime;
 		timestampCTime = static_cast<time_t>(timestamp);
 		mTimestamp = *std::localtime(&timestampCTime);  //FIXME: Not portable! Timestamp in MGF is always UNIX format, but localtime() may use different format. Check whether this is a real hazard and fix when neccessary
 
 		//load and check for dependencies
-		ds.readUShort(mDependencyCount);
+		ds >> mDependencyCount;
 		if(mDependencyCount > 0)
 		{
 			mDependencies = new Dependency[mDependencyCount];
@@ -89,57 +107,42 @@ namespace Stoneship
 			for(uint16_t i = 0; i < mDependencyCount; i++)
 			{
 				String filename;
-				ds.readSString(filename);
-				if(mMGFManager->getLoadedMGF(filename) == nullptr)
+				ds >> filename;
+				if(Root::getSingleton()->getMGFManager()->getLoadedMGF(filename) == nullptr)
 				{
 					STONESHIP_EXCEPT(StoneshipException::DEPENDENCY_NOT_MET, "Dependency '" + filename + "' was not loaded before depending MGF");
 				}
 
 				mDependencies[i].filename = filename;
-				ds.readUShort(mDependencies[i].ordinal);
+				ds >> mDependencies[i].ordinal;
 			}
 		}
 
 
 		//define resource paths
-		ds.readUShort(mResourceCount);
+		ds >> mResourceCount;
 		for(uint16_t i = 0; i < mResourceCount; i++)
 		{
 			uint8_t resType;
 			uint8_t resPrio;
 			String resPath;
 
-			ds.readUByte(resType)
-			  .readUByte(resPrio)
-			  .readSString(resPath);
-
-			ResourceManager::ResourcePathPriority rmPrio;
-			switch(resPrio)
-			{
-			case RES_PRIO_DEFAULT:
-			    rmPrio = ResourceManager::PRIORITY_DEFAULT;
-			    break;
-
-			case RES_PRIO_BEFORE:
-			    rmPrio = ResourceManager::PRIORITY_BEFORE_DEFAULT;
-			    break;
-
-			default:
-			    STONESHIP_EXCEPT(StoneshipException::RESOURCE_ERROR, "Unknown or unsupported priority given for resource");
-			}
+			ds >> resType
+			   >> resPrio
+			   >> resPath;
 
 			switch(resType)
 			{
 			case RES_TYPE_FS:
-				mResourceManager->addResourcePath(resPath, mOrdinal,ResourceManager::PATH_FILESYSTEM, rmPrio);
+				Root::getSingleton()->getResourceManager()->addResourcePath(resPath, ResourceManager::PATH_FILESYSTEM, mOrdinal);
 				break;
 
 			case RES_TYPE_ZIP:
-				mResourceManager->addResourcePath(resPath, mOrdinal, ResourceManager::PATH_ZIP_FILE, rmPrio);
+				Root::getSingleton()->getResourceManager()->addResourcePath(resPath, ResourceManager::PATH_ZIP_FILE, mOrdinal);
 				break;
 
 			case RES_TYPE_GZIP:
-				mResourceManager->addResourcePath(resPath, mOrdinal, ResourceManager::PATH_GZIP_FILE, rmPrio);
+				Root::getSingleton()->getResourceManager()->addResourcePath(resPath, ResourceManager::PATH_GZIP_FILE, mOrdinal);
 				break;
 
 			case RES_TYPE_SINGLE:
@@ -150,7 +153,7 @@ namespace Stoneship
 
 
 		//load records
-		ds.readUInt(mRecordGroupCount);
+		ds >> mRecordGroupCount;
 
 		mHeaderEndOfffset = ds.tell(); //store this so we may navigate quickly to start of records
 
@@ -161,7 +164,7 @@ namespace Stoneship
 			std::streampos offset = ds.tell();
 
 			RecordHeader groupHeader;
-			ds.readStruct(groupHeader);
+			ds >> groupHeader;
 
 			if(groupHeader.type != Record::TYPE_GROUP)
 			{
@@ -188,14 +191,60 @@ namespace Stoneship
 		mLoaded = true;
 	}
 
-	void MasterGameFile::unload()
-	{
-
-	}
-
 	void MasterGameFile::store()
 	{
-		STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "MGF storage is not provided for file-based GFs");
+	    // ATTENTION! This is only a reference implementation. The actual implementation should consider one read only and one write only class
+
+	    if(mOrdinal != UID::SELF_REF_ORDINAL)
+	    {
+	        STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "Tried to store read-only MGF '" + mFilename + "'");
+	    }
+
+
+	    std::ofstream out(mFilename.c_str(), std::ios::out | std::ios::binary);
+
+	    if(!out.good())
+	    {
+	        STONESHIP_EXCEPT(StoneshipException::IO_ERROR, "Could not open MGF '" + mFilename + "' for write access");
+	    }
+
+
+	    MGFDataWriter writer(&out);
+
+	    // first, write MGF header
+	    writer << static_cast<uint64_t>(0x46474D334750524E) // magic ID "NRPG3MGF"
+               << String(STONESHIP_GAMEID)                  // game Id
+               << mFlags
+               << mAuthor
+               << mDescription
+               << static_cast<uint64_t>(std::mktime(&mTimestamp)); // convert time structure back to epoch format and ensure 64 bit width FIXME: Not portable! mktime does not neccessarily produce epoch times on every platform
+
+
+	    writer << mDependencyCount;
+	    for(uint32_t i = 0; i < mDependencyCount; ++i)
+	    {
+	        writer << mDependencies->filename
+	               << mDependencies->ordinal;
+	    }
+
+	    writer << mResourceCount;
+	    for(uint32_t i = 0 ; i < mResourceCount; ++i)
+	    {
+	        // TODO: Write ressources here
+	        writer << static_cast<uint8_t>(0xCA)
+	               << static_cast<uint8_t>(0xFE)
+	               << String("Did you know that with the new MGF version all Strings may contain up to 4GiB of characters? Awesome! Like anybody will ever need that");
+	    }
+
+	    writer << static_cast<uint32_t>(0xCAFEBABE); // top group count
+
+
+	    // done writing header. now we need to write the top groups
+	    Root::getSingleton()->getEntityManager()->storeCache(writer); // EntityManager gets to store everything it has cached
+	    Root::getSingleton()->getEntityManager()->storeCacheMods(writer); // append MODIFY top group
+
+
+	    writer << static_cast<uint8_t>(0xF0); // end marker (legacy)
 	}
 
 	const String &MasterGameFile::getFilename() const
@@ -259,17 +308,17 @@ namespace Stoneship
 		{
 			if(mDependencies[i].ordinal == local)
 			{
-				MasterGameFile *refMgf = mMGFManager->getLoadedMGF(mDependencies[i].filename);
+				MasterGameFile *refMgf = Root::getSingleton()->getMGFManager()->getLoadedMGF(mDependencies[i].filename);
 				if(refMgf == nullptr)
 				{
-					STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Supposedly loaded dependency was not loaded. This probably indicates the whole program is shit.");
+					STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Supposedly loaded dependency was not loaded. This probably is a bug.");
 				}
 
 				return refMgf->getOrdinal();
 			}
 		}
 
-		STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Referenced ordinal not found in dependency table. This probably means a dependency was not loaded.");
+		STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Referenced ordinal not found in dependency table. This probably means a dependency of one or more MGFs was not loaded or unloaded.");
 	}
 
 	//TODO: Typeless lookups are inefficient atm. Implement more dynamic matching to speed things up a bit
@@ -282,7 +331,7 @@ namespace Stoneship
 		for(uint32_t i = 0; i < mRecordGroupCount; ++i)
 		{
 			RecordHeader groupHeader;
-			ds.readStruct(groupHeader);
+			ds >> groupHeader;
 			if(groupHeader.type != Record::TYPE_GROUP)
 			{
 				STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF (expected top group record, found other)");
@@ -299,7 +348,7 @@ namespace Stoneship
 			while(ds.bytesRemainingInUnit())
 			{
 				RecordHeader recordHeader;
-				ds.readStruct(recordHeader);
+				ds >> recordHeader;
 
 				if(recordHeader.id == id) // found it!
 				{
@@ -339,7 +388,7 @@ namespace Stoneship
 		ds.seek(hint->offset);
 
 		RecordHeader groupHeader;
-		ds.readStruct(groupHeader);
+		ds >> groupHeader;
 
 		if(groupHeader.type != Record::TYPE_GROUP)
 		{
@@ -350,7 +399,7 @@ namespace Stoneship
 		while(ds.bytesRemainingInUnit())
 		{
 			RecordHeader recordHeader;
-			ds.readStruct(recordHeader);
+			ds >> recordHeader;
 
 			if(recordHeader.id == id && recordHeader.type == type) // found it!
 			{
@@ -376,7 +425,7 @@ namespace Stoneship
 		for(uint32_t i = 0; i < mRecordGroupCount; ++i)
 		{
 			RecordHeader groupHeader;
-			ds.readStruct(groupHeader);
+			ds >> groupHeader;
 			if(groupHeader.type != Record::TYPE_GROUP)
 			{
 				STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF (expected top group record, found other)");
@@ -386,19 +435,20 @@ namespace Stoneship
 			while(ds.bytesRemainingInUnit())
 			{
 				RecordHeader recordHeader;
-				ds.readStruct(recordHeader);
+				ds >> recordHeader;
 
 				RecordAccessor record(recordHeader, &mInputStream, this);
 				try
 				{
 					String editorName;
-					record.getReaderForSubrecord(Record::SUBTYPE_EDITOR).readSString(editorName);
+					record.getReaderForSubrecord(Record::SUBTYPE_EDITOR) >> editorName;
 
 					if(editorName == name)
 					{
 						record.rollback();
 						return record;
 					}
+
 				}catch(StoneshipException &e)
 				{
 					if(e.getType() != StoneshipException::SUBRECORD_NOT_FOUND)
@@ -429,7 +479,7 @@ namespace Stoneship
 		MGFDataReader ds(&mInputStream, this);
 
 		RecordHeader groupHeader;
-		ds.readStruct(groupHeader);
+		ds >> groupHeader;
 		if(groupHeader.type != Record::TYPE_GROUP)
 		{
 			STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF (expected top group record, found other)");
@@ -440,7 +490,7 @@ namespace Stoneship
 		while(ds.bytesRemainingInUnit())
 		{
 			RecordHeader recordHeader;
-			ds.readStruct(recordHeader);
+			ds >> recordHeader;
 
 			if(recordHeader.type == type)
 			{
@@ -466,7 +516,7 @@ namespace Stoneship
 				ds.seek(mMods[i].offset);
 
 				RecordHeader header;
-				ds.readStruct(header);
+				ds >> header;
 
 				RecordAccessor record(header, &mInputStream, this);
 
@@ -506,7 +556,7 @@ namespace Stoneship
 	    MGFDataReader ds(&mInputStream, this);
 
 	    RecordHeader header;
-	    ds.readStruct(header);
+	    ds >> header;
 
 	    RecordAccessor record(header, &mInputStream, this);
 
@@ -515,9 +565,9 @@ namespace Stoneship
 			ModHint mod;
 			mod.offset = record.getOffset();
 			record.getReaderForSubrecord(Record::SUBTYPE_MODIFY_METADATA)
-					.readStruct<UID>(mod.uid)
-					.readUShort(mod.type)
-					.readUByte(mod.modType);
+					>> mod.uid
+					>> mod.type
+					>> mod.modType;
 
 			mMods.push_back(mod);
 

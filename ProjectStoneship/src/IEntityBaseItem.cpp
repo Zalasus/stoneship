@@ -18,12 +18,12 @@ namespace Stoneship
 
 	IEntityBaseItem::IEntityBaseItem(UID uid)
 	: IEntityBaseWorld(uid),
-	  mName("", this),
-	  mDescription("", this),
-	  mValue(0, this),
+	  mName("", Record::SUBTYPE_DISPLAY_NAME, this),
+	  mDescription("", Record::SUBTYPE_DESCRIPTION, this),
+	  mValue(0, Record::SUBTYPE_TRADING, this),
 	  mInventory(this),
-	  mIconFile("empty.png", this),
-	  mIdentified(UID::NO_UID, this)
+	  mIconFile("empty.png", Record::SUBTYPE_ICON, this),
+	  mIdentified(UID::NO_UID, Record::SUBTYPE_IDENTIFICATION, this)
 	{
 	}
 
@@ -53,32 +53,32 @@ namespace Stoneship
 
 	String IEntityBaseItem::getDisplayName() const
 	{
-		return mName;
+		return mName.get();
 	}
 
 	void IEntityBaseItem::setDisplayName(const String &s)
 	{
-	    mName = s;
+	    mName.set(s);
 	}
 
 	String IEntityBaseItem::getDescription() const
 	{
-		return mDescription;
+		return mDescription.get();
 	}
 
 	void IEntityBaseItem::setDescription(const String &s)
 	{
-	    mDescription = s;
+	    mDescription.set(s);
 	}
 
 	uint32_t IEntityBaseItem::getValue() const
 	{
-		return mValue;
+		return mValue.get();
 	}
 
 	void IEntityBaseItem::setValue(uint32_t i)
 	{
-	    mValue = i;
+	    mValue.set(i);
 	}
 
 	uint8_t IEntityBaseItem::getSlots() const
@@ -108,22 +108,22 @@ namespace Stoneship
 
 	String IEntityBaseItem::getIconFile() const
 	{
-		return mIconFile;
+		return mIconFile.get();
 	}
 
 	void IEntityBaseItem::setIconFile(const String &s)
 	{
-	    mIconFile = s;
+	    mIconFile.set(s);
 	}
 
 	UID IEntityBaseItem::getIdentifiedUID() const
 	{
-		return mIdentified;
+		return mIdentified.get();
 	}
 
 	void IEntityBaseItem::setIdentifiedUID(UID id)
 	{
-	    mIdentified = id;
+	    mIdentified.set(id);
 	}
 
 	IEntity *IEntityBaseItem::createEntity(UID uid)

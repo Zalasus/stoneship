@@ -5,12 +5,19 @@ Master Game File specification 1.0
 
 Data types
 ----------
-All basic types defined as in KISDF 1.1.
-Additional type structures in KIDDML format:
+Basic types:
+    byte:    1 byte, signed
+    short:   2 byte, signed
+    int:     4 byte, signed
+    long:    8 byte, signed
+    integer types prefixed with u are unsigned
+    
+    string:  zero terminated character sequence prefixed with 4 byte length field
+    
 
-dependency = {sstring: filename, short: ordinal}
+dependency = {string: filename, short: ordinal}
 recordHint = {short: type, int: offset, int: count}
-resource = {byte: type, byte: priority, sstring: path}
+resource = {byte: type, byte: dummy, string: path}
 subrecord = {short: type, int: size, byte[~]: data} (6 bytes overhead)
 uid = {short: ordinal, int: id}
 record = {short: type, int: sizeInBytes, short: flags, int: recordId, byte[~]: data}
@@ -19,33 +26,31 @@ record_group = {short: type = 0x0000, int: sizeInBytes, short: groupType, int: c
 
 File structure
 --------------
-The following lines are a KIDDML representation of the MGF format.
 
 (file header)
 
-byte[8]: 		 magic id = "NRPG3MGF"
-bstring:		 game id
-short:			 file flags
+ubyte[8]: 		 magic id = "NRPG3MGF"
+string:		     game id
+ushort:			 file flags
 
 (meta information)
-sstring:		 author (name of MGF's author)
-sstring:		 description (descripton of MGF's content)
+string:		     author (name of MGF's author)
+string:		     description (descripton of MGF's content)
 ulong:           timestamp (in UNIX epoch milliseconds format)
 
-short:			 dependency count
+ushort:			 dependency count
 dependency[~]:	 dependencies (list of MGFs which hold content that's used by this MGF and must be loaded before it)
 
-short:			 resource count
+ushort:			 resource count
 resource[~]:	 resources (a list of paths/archive files where this MGFs BLOBs are stored)
 
 
 (records)
 
-int:             record count (total count of records in the MGF)
-int:			 record top group count
+uint:			 record top group count
 record_group[~]: record groups
 
-byte:            end marker = 0xF0
+ubyte:            end marker = 0xF0
 
 
 File flags
@@ -141,12 +146,25 @@ be found quickly when specific types of records are requested for load.
 
 Dynlen
 ------
-(still LE!!!)
-00000000 - 01111111
-10000000 00000000 - 11111111 01111111
+00000000 -                            01111111                             0-127
+10000000 00000000 -                   10111111 11111111                    128-49151
+11000000 00000000 00000000 -          11011111 11111111 11111111
+11100000 00000000 00000000 00000000 - 11111111 11111111 11111111 11111111
+
+
+0XXXXXXX
+10XXXXXX XXXXXXXX
+110XXXXX XXXXXXXX XXXXXXXX
+111XXXXX XXXXXXXX XXXXXXXX XXXXXXXX
+
+1   =    00000001
 ...
-
-
+127 =    01111111
+128 =    10000000 10000000
+129 =    10000000 10000001
+         10111111 11111111
+         11000000 00000000 00000000
+         11000000 00000000 00000001
 
 IDs / UIDs
 ----------
@@ -260,7 +278,7 @@ Subrecords marked with [#] may appear arbitrarily often, but at least once.
 	100: Option data
 		
 	FFF0: editor data
-		sstring: editor name
+		string: editor name
 		
 
 B0: ScalesClass (ID-less)
@@ -279,10 +297,10 @@ B1: ScalesGlobal
 	3: [Optional] double value
 		double: value
 	4: [Optional] string value
-		istring: value
+		string: value
 	100: Global data
-		bstring: namespace
-		bstring: name
+		string: namespace
+		string: name
 		byte: data type (as in Scales specification. Subrecord with this ID is required)
 		
 
@@ -300,20 +318,22 @@ C2: Chunk
 	100: chunk data
 		ubyte: chunk flags ( 1 = IS_END_CHUNK )
 		vector2i: chunk coordinates
-		bstring: chunk name
+		string: chunk name
 	0: entity subgroup
 	
 
 		
 C5: Dungeon
 	6: dungeon display name
-		bstring: dungeon name
+		string: dungeon name
 	0: entity subgroup
 
 
 D0: Entity
 	10: position data
+	11: scale data
 	F0: entity base data
+	F2: count data
 	
 FFF0: Modify
 	FFF9: modification data
@@ -423,13 +443,13 @@ Common subrecord types with typical fields they contain (these definitions may n
 (the following subrecords are common for all item types)
 	
 5: world model information
-	bstring: model resource name
+	string: model resource name
 	
 6: display name
-	bstring: name
+	string: name
 	
 7: description
-	sstring: description
+	string: description
 	
 8: trading information
 	uint: trading value
@@ -440,11 +460,13 @@ A: inventory information
 	uint: max stack size (0 means unlimited, 1 means does not stack (formerly set by flag))
 	
 B: icon data
-	bstring: icon resource name
+	string: icon resource name
 	
 C: identification data (only present if undentified flag in SR 9 is set)
 	uid: indentified item entity id
 	
+D: count
+	uint: count
 
 10: position data
 	vector3f: position
@@ -457,13 +479,10 @@ F0: entity base data
 	uid: base uid
 	short: base type id
 	
-F2: item entity data
-	uint: count
-	
 100: specific data
 	
 105: text data
-	istring: text
+	string: text
 
 10E: container data
 	uint: slot count
@@ -474,7 +493,7 @@ F2: item entity data
     uint: item count
 
 FFF0: editor data
-	sstring: editor name
+	string: editor name
 		
 FFF9: modify metadata (not to be used in any other record)
 

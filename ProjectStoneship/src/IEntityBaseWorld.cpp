@@ -15,8 +15,7 @@ namespace Stoneship
 
 	IEntityBaseWorld::IEntityBaseWorld(UID uid)
 	: IEntityBase(uid),
-	  mModelName("", this),
-	  mModelScale(1, this)
+	  mModelName("", Record::SUBTYPE_WORLD_MODEL_NAME, this)
 	{
 	}
 
@@ -27,12 +26,7 @@ namespace Stoneship
 
 	String IEntityBaseWorld::getModelName() const
 	{
-		return mModelName;
-	}
-
-	float IEntityBaseWorld::getModelScale() const
-	{
-		return mModelScale;
+		return mModelName.get();
 	}
 
 	IEntity *IEntityBaseWorld::createEntity(UID uid)

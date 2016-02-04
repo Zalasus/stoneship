@@ -127,7 +127,6 @@ namespace Stoneship
 	    Logger::info(String("Loaded ") + getMGFManager()->getLoadedMGFCount() + " MGF(s)");
 
 
-	    getScriptRoot()->getClass("Stoneship:Init")->invokeStatic("init");
 	    // now that all MGFs are loaded, we need to find an entry point
 	    getWorldManager()->enterWorld(UID(0xA));
 

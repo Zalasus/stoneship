@@ -9,10 +9,13 @@
 
 #include <iostream>
 
+#include "sas/SASEntities.h"
 #include "IEntity.h"
+#include "RecordAccessor.h"
 #include "RecordBuilder.h"
 #include "Root.h"
 #include "EntityManager.h"
+#include "Logger.h"
 
 namespace Stoneship
 {
@@ -37,7 +40,7 @@ namespace Stoneship
 
 	EntityBase_Book::EntityBase_Book(UID uid)
 	: IEntityBaseItem(uid),
-	  mText("", this)
+	  mText("", Record::SUBTYPE_TEXT, this)
 	{
 	}
 
@@ -63,31 +66,31 @@ namespace Stoneship
 
 	EntityBase_Weapon::EntityBase_Weapon(UID uid)
 	: IEntityBaseItem(uid),
-	  mWeaponType(TYPE_SWORD_ONE_HAND, this),
-	  mDamage(0, this),
-	  mDurability(0, this),
-	  mReach(0, this)
+	  mWeaponType(TYPE_SWORD_ONE_HAND, Record::SUBTYPE_DATA, this),
+	  mDamage(0, Record::SUBTYPE_DATA, this),
+	  mDurability(0, Record::SUBTYPE_DATA, this),
+	  mReach(0, Record::SUBTYPE_DATA, this)
 	{
 	}
 
 	EntityBase_Weapon::WeaponType EntityBase_Weapon::getWeaponType() const
 	{
-		return mWeaponType;
+		return mWeaponType.get();
 	}
 
 	uint32_t EntityBase_Weapon::getDamage() const
 	{
-		return mDamage;
+		return mDamage.get();
 	}
 
 	uint32_t EntityBase_Weapon::getDurability() const
 	{
-		return mDurability;
+		return mDurability.get();
 	}
 
 	uint32_t EntityBase_Weapon::getReach() const
 	{
-		return mReach;
+		return mReach.get();
 	}
 
 	bool EntityBase_Weapon::onUse(ItemStack *stack, IActor *actor)
@@ -120,8 +123,22 @@ namespace Stoneship
     {
         IEntityBaseWorld::loadFromRecord(record);
 
+        uint32_t slotCount;
+        uint32_t storedItemCount;
+        record.getReaderForSubrecord(Record::SUBTYPE_CONTAINER)
+                >> slotCount
+                >> storedItemCount
+                >> MGFDataReader::endr;
+
+        mPredefindedInventory.setSlotCount(slotCount);
+
         // load item records
         uint32_t itemCount = record.getSubrecordCountForType(Record::SUBTYPE_CONTAINED_ITEM);
+
+        if(storedItemCount != itemCount)
+        {
+            Logger::warn(getUID().toString() + ": Item count recorded different than count actually stored");
+        }
 
         while((itemCount--) > 0)
         {
@@ -134,7 +151,7 @@ namespace Stoneship
     {
         IEntityBaseWorld::loadFromModifyRecord(record);
 
-        // adding item records TODO: modifying/removing items
+        // adding item records TODO: modifying/removing items and changing slot count
         uint32_t itemCount = record.getSubrecordCountForType(Record::SUBTYPE_CONTAINED_ITEM);
 
         while((itemCount--) > 0)
@@ -148,13 +165,19 @@ namespace Stoneship
     {
         IEntityBaseWorld::storeToRecord(record);
 
-        Inventory::ItemVector &items = mPredefindedInventory.get().getItems();
+        record.beginSubrecord(Record::SUBTYPE_CONTAINER)
+                << mPredefindedInventory.getSlotCount()
+                << mPredefindedInventory.getItems().size();
+        record.endSubrecord();
+
+
+        const Inventory::ItemVector &items = mPredefindedInventory.getItems();
 
         for(uint32_t i = 0; i < items.size(); ++i)
         {
             record.beginSubrecord(Record::SUBTYPE_CONTAINED_ITEM)
-                    .writeStruct<UID>(items[i].getItemBase()->getUID())
-                    .writeUInt(items[i].getCount());
+                    << items[i].getItemBase()->getUID()
+                    << items[i].getCount();
             record.endSubrecord();
         }
     }
@@ -184,10 +207,8 @@ namespace Stoneship
         UID itemUID;
         uint32_t itemCount;
 
-        reader
-                .readStruct<UID>(itemUID)
-                .readUInt(itemCount)
-                .skipToEnd();
+        reader >> itemUID >> itemCount;
+        reader.skipToEnd();
 
         // store offset. base lookup may move stream pointer TODO: Ugly. Please find better way to avoid skipping through the file like this (indexing item records first?)
         std::streampos pos = reader.tell();

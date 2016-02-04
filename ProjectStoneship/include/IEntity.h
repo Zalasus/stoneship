@@ -8,7 +8,8 @@
 #ifndef INCLUDE_IENTITY_H_
 #define INCLUDE_IENTITY_H_
 
-#include <RecordReflector.h>
+#include "RecordReflector.h"
+#include "SubrecordField.h"
 #include "Types.h"
 #include "Record.h"
 #include "Inventory.h"
@@ -17,6 +18,8 @@ namespace Stoneship
 {
 
     class IEntityBase;
+    class IEntityBaseWorld;
+    class IEntityBaseItem;
     class IWorld;
 
 	class IEntity : public RecordReflector
@@ -58,7 +61,8 @@ namespace Stoneship
 	class EntityWorld : public IEntity
 	{
 	public:
-		EntityWorld(UID uidOfEntity, IEntityBase *base); //uidOfEntity is the UID of the reference, not the referenced base!!!
+
+		EntityWorld(UID uidOfEntity, IEntityBaseWorld *base); //uidOfEntity is the UID of the reference, not the referenced base!!!
 		EntityWorld(const EntityWorld &e) = delete; //don't copy me!
 		~EntityWorld();
 
@@ -80,45 +84,15 @@ namespace Stoneship
 		IWorld *mWorld;
 	};
 
-	class EntityContainer : public EntityWorld
-	{
-	public:
-	    EntityContainer(UID uidOfEntity, IEntityBase *base); //uidOfEntity is the UID of the reference, not the referenced base!!!
-	    EntityContainer(const EntityWorld &e) = delete; //don't copy me!
-        ~EntityContainer();
-
-        // overrides EntityWorld
-        virtual EntityType getEntityType() { return ENTITYTYPE_WORLD | ENTITYTYPE_CONTAINER; }
-
-        // overrides IRecordReflector
-        virtual void loadFromRecord(RecordAccessor &record);
-        virtual void loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType);
-        virtual void storeToRecord(RecordBuilder &record);
-        virtual void storeToModifyRecord(RecordBuilder &record);
-
-        Inventory &getInventory();
-
-	private:
-
-        Inventory mInventory;
-
-	};
-
 	class EntityItem : public EntityWorld
 	{
 	public:
-	    EntityItem(UID uidOfEntity, IEntityBase *base); //uidOfEntity is the UID of the reference, not the referenced base!!!
+	    EntityItem(UID uidOfEntity, IEntityBaseItem *base); //uidOfEntity is the UID of the reference, not the referenced base!!!
 	    EntityItem(const EntityItem &e) = delete; //don't copy me!
         ~EntityItem();
 
         // overrides EntityWorld
         virtual EntityType getEntityType() { return ENTITYTYPE_WORLD | ENTITYTYPE_ITEM; }
-
-        // overrides IRecordReflector
-        virtual void loadFromRecord(RecordAccessor &record);
-        virtual void loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType);
-        virtual void storeToRecord(RecordBuilder &record);
-        virtual void storeToModifyRecord(RecordBuilder &record);
 
         uint32_t getCount() const;
         void setCount(uint32_t count);
@@ -126,7 +100,7 @@ namespace Stoneship
 
 	private:
 
-        uint32_t mCount;
+        SubrecordField<uint32_t> mCount;
 	};
 
 }

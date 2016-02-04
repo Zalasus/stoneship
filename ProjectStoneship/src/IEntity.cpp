@@ -8,11 +8,10 @@
 #include "IEntity.h"
 #include "IEntityBase.h"
 #include "IEntityBaseWorld.h"
+#include "IEntityBaseItem.h"
 #include "IWorld.h"
 #include "WorldManager.h"
 #include "Logger.h"
-
-#include "sas/SASEntityBases.h" //TODO: try not to merge engine and game specific content (see comments below)
 
 namespace Stoneship
 {
@@ -52,7 +51,8 @@ namespace Stoneship
 
 
 
-	EntityWorld::EntityWorld(UID uid, IEntityBase *base)
+
+	EntityWorld::EntityWorld(UID uid, IEntityBaseWorld *base)
 	: IEntity(uid, base),
 	  mWorld(nullptr)
 	{
@@ -94,40 +94,10 @@ namespace Stoneship
 
 
 
-	EntityContainer::EntityContainer(UID uidOfEntity, IEntityBase *base) //TODO: make second parameter of every IEntity child only accept correct Base types
-	: EntityWorld(uidOfEntity, base),
-	  mInventory(0)
-	{
-	    //TODO: no checking. see above comment
 
-	    EntityBase_Container *cont = static_cast<EntityBase_Container*>(base);
-	    mInventory.setSlotCount(cont->getInventory().getSlotCount());
-	    mInventory.copyItems(cont->getInventory());
-	}
-
-	EntityContainer::~EntityContainer()
-	{
-	}
-
-	void EntityContainer::loadFromRecord(RecordAccessor &rec)
-	{
-	    //TODO: load item records here
-	}
-
-	void EntityContainer::storeToRecord(RecordBuilder &rec)
-    {
-
-    }
-
-	Inventory &EntityContainer::getInventory()
-	{
-	    return mInventory;
-	}
-
-
-	EntityItem::EntityItem(UID uid, IEntityBase *base)
+	EntityItem::EntityItem(UID uid, IEntityBaseItem *base)
     : EntityWorld(uid, base),
-      mCount(0)
+      mCount(0, Record::SUBTYPE_COUNT, this)
     {
     }
 
@@ -137,24 +107,14 @@ namespace Stoneship
 
 	void EntityItem::setCount(uint32_t count)
 	{
-	    mCount = count;
+	    mCount.set(count);
 	}
 
 	uint32_t EntityItem::getCount() const
 	{
-	    return mCount;
+	    return mCount.get();
 	}
 
-	void EntityItem::loadFromRecord(RecordAccessor &rec)
-	{
-	    rec.getReaderForSubrecord(Record::SUBTYPE_ENTITY_ITEM)
-	            .readUInt(mCount);
-	}
-
-	void EntityItem::storeToRecord(RecordBuilder &rec)
-    {
-
-    }
 }
 
 

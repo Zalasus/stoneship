@@ -12,6 +12,7 @@
 #include "Root.h"
 #include "MasterGameFile.h"
 #include "EntityManager.h"
+#include "RecordBuilder.h"
 
 namespace Stoneship
 {
@@ -100,8 +101,8 @@ namespace Stoneship
                 UID baseUID;
                 Record::Type baseType;
                 child.getReaderForSubrecord(Record::SUBTYPE_ENTITY)
-                        .readStruct<UID>(baseUID)
-                        .readIntegral<Record::Type>(baseType);
+                        >> baseUID
+                        >> baseType;
 
                 IEntityBase *base = Root::getSingleton()->getEntityManager()->getBase(baseUID, baseType);
                 if(base == nullptr)
@@ -130,7 +131,7 @@ namespace Stoneship
     void WorldDungeon::storeToRecord(RecordBuilder &record)
     {
         record.beginSubrecord(Record::SUBTYPE_DISPLAY_NAME)
-                .writeBString(mDungeonName);
+                << mDungeonName;
         record.endSubrecord();
 
         RecordBuilder entityGroup = record.beginSubgroup(Record::TYPE_ENTITY);
@@ -145,7 +146,7 @@ namespace Stoneship
                     continue;
                 }
 
-                RecordBuilder entityBuilder = entityGroup.createChildBuilder(Record::TYPE_ENTITY,0, mEntities[i]->getUID());
+                RecordBuilder entityBuilder = entityGroup.createChildBuilder(Record::TYPE_ENTITY,0, mEntities[i]->getUID().id);
 
 
             }

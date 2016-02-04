@@ -21,6 +21,8 @@ namespace Stoneship
 
     class ItemStack;
     class IEntity;
+    class RecordAccessor;
+    class RecordBuilder;
 
 	class EntityBase_Static : public IEntityBaseWorld
 	{
@@ -60,7 +62,7 @@ namespace Stoneship
 
 	private:
 
-		SubrecordField<String, Record::SUBTYPE_TEXT> mText;
+		SubrecordField<String> mText;
 
 	};
 
@@ -94,10 +96,10 @@ namespace Stoneship
 
 	private:
 
-		SubrecordField<WeaponType, Record::SUBTYPE_DATA> mWeaponType;
-		SubrecordField<uint32_t, Record::SUBTYPE_DATA> mDamage;
-		SubrecordField<uint32_t, Record::SUBTYPE_DATA> mDurability;
-		SubrecordField<uint32_t, Record::SUBTYPE_DATA> mReach;
+		SubrecordField<WeaponType> mWeaponType;
+		SubrecordField<uint32_t> mDamage;
+		SubrecordField<uint32_t> mDurability;
+		SubrecordField<uint32_t> mReach;
 
 	};
 
@@ -146,7 +148,7 @@ namespace Stoneship
 
         void _loadSingleContainedItem(MGFDataReader &reader);
 
-        SubrecordField<Inventory, Record::SUBTYPE_CONTAINER> mPredefindedInventory;
+        Inventory mPredefindedInventory;
 
 	};
 

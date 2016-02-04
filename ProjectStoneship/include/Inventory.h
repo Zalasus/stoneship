@@ -59,7 +59,7 @@ namespace Stoneship
 		void copyItems(const Inventory &inv);
 
 		/**
-		 * @returns The actual amount of items that were added to the inventory
+		 * @returns The amount of items that effectively were added to the inventory. Equal to count if enough room for all elements was available.
 		 */
 		uint32_t addItem(IEntityBase *base, uint32_t count = 1);
 		uint32_t addItem(const ItemStack &stack);

@@ -35,13 +35,11 @@ namespace Stoneship
 		virtual bool onInteract(IEntity *entity, IActor *actor) = 0;
 
 		String getModelName() const;
-        float getModelScale() const;
 
 
 	private:
 
-		SubrecordField<String, Record::SUBTYPE_WORLD_MODEL_NAME> mModelName;
-		SubrecordField<float, Record::SUBTYPE_SCALE> mModelScale;
+		SubrecordField<String> mModelName;
 
 	};
 

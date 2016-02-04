@@ -13,6 +13,8 @@
 #include "Exception.h"
 #include "MGFManager.h"
 #include "Root.h"
+#include "RecordAccessor.h"
+#include "RecordBuilder.h"
 
 namespace Stoneship
 {
@@ -180,7 +182,7 @@ namespace Stoneship
                 }else
                 {
                     // no, this is our first record group. re-initialize builder accordingly and write header
-                    groupBuilder = RecordBuilder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, base->getRecordType());
+                   // groupBuilder = RecordBuilder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, base->getRecordType());
                     groupBuilder.beginRecord();
                 }
 

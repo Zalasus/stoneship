@@ -5,10 +5,11 @@
  *      Author: Zalasus
  */
 
-#include <Exception.h>
 #include "Record.h"
 
 #include "MGFDataReader.h"
+#include "MGFDataWriter.h"
+#include "Exception.h"
 #include "MasterGameFile.h"
 
 namespace Stoneship
@@ -40,11 +41,11 @@ namespace Stoneship
 	const UID UID::NO_UID(SELF_REF_ORDINAL, NO_ID);
 
 
-	//reader function specializations
+	//reader/writer function specializations
 	template <>
-	MGFDataReader &MGFDataReader::readStruct<UID>(UID &uid)
+	MGFDataReader &MGFDataReader::operator >> <UID>(UID &uid)
 	{
-		readUShort(uid.ordinal);
+		*this >> uid.ordinal;
 
 		if(mGameFile != nullptr)
 		{
@@ -52,38 +53,69 @@ namespace Stoneship
 
 		}
 
-		readUInt(uid.id);
+		*this >> uid.id;
 
 		return *this;
 	}
 
 	template <>
-	MGFDataReader &MGFDataReader::readStruct<RecordHeader>(RecordHeader &header)
+	MGFDataWriter &MGFDataWriter::operator << <UID>(const UID &uid)
 	{
-		readUShort(header.type);
-		readUInt(header.dataSize);
+	    // TODO: No translation needed?
+
+	    *this << uid.ordinal << uid.id;
+
+	    return *this;
+	}
+
+	template <>
+	MGFDataReader &MGFDataReader::operator >> <RecordHeader>(RecordHeader &header)
+	{
+		*this >> header.type >> header.dataSize;
 
 		if(header.type != Record::TYPE_GROUP)
 		{
-			readUShort(header.flags);
-			readUInt(header.id);
+			*this >> header.flags >> header.id;
 
 		}else
 		{
-			readUShort(header.groupType);
-			readUInt(header.recordCount);
+			*this >> header.groupType >> header.recordCount;
 		}
 
 		return *this;
 	}
 
 	template <>
-	MGFDataReader &MGFDataReader::readStruct<SubrecordHeader>(SubrecordHeader &header)
+    MGFDataWriter &MGFDataWriter::operator << <RecordHeader>(const RecordHeader &header)
+    {
+	    *this << header.type << header.dataSize;
+
+        if(header.type != Record::TYPE_GROUP)
+        {
+            *this << header.flags << header.id;
+
+        }else
+        {
+            *this << header.groupType << header.recordCount;
+        }
+
+        return *this;
+    }
+
+	template <>
+	MGFDataReader &MGFDataReader::operator >> <SubrecordHeader>(SubrecordHeader &header)
 	{
-		readUShort(header.type);
-		readUInt(header.dataSize);
+		*this >> header.type >> header.dataSize;
 
 		return *this;
+	}
+
+	template <>
+	MGFDataWriter &MGFDataWriter::operator << <SubrecordHeader>(const SubrecordHeader &header)
+	{
+	    *this << header.type << header.dataSize;
+
+	    return *this;
 	}
 
 }

@@ -38,8 +38,6 @@ namespace Stoneship
 
 		UID getNewUID(UID::Ordinal ordinal = UID::SELF_REF_ORDINAL);
 
-		void loadSGF(const String &savename);
-
 		/**
 		 * @brief Searches Record in all top groups
 		 */

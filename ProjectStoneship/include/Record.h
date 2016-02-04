@@ -75,10 +75,10 @@ namespace Stoneship
 		static const Subtype SUBTYPE_INVENTORY = 0xA;
 		static const Subtype SUBTYPE_ICON = 0xB;
 		static const Subtype SUBTYPE_IDENTIFICATION = 0xC;
+		static const Subtype SUBTYPE_COUNT = 0xD;
 		static const Subtype SUBTYPE_POSITION = 0x10;
         static const Subtype SUBTYPE_SCALE = 0x11;
 		static const Subtype SUBTYPE_ENTITY = 0xF0;
-		static const Subtype SUBTYPE_ENTITY_ITEM = 0xF2;
 		static const Subtype SUBTYPE_DATA = 0x100;
 		static const Subtype SUBTYPE_TEXT = 0x105;
 		static const Subtype SUBTYPE_CONTAINER = 0x10E;

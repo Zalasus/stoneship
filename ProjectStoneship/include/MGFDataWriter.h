@@ -31,38 +31,24 @@ namespace Stoneship
 		MGFDataWriter &seek(std::streampos pos);
 		std::streampos tell();
 
-		MGFDataWriter &writeULong(uint64_t l);
-		MGFDataWriter &writeLong(int64_t l);
-
-		MGFDataWriter &writeUInt(uint32_t i);
-		MGFDataWriter &writeInt(int32_t i);
-
-		MGFDataWriter &writeUShort(uint16_t s);
-		MGFDataWriter &writeShort(int16_t s);
-
-		MGFDataWriter &writeUByte(uint8_t b);
-		MGFDataWriter &writeByte(int8_t b);
-
-		MGFDataWriter &writeFloat(float f);
-		MGFDataWriter &writeDouble(double d);
-
-		MGFDataWriter &writeBString(const String &s);
-		inline MGFDataWriter &writeTString(const String &s) {return writeBString(s);} //supplied for KISDF 1.0 conformity
-
-		MGFDataWriter &writeSString(const String &s);
-
-		MGFDataWriter &writeIString(const String &s);
-		inline MGFDataWriter &writeString(const String &s) {return writeIString(s);}  //supplied for KISDF 1.0 conformity
-
-		MGFDataWriter &writeZString(const String &s);
-
 		template <typename T>
-		MGFDataWriter &writeIntegral(T v);
+        MGFDataWriter &operator<<(const T &x);
+
 
 	private:
 
 		void _writeNext(uint8_t b);
 		void _writeChars(const char *data, size_t size);
+
+		template <typename T>
+        void _stupidlyWriteIntegral(T v)
+        {
+            for(uint8_t i = 0; i < sizeof(T); ++i)
+            {
+                _writeNext(v & 0xFF);
+                v = v >> 8;
+            }
+        }
 
 		void _except(StoneshipException::ExceptionType type, const String &msg);
 

@@ -27,9 +27,11 @@ namespace Stoneship
 	    // lazy-ass class definition
         struct InventoryData : public SubrecordFieldS
         {
+            InventoryData(RecordReflector *r) : SubrecordFieldS(r), mFlags(0), mSlotCount(0), mMaxStackSize(0) {};
+
             // override SubrecordFieldS
-            virtual void write(MGFDataWriter &writer) { writer.writeUByte(mFlags).writeUByte(mSlotCount).writeUInt(mMaxStackSize); }
-            virtual void read(MGFDataReader &reader) { reader.readUByte(mFlags).readUByte(mSlotCount).readUInt(mMaxStackSize); }
+            virtual void write(MGFDataWriter &writer) { writer << mFlags << mSlotCount << mMaxStackSize; }
+            virtual void read(MGFDataReader &reader) { reader >> mFlags >> mSlotCount >> mMaxStackSize >> MGFDataReader::endr; }
             Record::Subtype getSubtype() const { return Record::SUBTYPE_INVENTORY; }
 
             uint8_t getFlags() const { return mFlags; }
@@ -101,12 +103,12 @@ namespace Stoneship
 
 	private:
 
-		SubrecordField<String, Record::SUBTYPE_DISPLAY_NAME> mName;
-		SubrecordField<String, Record::SUBTYPE_DESCRIPTION> mDescription;
-		SubrecordField<uint32_t, Record::SUBTYPE_TRADING> mValue;
+		SubrecordField<String> mName;
+		SubrecordField<String> mDescription;
+		SubrecordField<uint32_t> mValue;
 		InventoryData mInventory;
-		SubrecordField<String, Record::SUBTYPE_ICON> mIconFile;
-		SubrecordField<UID, Record::SUBTYPE_IDENTIFICATION> mIdentified;
+		SubrecordField<String> mIconFile;
+		SubrecordField<UID> mIdentified;
 	};
 
 }
