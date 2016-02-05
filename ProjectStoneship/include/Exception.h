@@ -37,7 +37,8 @@ namespace Stoneship
 			RESOURCE_ERROR,
 			INVALID_RECORD_TYPE,
 			RENDERER_ERROR,
-			UNSUPPSORTED
+			UNSUPPSORTED,
+			INVALID_STATE
 		};
 
 		StoneshipException(ExceptionType type, const String &msg);

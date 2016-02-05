@@ -75,9 +75,11 @@ namespace Stoneship
 	template <>
 	MGFDataWriter &MGFDataWriter::operator << <String>(const String &s)
 	{
- 		*this << s.length();
+ 		*this << static_cast<uint32_t>(s.length());
 
 		_writeChars(s.c_str(), s.length());
+
+		*this << static_cast<uint8_t>(0);
 
 		return *this;
 	}

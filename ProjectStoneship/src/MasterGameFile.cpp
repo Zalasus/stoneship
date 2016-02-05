@@ -35,22 +35,6 @@ namespace Stoneship
 	  mRecordCount(0),
 	  mRecordGroupCount(0)
 	{
-	    if(ordinal == UID::SELF_REF_ORDINAL)
-	    {
-	        // this is a SGF. that means it's dependencies are all loaded MGFs at the time of this objects instantiation
-
-	        MGFManager *mgfm = Root::getSingleton()->getMGFManager();
-
-	        mDependencyCount = mgfm->getLoadedMGFCount();
-	        mDependencies = new Dependency[mDependencyCount];
-
-	        for(uint32_t i = 0; i < mDependencyCount; ++i)
-	        {
-	            mDependencies[i].ordinal = mgfm->getLoadedMGF(i)->getOrdinal();
-	            mDependencies[i].filename = mgfm->getLoadedMGF(i)->getFilename();
-	        }
-	    }
-
 	}
 
 	MasterGameFile::~MasterGameFile()
@@ -63,6 +47,12 @@ namespace Stoneship
 
 	void MasterGameFile::load()
 	{
+	    if(mLoaded)
+	    {
+	        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to load already loaded or initialized game file.");
+	    }
+
+
 		mInputStream.open(mFilename.c_str(), std::ios::in | std::ios::binary);
 
 		if(!mInputStream.good())
@@ -189,6 +179,13 @@ namespace Stoneship
 		}
 
 		mLoaded = true;
+
+		if(mOrdinal == UID::SELF_REF_ORDINAL)
+		{
+		    // this is a SGF. we don't need to keep open the file stream
+
+		    mInputStream.close();
+		}
 	}
 
 	void MasterGameFile::store()
@@ -245,6 +242,31 @@ namespace Stoneship
 
 
 	    writer << static_cast<uint8_t>(0xF0); // end marker (legacy)
+
+	    out.close();
+	}
+
+	void MasterGameFile::initCreated()
+	{
+	    if(mLoaded || mOrdinal != UID::SELF_REF_ORDINAL)
+        {
+	        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to init loaded SGF, MGF or reinitialized SGF");
+        }
+
+
+        MGFManager *mgfm = Root::getSingleton()->getMGFManager();
+
+        mDependencyCount = mgfm->getLoadedMGFCount();
+        mDependencies = new Dependency[mDependencyCount];
+
+        for(uint32_t i = 0; i < mDependencyCount; ++i)
+        {
+            mDependencies[i].ordinal = mgfm->getLoadedMGF(i)->getOrdinal();
+            mDependencies[i].filename = mgfm->getLoadedMGF(i)->getFilename();
+        }
+
+
+        mLoaded = true;
 	}
 
 	const String &MasterGameFile::getFilename() const

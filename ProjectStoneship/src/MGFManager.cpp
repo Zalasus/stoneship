@@ -53,6 +53,30 @@ namespace Stoneship
 		mLoadedGameFileCount++;
 	}
 
+	void MGFManager::loadSGF(const String &filename)
+	{
+	    if(mCurrentSaveFile != nullptr)
+	    {
+	        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to load SGf when one was still loaded");
+	    }
+
+	    mCurrentSaveFile = new MasterGameFile(filename, UID::SELF_REF_ORDINAL);
+	    mCurrentSaveFile->load();
+	}
+
+	void MGFManager::storeSGF(const String &filename)
+	{
+	    if(mCurrentSaveFile != nullptr)
+	    {
+	        delete mCurrentSaveFile;
+	    }
+
+	    mCurrentSaveFile = new MasterGameFile(filename, UID::SELF_REF_ORDINAL);
+	    mCurrentSaveFile->initCreated();
+
+	    mCurrentSaveFile->store();
+	}
+
 	uint32_t MGFManager::getLoadedMGFCount() const
 	{
 		return mLoadedGameFileCount;

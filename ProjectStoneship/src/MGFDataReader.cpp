@@ -140,7 +140,21 @@ namespace Stoneship
 
 		for(uint32_t i = 0; i < len; ++i)
 		{
-			buf[i] = _getNext();
+		    uint8_t c = _getNext();
+
+		    if(c == 0)
+		    {
+		        Logger::warn("Premature termination of string. This indicates an invalid lnegth field or malformed MGF");
+		    }
+
+			buf[i] = c;
+		}
+
+		if(_getNext() != 0)
+		{
+		    Logger::warn("Missing termination of string. This indicates an invalid lnegth field or malformed MGF");
+
+		    mStream->unget();
 		}
 
 		s = String(buf, len);

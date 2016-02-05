@@ -36,6 +36,9 @@ namespace Stoneship
 		MasterGameFile *getLoadedMGF(UID::Ordinal ordinal);
 		MasterGameFile *getLoadedMGF(const String &filename);
 
+		void loadSGF(const String &filename);
+		void storeSGF(const String &filename);
+
 		UID getNewUID(UID::Ordinal ordinal = UID::SELF_REF_ORDINAL);
 
 		/**

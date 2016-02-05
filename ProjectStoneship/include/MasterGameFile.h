@@ -56,12 +56,19 @@ namespace Stoneship
 		MasterGameFile(const String &filename, UID::Ordinal ordinal);
 		virtual ~MasterGameFile();
 
+		/**
+         * Dependencies of newly created SGFs are all MGFs that are loaded at the time of this objects instantiation. This
+         * Method copies all loaded MGFs from the MGFManager object to the dependency array to allow proper storage of dependencies.
+         * If called on a MGF that already has dependencies loaded or has an ordinal different to 0xFFFF, this method will throw.
+         */
+		void initCreated();
 		void load();
 		void store();
 
 		const String &getFilename() const;
 		UID::Ordinal getOrdinal() const;
 		const String &getAuthor() const;
+		void setAuthor()
 		const String &getDescription() const;
 		const std::tm *getTimestamp() const;
 		uint16_t getDependencyCount() const;
