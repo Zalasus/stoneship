@@ -35,6 +35,7 @@ namespace Stoneship
 		virtual bool onInteract(IEntity *entity, IActor *actor) = 0;
 
 		String getModelName() const;
+		void setModelName(const String &s);
 
 
 	private:

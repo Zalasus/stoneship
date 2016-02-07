@@ -74,8 +74,8 @@ namespace Stoneship
         void setDescription(const String &s);
         uint32_t getValue() const;
         void setValue(uint32_t i);
-        uint8_t getSlots() const;
-        void setSlots(uint8_t i);
+        uint8_t getOccupyingSlots() const;
+        void setOccupyingSlots(uint8_t i);
         uint32_t getMaxStackSize() const;
         void setMaxStackSize(uint8_t i);
         bool isStackable() const;

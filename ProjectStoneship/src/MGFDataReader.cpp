@@ -9,6 +9,7 @@
 
 #include "MasterGameFile.h"
 #include "Record.h"
+#include "Logger.h"
 
 namespace Stoneship
 {

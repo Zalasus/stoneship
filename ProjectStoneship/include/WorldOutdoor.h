@@ -29,9 +29,6 @@ namespace Stoneship
 
         // override IRecordReflector
         virtual void loadFromRecord(RecordAccessor &record);
-        virtual void loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType);
-        virtual void storeToRecord(RecordBuilder &record);
-        virtual void storeToModifyRecord(RecordBuilder &record);
 
 
     private:

@@ -113,7 +113,21 @@ namespace Stoneship
         // since child records are entirely up to the entity creating it, we don't write headers for them
         //builder.beginRecord();
 
+        ++mChildRecordCount;
+
         return builder;
+    }
+
+    void RecordBuilder::endRecordBeginNew(Record::Type type, RecordHeader::FlagType flags, UID::ID id, Record::Type groupType)
+    {
+        endRecord();
+
+        mType = type;
+        mFlags = flags;
+        mID = id;
+        mGroupType = groupType;
+
+        beginRecord();
     }
 }
 

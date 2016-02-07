@@ -7,7 +7,6 @@
 
 #include "Logger.h"
 
-#include <iostream>
 #include <ctime>
 
 namespace Stoneship
@@ -25,33 +24,44 @@ namespace Stoneship
 		return timeString;
 	}
 
-	Logger::Logger(const String &name)
+	Logger::Logger(const String &name, std::ostream *stream)
 	: mName(name),
-	  mEnableTimestamp(true)
+	  mEnableTimestamp(true),
+	  mStream(stream),
+	  mChildLogger(nullptr)
 	{
 	}
 
 	void Logger::log(const String &msg, LogLevel level)
 	{
+	    if(mChildLogger != nullptr)
+	    {
+	        mChildLogger->log(msg, level);
+	    }
+
+	    if(mStream == nullptr || !mStream->good())
+	    {
+	        return;
+	    }
 
 	    if(mEnableTimestamp)
 	    {
-	        std::cout << "[" << getTimestamp() << "]";
+	        *mStream << "[" << getTimestamp() << "]";
 	    }
 
 		switch(level)
 		{
 		case LOGLEVEL_SEVERE:
-			std::cout << "[SEVE] " << msg << std::endl;
+		    *mStream << "[SEVE] " << msg << std::endl;
 			break;
 
 		case LOGLEVEL_WARNING:
-			std::cout << "[WARN] " << msg << std::endl;
+		    *mStream << "[WARN] " << msg << std::endl;
 			break;
 
 		case LOGLEVEL_INFO:
 		default:
-			std::cout << "[INFO] " << msg << std::endl;
+		    *mStream << "[INFO] " << msg << std::endl;
 		}
 	}
 
@@ -63,6 +73,16 @@ namespace Stoneship
     void Logger::setEnableTimestamp(bool ts)
     {
         mEnableTimestamp = ts;
+    }
+
+    void Logger::setOutputStream(std::ostream *s)
+    {
+        mStream = s;
+    }
+
+    void Logger::setChildLogger(Logger *l)
+    {
+        mChildLogger = l;
     }
 
 

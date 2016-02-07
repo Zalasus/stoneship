@@ -38,6 +38,7 @@ namespace Stoneship
 			INVALID_RECORD_TYPE,
 			RENDERER_ERROR,
 			UNSUPPSORTED,
+			OUT_OF_BOUNDS,
 			INVALID_STATE
 		};
 

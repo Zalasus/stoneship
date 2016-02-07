@@ -27,22 +27,22 @@ namespace Stoneship
 	  mOrdinal(ordinal),
 	  mLoaded(false),
 	  mFlags(0),
-	  mDependencyCount(0),
-	  mDependencies(nullptr),
-	  mResourceCount(0),
-	  mHints(nullptr),
+	  mAuthor("Zalasus"),
+	  mDescription("Just a test MGF"),
+	  mDependencies(),
+	  mResources(),
+	  mHints(),
 	  mCachedHint(nullptr),
-	  mRecordCount(0),
 	  mRecordGroupCount(0)
 	{
 	}
 
 	MasterGameFile::~MasterGameFile()
 	{
-		mInputStream.close();
-
-		delete[] mDependencies;
-		delete[] mHints;
+	    if(mInputStream.is_open())
+	    {
+	        mInputStream.close();
+	    }
 	}
 
 	void MasterGameFile::load()
@@ -89,12 +89,13 @@ namespace Stoneship
 		mTimestamp = *std::localtime(&timestampCTime);  //FIXME: Not portable! Timestamp in MGF is always UNIX format, but localtime() may use different format. Check whether this is a real hazard and fix when neccessary
 
 		//load and check for dependencies
-		ds >> mDependencyCount;
-		if(mDependencyCount > 0)
+		uint16_t dependencyCount;
+		ds >> dependencyCount;
+		if(dependencyCount > 0)
 		{
-			mDependencies = new Dependency[mDependencyCount];
+			mDependencies.allocate(dependencyCount);
 
-			for(uint16_t i = 0; i < mDependencyCount; i++)
+			for(uint16_t i = 0; i < dependencyCount; i++)
 			{
 				String filename;
 				ds >> filename;
@@ -110,28 +111,35 @@ namespace Stoneship
 
 
 		//define resource paths
-		ds >> mResourceCount;
-		for(uint16_t i = 0; i < mResourceCount; i++)
+		uint16_t resourceCount;
+		ds >> resourceCount;
+		mResources.allocate(resourceCount);
+		for(uint16_t i = 0; i < resourceCount; i++)
 		{
 			uint8_t resType;
-			uint8_t resPrio;
+			uint8_t resDummy;
 			String resPath;
 
 			ds >> resType
-			   >> resPrio
+			   >> resDummy
 			   >> resPath;
+
+			mResources[i].path = resPath;
 
 			switch(resType)
 			{
 			case RES_TYPE_FS:
+			    mResources[i].type = ResourceManager::PATH_FILESYSTEM;
 				Root::getSingleton()->getResourceManager()->addResourcePath(resPath, ResourceManager::PATH_FILESYSTEM, mOrdinal);
 				break;
 
 			case RES_TYPE_ZIP:
+			    mResources[i].type = ResourceManager::PATH_ZIP_FILE;
 				Root::getSingleton()->getResourceManager()->addResourcePath(resPath, ResourceManager::PATH_ZIP_FILE, mOrdinal);
 				break;
 
 			case RES_TYPE_GZIP:
+			    mResources[i].type = ResourceManager::PATH_GZIP_FILE;
 				Root::getSingleton()->getResourceManager()->addResourcePath(resPath, ResourceManager::PATH_GZIP_FILE, mOrdinal);
 				break;
 
@@ -143,13 +151,14 @@ namespace Stoneship
 
 
 		//load records
-		ds >> mRecordGroupCount;
+		uint16_t recordGroupCount;
+		ds >> recordGroupCount;
 
 		mHeaderEndOfffset = ds.tell(); //store this so we may navigate quickly to start of records
 
 		//skip through the file and index every top record group
-		mHints = new OffsetHint[mRecordGroupCount];
-		for(uint32_t i = 0; i < mRecordGroupCount; i++)
+		mHints.allocate(recordGroupCount);
+		for(uint32_t i = 0; i < recordGroupCount; i++)
 		{
 			std::streampos offset = ds.tell();
 
@@ -217,31 +226,56 @@ namespace Stoneship
                << static_cast<uint64_t>(std::mktime(&mTimestamp)); // convert time structure back to epoch format and ensure 64 bit width FIXME: Not portable! mktime does not neccessarily produce epoch times on every platform
 
 
-	    writer << mDependencyCount;
-	    for(uint32_t i = 0; i < mDependencyCount; ++i)
+	    uint16_t dependencyCount = static_cast<uint16_t>(mDependencies.size());
+	    writer << dependencyCount;
+	    for(uint16_t i = 0; i < dependencyCount; ++i)
 	    {
-	        writer << mDependencies->filename
-	               << mDependencies->ordinal;
+	        writer << mDependencies[i].filename
+	               << mDependencies[i].ordinal;
 	    }
 
-	    writer << mResourceCount;
-	    for(uint32_t i = 0 ; i < mResourceCount; ++i)
+	    uint16_t resourceCount = static_cast<uint16_t>(mResources.size());
+	    writer << resourceCount;
+	    for(uint16_t i = 0 ; i < resourceCount; ++i)
 	    {
-	        // TODO: Write ressources here
-	        writer << static_cast<uint8_t>(0xCA)
-	               << static_cast<uint8_t>(0xFE)
-	               << String("Did you know that with the new MGF version all Strings may contain up to 4GiB of characters? Awesome! Like anybody will ever need that");
+	        uint8_t resType;
+
+	        switch(mResources[i].type)
+            {
+            case ResourceManager::PATH_FILESYSTEM:
+                resType = RES_TYPE_FS;
+                break;
+
+            case ResourceManager::PATH_ZIP_FILE:
+                resType = RES_TYPE_ZIP;
+                break;
+
+            case ResourceManager::PATH_GZIP_FILE:
+                resType = RES_TYPE_GZIP;
+                break;
+
+            default:
+                STONESHIP_EXCEPT(StoneshipException::RESOURCE_ERROR, "Unknown or unsupported type given for resource " + mResources[i].path);
+            }
+
+	        writer << resType
+	               << static_cast<uint8_t>('Z')
+	               << mResources[i].path;
 	    }
 
-	    writer << static_cast<uint32_t>(0xCAFEBABE); // top group count
+	    std::streampos topGroupCountOff = writer.tell();
+	    writer << static_cast<uint32_t>(0xCAFEBABE); // top group count (overwritten later)
 
 
 	    // done writing header. now we need to write the top groups
-	    Root::getSingleton()->getEntityManager()->storeCache(writer); // EntityManager gets to store everything it has cached
-	    Root::getSingleton()->getEntityManager()->storeCacheMods(writer); // append MODIFY top group
+	    mRecordGroupCount = Root::getSingleton()->getEntityManager()->storeCache(writer); // EntityManager gets to store everything it has cached
+	    //Root::getSingleton()->getEntityManager()->storeCacheMods(writer); // append MODIFY top group
 
 
 	    writer << static_cast<uint8_t>(0xF0); // end marker (legacy)
+
+	    writer.seek(topGroupCountOff);
+	    writer << static_cast<uint32_t>(mRecordGroupCount);
 
 	    out.close();
 	}
@@ -256,10 +290,9 @@ namespace Stoneship
 
         MGFManager *mgfm = Root::getSingleton()->getMGFManager();
 
-        mDependencyCount = mgfm->getLoadedMGFCount();
-        mDependencies = new Dependency[mDependencyCount];
+        mDependencies.allocate(mgfm->getLoadedMGFCount());
 
-        for(uint32_t i = 0; i < mDependencyCount; ++i)
+        for(uint32_t i = 0; i < mDependencies.size(); ++i)
         {
             mDependencies[i].ordinal = mgfm->getLoadedMGF(i)->getOrdinal();
             mDependencies[i].filename = mgfm->getLoadedMGF(i)->getFilename();
@@ -286,7 +319,7 @@ namespace Stoneship
 
 	uint16_t MasterGameFile::getDependencyCount() const
 	{
-		return mDependencyCount;
+		return mDependencies.size();
 	}
 
 	const MasterGameFile::Dependency *MasterGameFile::getDependencies() const
@@ -311,7 +344,7 @@ namespace Stoneship
 
 	uint16_t MasterGameFile::getResourceCount() const
 	{
-		return mResourceCount;
+		return mResources.size();
 	}
 
 	bool MasterGameFile::isLoaded() const
@@ -326,7 +359,7 @@ namespace Stoneship
 			return getOrdinal();
 		}
 
-		for(uint16_t i = 0; i < mDependencyCount; ++i)
+		for(uint16_t i = 0; i < mDependencies.size(); ++i)
 		{
 			if(mDependencies[i].ordinal == local)
 			{

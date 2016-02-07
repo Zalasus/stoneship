@@ -34,7 +34,7 @@ namespace Stoneship
 		uint32_t getBaseCacheSize();
 		void collectGarbage();
 
-		void storeCache(MGFDataWriter &writer);
+		uint32_t storeCache(MGFDataWriter &writer);
 		void storeCacheMods(MGFDataWriter &writer);
 
 	private:

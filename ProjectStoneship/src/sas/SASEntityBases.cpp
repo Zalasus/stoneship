@@ -66,7 +66,7 @@ namespace Stoneship
 
 	EntityBase_Weapon::EntityBase_Weapon(UID uid)
 	: IEntityBaseItem(uid),
-	  mWeaponType(TYPE_SWORD_ONE_HAND, Record::SUBTYPE_DATA, this),
+	  mWeaponType(0, Record::SUBTYPE_DATA, this),
 	  mDamage(0, Record::SUBTYPE_DATA, this),
 	  mDurability(0, Record::SUBTYPE_DATA, this),
 	  mReach(0, Record::SUBTYPE_DATA, this)
@@ -180,6 +180,11 @@ namespace Stoneship
                     << items[i].getCount();
             record.endSubrecord();
         }
+    }
+
+    void EntityBase_Container::storeToModifyRecord(RecordBuilder &record)
+    {
+        // TODO: store modified items
     }
 
     bool EntityBase_Container::canInteract() const

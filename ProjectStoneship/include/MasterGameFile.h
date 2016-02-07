@@ -15,7 +15,9 @@
 #include "Types.h"
 #include "String.h"
 #include "Record.h"
+#include "ResourceManager.h"
 #include "RecordAccessor.h"
+#include "SimpleArray.h"
 
 namespace Stoneship
 {
@@ -36,6 +38,12 @@ namespace Stoneship
 		{
 			String filename;
 			UID::Ordinal ordinal;
+		};
+
+		struct ResourcePath
+		{
+		    String path;
+		    ResourceManager::ResourcePathType type;
 		};
 
 		struct OffsetHint
@@ -68,7 +76,6 @@ namespace Stoneship
 		const String &getFilename() const;
 		UID::Ordinal getOrdinal() const;
 		const String &getAuthor() const;
-		void setAuthor()
 		const String &getDescription() const;
 		const std::tm *getTimestamp() const;
 		uint16_t getDependencyCount() const;
@@ -108,12 +115,10 @@ namespace Stoneship
 		String mDescription;
 		std::tm mTimestamp;
 
-		uint16_t mDependencyCount;
-		Dependency *mDependencies;
-		uint16_t mResourceCount;
-		OffsetHint *mHints;
+		SimpleArray<Dependency> mDependencies;
+		SimpleArray<ResourcePath> mResources;
+		SimpleArray<OffsetHint> mHints;
 		OffsetHint *mCachedHint;
-		uint32_t mRecordCount;
 		uint32_t mRecordGroupCount;
 
 		std::streampos mHeaderEndOfffset;

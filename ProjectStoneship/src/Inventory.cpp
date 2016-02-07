@@ -78,7 +78,7 @@ namespace Stoneship
 
 		for(uint32_t i = 0; i < mItems.size(); ++i)
 		{
-			slotsUsed += mItems[i].getItemBase()->getSlots();
+			slotsUsed += mItems[i].getItemBase()->getOccupyingSlots();
 		}
 
 		return slotsUsed;
@@ -153,7 +153,7 @@ namespace Stoneship
 			}
 
 			//create new stack if enough slots free
-			if(getFreeSlotCount() >= itemBase->getSlots())
+			if(getFreeSlotCount() >= itemBase->getOccupyingSlots())
 			{
 				mItems.push_back(ItemStack(itemBase, newStackSize));
 				countRemaining -= newStackSize;

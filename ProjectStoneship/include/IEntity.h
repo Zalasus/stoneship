@@ -71,17 +71,16 @@ namespace Stoneship
 		void spawn(IWorld *w);
         void despawn();
 
-        // overrides IRecordReflector
-        virtual void loadFromRecord(RecordAccessor &record);
-        virtual void loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType);
-        virtual void storeToRecord(RecordBuilder &record);
-        virtual void storeToModifyRecord(RecordBuilder &record);
+		float getScale() const;
+		void setScale(float f);
+        void remove();
 
-		void remove();
 
 	private:
 
 		IWorld *mWorld;
+		//SubrecordField<PosRot> mPositionRotation;
+		SubrecordField<float> mScale;
 	};
 
 	class EntityItem : public EntityWorld

@@ -131,7 +131,7 @@ namespace Stoneship
 		}
 	}
 
-	void EntityManager::storeCache(MGFDataWriter &writer)
+	uint32_t EntityManager::storeCache(MGFDataWriter &writer)
 	{
 	    // first, we sort the cache so we can archive proper grouping in the MGF
 
@@ -145,7 +145,8 @@ namespace Stoneship
 	    Record::Type lastGroup = Record::TYPE_RESERVED;
 	    uint32_t groupCount = 0;
 	    bool hasDirtyThings = false;
-	    RecordBuilder groupBuilder(writer, Record::TYPE_RESERVED);
+	    RecordBuilder *groupBuilderPtr = new RecordBuilder(writer, Record::TYPE_RESERVED); // !!!!!! Pointer stuff only for debugging!!!
+	    RecordBuilder &groupBuilder = *groupBuilderPtr;
 
 	    for(uint32_t i = 0; i < mBaseCache.size(); ++i)
         {
@@ -182,7 +183,8 @@ namespace Stoneship
                 }else
                 {
                     // no, this is our first record group. re-initialize builder accordingly and write header
-                   // groupBuilder = RecordBuilder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, base->getRecordType());
+                    delete groupBuilderPtr;
+                    groupBuilderPtr = new RecordBuilder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, base->getRecordType());
                     groupBuilder.beginRecord();
                 }
 
@@ -192,6 +194,7 @@ namespace Stoneship
 
 
             RecordBuilder childBuilder = groupBuilder.createChildBuilder(base->getRecordType(), 0, base->getUID().id);
+            childBuilder.beginRecord();
             base->storeToRecord(childBuilder);
             childBuilder.endRecord();
         }
@@ -202,5 +205,9 @@ namespace Stoneship
 	        // yes. write final footer
 	        groupBuilder.endRecord();
 	    }
+
+	    delete groupBuilderPtr;
+
+	    return groupCount;
 	}
 }

@@ -31,7 +31,7 @@ File structure
 
 ubyte[8]: 		 magic id = "NRPG3MGF"
 string:		     game id
-ushort:			 file flags
+uint:			 file flags
 
 (meta information)
 string:		     author (name of MGF's author)
@@ -50,7 +50,7 @@ resource[~]:	 resources (a list of paths/archive files where this MGFs BLOBs are
 uint:			 record top group count
 record_group[~]: record groups
 
-ubyte:            end marker = 0xF0
+ubyte:           end marker = 0xF0
 
 
 File flags

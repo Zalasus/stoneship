@@ -33,11 +33,9 @@ namespace Stoneship
         virtual void removeEntity(IEntity *entity);
         virtual void removeEntity(UID uid);
 
-        // override IRecordReflector
+        // override RecordReflector
         virtual void loadFromRecord(RecordAccessor &record);
-        virtual void loadFromModifyRecord(RecordAccessor &record, Record::ModifyType modType);
         virtual void storeToRecord(RecordBuilder &record);
-        virtual void storeToModifyRecord(RecordBuilder &record);
 
 
     private:

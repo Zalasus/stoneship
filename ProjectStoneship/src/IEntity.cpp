@@ -54,7 +54,8 @@ namespace Stoneship
 
 	EntityWorld::EntityWorld(UID uid, IEntityBaseWorld *base)
 	: IEntity(uid, base),
-	  mWorld(nullptr)
+	  mWorld(nullptr),
+	  mScale(1, Record::SUBTYPE_SCALE, this)
 	{
 	}
 
@@ -74,22 +75,22 @@ namespace Stoneship
 	    Logger::info("Despawned entity " + getUID().toString() + " in world " + mWorld->getUID().toString());
 	}
 
+	float EntityWorld::getScale() const
+	{
+	    return mScale.get();
+	}
+
+	void EntityWorld::setScale(float f)
+	{
+	    mScale.set(f);
+	}
+
 	void EntityWorld::remove()
 	{
 	    if(mWorld != nullptr)
 	    {
 	        mWorld->removeEntity(this);
 	    }
-	}
-
-	void EntityWorld::loadFromRecord(RecordAccessor &rec)
-	{
-
-	}
-
-	void EntityWorld::storeToRecord(RecordBuilder &rec)
-	{
-
 	}
 
 

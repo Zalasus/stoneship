@@ -102,33 +102,35 @@ namespace Stoneship
 	    return mEventPipeline;
 	}
 
+	void Root::loadAllMGFs()
+	{
+	    // load MGFs from config file
+        const std::vector<IniFile::IniEntry> &mgfEntries = getOptions().getIniFile().getEntriesInSection("mgf");
+        for(uint32_t i = 0; i < mgfEntries.size(); ++i)
+        {
+            try
+            {
+                Logger::info("Loading MGF '" + mgfEntries[i].value + "'");
+
+                getMGFManager()->loadMGF(mgfEntries[i].value);
+
+            }catch(StoneshipException &e)
+            {
+                STONESHIP_EXCEPT(e.getType(), "Error while loading MGF " + mgfEntries[i].value + " from config file: " + e.getMessage());
+            }
+        }
+
+        Logger::info(String("Loaded ") + getMGFManager()->getLoadedMGFCount() + " MGF(s)");
+	}
+
 	void Root::run()
 	{
 	    // add default resource path
 	    getResourceManager()->addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
 
 
-	    // load MGFs from config file
-	    const std::vector<IniFile::IniEntry> &mgfEntries = getOptions().getIniFile().getEntriesInSection("mgf");
-	    for(uint32_t i = 0; i < mgfEntries.size(); ++i)
-	    {
-	        try
-	        {
-	            Logger::info("Loading MGF '" + mgfEntries[i].value + "'");
-
-	            getMGFManager()->loadMGF(mgfEntries[i].value);
-
-	        }catch(StoneshipException &e)
-	        {
-	            STONESHIP_EXCEPT(e.getType(), "Error while loading MGF " + mgfEntries[i].value + " from config file: " + e.getMessage());
-	        }
-	    }
-
-	    Logger::info(String("Loaded ") + getMGFManager()->getLoadedMGFCount() + " MGF(s)");
-
-
 	    // now that all MGFs are loaded, we need to find an entry point
-	    getWorldManager()->enterWorld(UID(0xA));
+	    //getWorldManager()->enterWorld(UID(0xA));
 
 
 	    // we are done here. give control back to implementation

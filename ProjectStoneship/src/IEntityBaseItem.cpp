@@ -81,12 +81,12 @@ namespace Stoneship
 	    mValue.set(i);
 	}
 
-	uint8_t IEntityBaseItem::getSlots() const
+	uint8_t IEntityBaseItem::getOccupyingSlots() const
 	{
 		return mInventory.getSlotCount();
 	}
 
-	void IEntityBaseItem::setSlots(uint8_t i)
+	void IEntityBaseItem::setOccupyingSlots(uint8_t i)
 	{
 	    mInventory.setSlotCount(i);
 	}

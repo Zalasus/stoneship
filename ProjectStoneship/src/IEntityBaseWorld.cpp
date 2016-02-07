@@ -29,6 +29,11 @@ namespace Stoneship
 		return mModelName.get();
 	}
 
+	void IEntityBaseWorld::setModelName(const String &s)
+	{
+	    mModelName.set(s);
+	}
+
 	IEntity *IEntityBaseWorld::createEntity(UID uid)
 	{
 	    return new EntityWorld(uid, this);

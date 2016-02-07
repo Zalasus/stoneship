@@ -19,6 +19,11 @@ namespace Stoneship
     {
     }
 
+    const std::vector<SubrecordFieldS*> &RecordReflector::getReflectedFields()
+    {
+        return mReflectedVect;
+    }
+
     void RecordReflector::loadFromRecord(RecordAccessor &record)
     {
         const std::vector<SubrecordFieldS*> &fields = getReflectedFields();

@@ -35,6 +35,8 @@ namespace Stoneship
 		ResourceManager *getResourceManager();
 		EventPipeline *getEventPipeline();
 
+		void loadAllMGFs();
+
 		/**
 		 * @brief Runs the game. Blocking call; returns when finished
 		 */

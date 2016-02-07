@@ -8,6 +8,8 @@
 #ifndef INCLUDE_LOGGER_H_
 #define INCLUDE_LOGGER_H_
 
+#include <iostream>
+
 #include "String.h"
 
 namespace Stoneship
@@ -24,12 +26,14 @@ namespace Stoneship
 			LOGLEVEL_SEVERE
 		};
 
-		Logger(const String &name);
+		Logger(const String &name, std::ostream *stream = &std::cout);
 
 		void log(const String &msg, LogLevel level = LOGLEVEL_INFO);
 
         String getLoggerName();
         void setEnableTimestamp(bool ts);
+        void setOutputStream(std::ostream *s);
+        void setChildLogger(Logger *l);
 
 
         static Logger &getDefaultLogger();
@@ -43,6 +47,8 @@ namespace Stoneship
 
 		String mName;
 		bool mEnableTimestamp;
+		std::ostream *mStream;
+		Logger *mChildLogger;
 
 
 		static Logger smDefaultLogger;
