@@ -10,34 +10,49 @@
 namespace Stoneship
 {
 
-    RecordBuilder::RecordBuilder(MGFDataWriter &writer, Record::Type type, RecordHeader::FlagType flags, UID::ID id, Record::Type groupType)
+    RecordBuilder::RecordBuilder(MGFDataWriter &writer)
     : mWriter(writer),
-	  mType(type),
-	  mFlags(flags),
-	  mID(id),
-	  mGroupType(groupType),
+	  mType(Record::TYPE_RESERVED),
+	  mFlags(0),
+	  mID(UID::NO_ID),
+	  mGroupType(Record::TYPE_RESERVED),
       mChildRecordCount(0)
     {
     }
 
-    void RecordBuilder::beginRecord()
+    void RecordBuilder::beginRecord(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
     {
+        if(type == Record::TYPE_GROUP)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Called beginRecord() in RecordBuilder for GROUP record. Must use beginGroupRecord() instead. This indicated a bug in the engine.");
+        }
+
+        mType = type;
+        mFlags = flags;
+        mID = id;
+
+
+        mWriter << mType;
+
+        mRecordSizeFieldOffset = mWriter.tell();
+        mWriter << static_cast<RecordHeader::SizeType>(0xDEADBEEF) // this field is overwritten by endRecord()
+                << mFlags
+                << mID;
+    }
+
+    void RecordBuilder::beginGroupRecord(Record::Type groupType)
+    {
+        mType = Record::TYPE_GROUP;
+        mGroupType = groupType;
+
         mWriter << mType;
 
         mRecordSizeFieldOffset = mWriter.tell();
         mWriter << static_cast<RecordHeader::SizeType>(0xDEADBEEF); // this field is overwritten by endRecord()
 
-        if(mType == Record::TYPE_GROUP)
-        {
-            mWriter << mGroupType;
-            mChildRecordCountFieldOffset = mWriter.tell();
-            mWriter << static_cast<RecordHeader::ChildRecordCountType>(0xDEADBEEF);  // this field is overwritten by endRecord()
-
-        }else
-        {
-            mWriter << mFlags;
-            mWriter << mID;
-        }
+        mWriter << mGroupType;
+        mChildRecordCountFieldOffset = mWriter.tell();
+        mWriter << static_cast<RecordHeader::ChildRecordCountType>(0xDEADBEEF);  // this field is overwritten by endRecord()
     }
 
     void RecordBuilder::endRecord()
@@ -74,6 +89,16 @@ namespace Stoneship
         return mWriter;
     }
 
+    RecordBuilder RecordBuilder::beginSubgroupSubrecord(Record::Type groupType)
+    {
+        MGFDataWriter &writer = beginSubrecord(Record::SUBTYPE_SUBGROUP);
+
+        RecordBuilder builder(writer);
+        builder.beginGroupRecord(groupType);
+
+        return builder;
+    }
+
     void RecordBuilder::endSubrecord()
     {
         std::streamoff pos = mWriter.tell();
@@ -86,48 +111,19 @@ namespace Stoneship
         mWriter.seek(pos);
     }
 
-    RecordBuilder RecordBuilder::beginSubgroup(Record::Type groupType)
-    {
-        MGFDataWriter &writer = beginSubrecord(Record::SUBTYPE_SUBGROUP);
-
-        RecordBuilder builder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, groupType);
-        builder.beginRecord();
-
-        return builder;
-    }
-
-    void RecordBuilder::endSubgroup()
-    {
-        endSubrecord();
-    }
-
-    RecordBuilder RecordBuilder::createChildBuilder(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
+    RecordBuilder RecordBuilder::createAndBeginChildBuilder(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
     {
         if(mType != Record::TYPE_GROUP)
         {
             STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Tried to create child record in non-GROUP type record.");
         }
 
-        RecordBuilder builder(mWriter, type, flags, id);
-
-        // since child records are entirely up to the entity creating it, we don't write headers for them
-        //builder.beginRecord();
+        RecordBuilder builder(mWriter);
+        builder.beginRecord(type, flags, id);
 
         ++mChildRecordCount;
 
         return builder;
-    }
-
-    void RecordBuilder::endRecordBeginNew(Record::Type type, RecordHeader::FlagType flags, UID::ID id, Record::Type groupType)
-    {
-        endRecord();
-
-        mType = type;
-        mFlags = flags;
-        mID = id;
-        mGroupType = groupType;
-
-        beginRecord();
     }
 }
 

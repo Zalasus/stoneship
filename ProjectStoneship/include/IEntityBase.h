@@ -43,11 +43,10 @@ namespace Stoneship
 		IEntityBase(UID uid);
 		virtual ~IEntityBase();
 
-		// overrides IRecordReflector
-		virtual UID getCreatedUID();
+		// overrides RecordReflector
+		virtual UID getCreatedUID() const;
 
 		// interface
-		virtual Record::Type getRecordType() const = 0;
 		virtual BaseType getBaseType() const = 0;
 		virtual String getBaseName() const = 0;
 		virtual IEntity *createEntity(UID entityUID) = 0;

@@ -29,8 +29,10 @@ namespace Stoneship
 	public:
 		EntityBase_Static(UID uid);
 
+		// override RecordReflector
+		Record::Type getRecordType() const { return 0x800; }
+
 		// override IEntityBase
-		Record::Type getRecordType() const {return 0x800;}
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;};
 		String getBaseName() const {return "Static";}
 
@@ -46,8 +48,10 @@ namespace Stoneship
 
 		EntityBase_Book(UID uid);
 
-		// override IEntityBase
+		// override RecordReflector
 		Record::Type getRecordType() const {return 0x820;}
+
+		// override IEntityBase
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD | BASETYPE_ITEM;}
 		String getBaseName() const {return "Book";}
 
@@ -71,15 +75,17 @@ namespace Stoneship
 	public:
 
 		typedef uint8_t WeaponType;
-		static const WeaponType TYPE_SWORD_ONE_HAND = 0;
-		static const WeaponType TYPE_SWORD_TWO_HAND = 1;
-		static const WeaponType TYPE_BOW = 2;
-		static const WeaponType TYPE_BLUNT = 3;
+		static const WeaponType TYPE_SWORD_ONE_HAND = 1;
+		static const WeaponType TYPE_SWORD_TWO_HAND = 2;
+		static const WeaponType TYPE_BOW = 3;
+		static const WeaponType TYPE_BLUNT = 4;
 
 		EntityBase_Weapon(UID uid);
 
-		// override IEntityBase
+		// override RecordReflector
 		Record::Type getRecordType() const {return 0x810;}
+
+		// override IEntityBase
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Weapon";}
 
@@ -109,8 +115,10 @@ namespace Stoneship
 
 		EntityBase_Stuff(UID uid);
 
-		// override IEntityBase
+		// override RecordReflector
 		Record::Type getRecordType() const {return 0x821;}
+
+		// override IEntityBase
 		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Stuff";}
 
@@ -125,9 +133,11 @@ namespace Stoneship
 	public:
 	    EntityBase_Container(UID uid);
 
-	    // override IEntityBase
+	    // override RecordReflector
 	    Record::Type getRecordType() const {return 0x82A;}
-        IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;}
+
+	    // override IEntityBase
+	    IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;}
         String getBaseName() const {return "Container";}
         IEntity *createEntity(UID entityUID); // this Base needs a custom Entity that has an Inventory
 

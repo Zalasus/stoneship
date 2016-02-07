@@ -39,7 +39,7 @@ namespace Stoneship
 		return mUserCount;
 	}
 
-	UID IEntityBase::getCreatedUID()
+	UID IEntityBase::getCreatedUID() const
 	{
 	    return mUID;
 	}

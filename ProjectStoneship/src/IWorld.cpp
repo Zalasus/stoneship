@@ -19,7 +19,7 @@ namespace Stoneship
     {
     }
 
-    UID IWorld::getCreatedUID()
+    UID IWorld::getCreatedUID() const
     {
         return mUID;
     }

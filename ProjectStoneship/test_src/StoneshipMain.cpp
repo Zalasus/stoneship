@@ -36,6 +36,8 @@ int main(int argc, char **argv)
         root->getOptions().load(argc, argv);
         root->loadAllMGFs();
 
+        UID uid = root->getMGFManager()->getNewUID();
+        WorldDungeon dungeon(uid);
 
         root->run();
 

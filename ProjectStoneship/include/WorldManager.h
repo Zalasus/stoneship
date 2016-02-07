@@ -20,6 +20,7 @@ namespace Stoneship
 	class Root;
 	class IEntity;
 	class IWorld;
+	class MGFDataWriter;
 
 	class WorldManager
 	{
@@ -30,12 +31,12 @@ namespace Stoneship
 
 		void enterWorld(UID worldUID);
 		IWorld *getCurrentWorld();
-
+		uint32_t storeWorldCache(MGFDataWriter &writer);
 
 	private:
 
 		Root *mRoot;
-
+		std::vector<IWorld*> mWorldCache;
 		IWorld *mCurrentWorld;
 
 	};

@@ -28,7 +28,8 @@ namespace Stoneship
         virtual ~RecordReflector();
 
         // interface
-        virtual UID getCreatedUID() = 0;
+        virtual UID getCreatedUID() const = 0;
+        virtual Record::Type getRecordType() const = 0;
         virtual void loadFromRecord(RecordAccessor &record); // Loads everything. Throws if subrecord is missing
         virtual void loadFromModifyRecord(RecordAccessor &record); // Just loads fields that have a subrecord
         virtual void storeToRecord(RecordBuilder &b); // Stores everything

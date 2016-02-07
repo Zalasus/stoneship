@@ -18,6 +18,7 @@
 #include "StoneshipDefines.h"
 #include "Root.h"
 #include "EntityManager.h"
+#include "WorldManager.h"
 
 namespace Stoneship
 {
@@ -268,8 +269,9 @@ namespace Stoneship
 
 
 	    // done writing header. now we need to write the top groups
-	    mRecordGroupCount = Root::getSingleton()->getEntityManager()->storeCache(writer); // EntityManager gets to store everything it has cached
+	    mRecordGroupCount += Root::getSingleton()->getEntityManager()->storeCache(writer); // EntityManager gets to store everything it has cached
 	    //Root::getSingleton()->getEntityManager()->storeCacheMods(writer); // append MODIFY top group
+	    mRecordGroupCount += Root::getSingleton()->getWorldManager()->storeWorldCache(writer);
 
 
 	    writer << static_cast<uint8_t>(0xF0); // end marker (legacy)

@@ -44,11 +44,15 @@ namespace Stoneship
 		return mBase;
 	}
 
-	UID IEntity::getCreatedUID()
+	UID IEntity::getCreatedUID() const
 	{
 	    return mUID;
 	}
 
+	Record::Type IEntity::getRecordType() const
+	{
+	    return Record::TYPE_ENTITY;
+	}
 
 
 

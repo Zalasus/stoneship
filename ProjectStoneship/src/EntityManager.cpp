@@ -131,8 +131,19 @@ namespace Stoneship
 		}
 	}
 
+	/* TODO: This method looks almost exactly the same as the one in WorldManager. We might merge the EntityManager and WorldManager into one class with one cache that just
+	 * stores RecordReflectors.
+	 */
 	uint32_t EntityManager::storeCache(MGFDataWriter &writer)
 	{
+	    if(mBaseCache.size() == 0)
+	    {
+	        // nothing to store. skip!
+
+	        return 0;
+	    }
+
+
 	    // first, we sort the cache so we can archive proper grouping in the MGF
 
 	    // lambda for comparing record type of two Base objects
@@ -144,9 +155,8 @@ namespace Stoneship
 	    // next, iterate over records and store them
 	    Record::Type lastGroup = Record::TYPE_RESERVED;
 	    uint32_t groupCount = 0;
-	    bool hasDirtyThings = false;
-	    RecordBuilder *groupBuilderPtr = new RecordBuilder(writer, Record::TYPE_RESERVED); // !!!!!! Pointer stuff only for debugging!!!
-	    RecordBuilder &groupBuilder = *groupBuilderPtr;
+	    //bool hasDirtyThings = false;
+	    RecordBuilder groupBuilder(writer);
 
 	    for(uint32_t i = 0; i < mBaseCache.size(); ++i)
         {
@@ -161,7 +171,7 @@ namespace Stoneship
                 // for proper grouping, this pass is delayed to a second pass, which is done by another function.
                 if(base->isDirty())
                 {
-                    hasDirtyThings = true;
+                    //hasDirtyThings = true;
                 }
 
                 // if it isn't dirty it's state can be recreated entirely by that MGF, so we don't have to store it anywhere.
@@ -177,15 +187,14 @@ namespace Stoneship
                 // different record type than last base. have we written a header already?
                 if(groupCount > 0)
                 {
-                    // yes -> write a footer and start new group using that handy function
-                    groupBuilder.endRecordBeginNew(Record::TYPE_GROUP, 0, UID::NO_ID, base->getRecordType());
+                    // yes -> write a footer and start new group
+                    groupBuilder.endRecord();
+                    groupBuilder.beginGroupRecord(base->getRecordType());
 
                 }else
                 {
-                    // no, this is our first record group. re-initialize builder accordingly and write header
-                    delete groupBuilderPtr;
-                    groupBuilderPtr = new RecordBuilder(writer, Record::TYPE_GROUP, 0, UID::NO_ID, base->getRecordType());
-                    groupBuilder.beginRecord();
+                    // no, this is our first record group. no need to write footer. just start group right ahead
+                    groupBuilder.beginGroupRecord(base->getRecordType());
                 }
 
                 ++groupCount;
@@ -193,8 +202,7 @@ namespace Stoneship
             }
 
 
-            RecordBuilder childBuilder = groupBuilder.createChildBuilder(base->getRecordType(), 0, base->getUID().id);
-            childBuilder.beginRecord();
+            RecordBuilder childBuilder = groupBuilder.createAndBeginChildBuilder(base->getRecordType(), 0, base->getUID().id);
             base->storeToRecord(childBuilder);
             childBuilder.endRecord();
         }
@@ -205,8 +213,6 @@ namespace Stoneship
 	        // yes. write final footer
 	        groupBuilder.endRecord();
 	    }
-
-	    delete groupBuilderPtr;
 
 	    return groupCount;
 	}

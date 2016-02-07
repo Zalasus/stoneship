@@ -134,7 +134,7 @@ namespace Stoneship
                 << mDungeonName;
         record.endSubrecord();
 
-        RecordBuilder entityGroup = record.beginSubgroup(Record::TYPE_ENTITY);
+        RecordBuilder entityGroup = record.beginSubgroupSubrecord(Record::TYPE_ENTITY);
 
             for(uint32_t i = 0; i < mEntities.size(); ++i)
             {
@@ -146,13 +146,13 @@ namespace Stoneship
                     continue;
                 }
 
-                RecordBuilder entityBuilder = entityGroup.createChildBuilder(Record::TYPE_ENTITY,0, mEntities[i]->getUID().id);
+                RecordBuilder entityBuilder = entityGroup.createAndBeginChildBuilder(Record::TYPE_ENTITY, 0, mEntities[i]->getUID().id);
 
 
             }
 
             entityGroup.endRecord();
-        record.endSubgroup();
+        record.endSubrecord();
     }
 
 }

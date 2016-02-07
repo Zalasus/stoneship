@@ -26,6 +26,9 @@ namespace Stoneship
         WorldDungeon(UID uid);
         ~WorldDungeon();
 
+        // override RecordReflector
+        virtual Record::Type getRecordType() const { return Record::TYPE_DUNGEON; };
+
         // override IWorld
         virtual String getWorldName() const;
         virtual const std::vector<IEntity*> &getLoadedEntities();
