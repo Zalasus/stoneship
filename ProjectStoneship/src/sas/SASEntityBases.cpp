@@ -14,7 +14,7 @@
 #include "RecordAccessor.h"
 #include "RecordBuilder.h"
 #include "Root.h"
-#include "EntityManager.h"
+#include "GameCache.h"
 #include "Logger.h"
 
 namespace Stoneship
@@ -218,7 +218,7 @@ namespace Stoneship
         // store offset. base lookup may move stream pointer TODO: Ugly. Please find better way to avoid skipping through the file like this (indexing item records first?)
         std::streampos pos = reader.tell();
 
-        IEntityBase *base = Root::getSingleton()->getEntityManager()->getBase(itemUID);
+        IEntityBase *base = Root::getSingleton()->getGameCache().getBase(itemUID);
         if(base == nullptr)
         {
             STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Could not find base for contained item " + itemUID.toString());

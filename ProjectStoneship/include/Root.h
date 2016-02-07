@@ -10,15 +10,13 @@
 
 #include "Types.h"
 #include "Options.h"
+#include "MGFManager.h"
+#include "ResourceManager.h"
+#include "GameCache.h"
+#include "EventPipeline.h"
 
 namespace Stoneship
 {
-
-    class MGFManager;
-    class EntityManager;
-    class WorldManager;
-    class ResourceManager;
-    class EventPipeline;
 
 	class Root
 	{
@@ -29,11 +27,10 @@ namespace Stoneship
 
 		Options &getOptions();
 
-		MGFManager *getMGFManager();
-		EntityManager *getEntityManager();
-		WorldManager *getWorldManager();
-		ResourceManager *getResourceManager();
-		EventPipeline *getEventPipeline();
+		MGFManager &getMGFManager();
+		ResourceManager &getResourceManager();
+		GameCache &getGameCache();
+		EventPipeline &getEventPipeline();
 
 		void loadAllMGFs();
 
@@ -50,11 +47,10 @@ namespace Stoneship
 
 		Options mOptions;
 
-		MGFManager *mMGFManager;
-		EntityManager *mEntityManager;
-		WorldManager *mWorldManager;
-		ResourceManager *mResourceManager;
-		EventPipeline *mEventPipeline;
+		MGFManager mMGFManager;
+		ResourceManager mResourceManager;
+		GameCache mGameCache;
+		EventPipeline mEventPipeline;
 
 		static Root *smSingleton;
 	};

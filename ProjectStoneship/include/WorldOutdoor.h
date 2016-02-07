@@ -9,6 +9,7 @@
 #define INCLUDE_WORLDOUTDOOR_H_
 
 #include "IWorld.h"
+#include "SubrecordField.h"
 
 namespace Stoneship
 {
@@ -33,10 +34,12 @@ namespace Stoneship
         // override IRecordReflector
         virtual void loadFromRecord(RecordAccessor &record);
 
+        void setWorldName(const String &s);
+
 
     private:
 
-        String mWorldName;
+        SubrecordField<String> mWorldName;
     };
 
 }

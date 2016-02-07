@@ -15,7 +15,8 @@ namespace Stoneship
 
 
     WorldOutdoor::WorldOutdoor(UID uid)
-    : IWorld(uid)
+    : IWorld(uid),
+      mWorldName("Xelis", Record::SUBTYPE_DISPLAY_NAME, this)
     {
     }
 
@@ -25,7 +26,12 @@ namespace Stoneship
 
     String WorldOutdoor::getWorldName() const
     {
-        return mWorldName;
+        return mWorldName.get();
+    }
+
+    void WorldOutdoor::setWorldName(const String &s)
+    {
+        mWorldName.set(s);
     }
 
     const std::vector<IEntity*> &WorldOutdoor::getLoadedEntities()
@@ -52,9 +58,7 @@ namespace Stoneship
 
     void WorldOutdoor::loadFromRecord(RecordAccessor &rec)
     {
-        rec.getReaderForSubrecord(Record::SUBTYPE_DATA)
-                >> mWorldName;
-
+        IWorld::loadFromRecord(rec);
 
         //create initial chunk map for faster loading without having to seek the MGF everytime
         rec = rec.getNextRecord();

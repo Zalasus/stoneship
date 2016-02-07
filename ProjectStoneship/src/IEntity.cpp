@@ -10,7 +10,7 @@
 #include "IEntityBaseWorld.h"
 #include "IEntityBaseItem.h"
 #include "IWorld.h"
-#include "WorldManager.h"
+#include "GameCache.h"
 #include "Logger.h"
 
 namespace Stoneship

@@ -15,9 +15,9 @@
 
 
 
-#include "EntityManager.h"
 #include "EventPipeline.h"
 #include "Exception.h"
+#include "GameCache.h"
 #include "IniFile.h"
 #include "Inventory.h"
 #include "IEntityBaseItem.h"
@@ -44,7 +44,6 @@
 #include "Types.h"
 #include "IWorld.h"
 #include "IEntityBaseWorld.h"
-#include "WorldManager.h"
 #include "WorldDungeon.h"
 #include "WorldOutdoor.h"
 

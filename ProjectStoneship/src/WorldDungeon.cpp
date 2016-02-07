@@ -11,14 +11,15 @@
 #include "IEntityBase.h"
 #include "Root.h"
 #include "MasterGameFile.h"
-#include "EntityManager.h"
+#include "GameCache.h"
 #include "RecordBuilder.h"
 
 namespace Stoneship
 {
 
     WorldDungeon::WorldDungeon(UID uid)
-    : IWorld(uid)
+    : IWorld(uid),
+      mDungeonName("Empty cell", Record::SUBTYPE_DISPLAY_NAME, this)
     {
     }
 
@@ -32,7 +33,12 @@ namespace Stoneship
 
     String WorldDungeon::getWorldName() const
     {
-        return mDungeonName;
+        return mDungeonName.get();
+    }
+
+    void WorldDungeon::setWorldName(const String &s)
+    {
+        mDungeonName.set(s);
     }
 
     const std::vector<IEntity*> &WorldDungeon::getLoadedEntities()
@@ -104,7 +110,7 @@ namespace Stoneship
                         >> baseUID
                         >> baseType;
 
-                IEntityBase *base = Root::getSingleton()->getEntityManager()->getBase(baseUID, baseType);
+                IEntityBase *base = Root::getSingleton()->getGameCache().getBase(baseUID, baseType);
                 if(base == nullptr)
                 {
                     STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Base " + baseUID.toString() + " for Entity " + entityUID.toString() + " not found");
@@ -130,9 +136,7 @@ namespace Stoneship
 
     void WorldDungeon::storeToRecord(RecordBuilder &record)
     {
-        record.beginSubrecord(Record::SUBTYPE_DISPLAY_NAME)
-                << mDungeonName;
-        record.endSubrecord();
+        IWorld::storeToRecord(record);
 
         RecordBuilder entityGroup = record.beginSubgroupSubrecord(Record::TYPE_ENTITY);
 
@@ -142,13 +146,13 @@ namespace Stoneship
 
                 if(entity->getUID().ordinal != getUID().ordinal)
                 {
-                    // skip this entity if it was not
+                    // skip this entity if it was not creat
                     continue;
                 }
 
-                RecordBuilder entityBuilder = entityGroup.createAndBeginChildBuilder(Record::TYPE_ENTITY, 0, mEntities[i]->getUID().id);
-
-
+                RecordBuilder entityBuilder = entityGroup.createAndBeginChildBuilder(entity->getRecordType(), 0, entity->getUID().id);
+                entity->storeToRecord(entityBuilder);
+                entityBuilder.endRecord();
             }
 
             entityGroup.endRecord();

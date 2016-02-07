@@ -23,6 +23,7 @@ int main(int argc, char **argv)
     std::ofstream logStream("stoneship.log", std::ios::out | std::ios::app);
     if(logStream.good())
     {
+        // put an empty line between executions just for readability
         logStream << std::endl;
     }
     Logger fileLogger("Logfile", &logStream);
@@ -36,8 +37,13 @@ int main(int argc, char **argv)
         root->getOptions().load(argc, argv);
         root->loadAllMGFs();
 
-        UID uid = root->getMGFManager()->getNewUID();
+        UID uid = root->getMGFManager().getNewUID();
         WorldDungeon dungeon(uid);
+        root->getGameCache().manageWorld(&dungeon);
+        dungeon.setWorldName("Naughty Zal's sex dungeon");
+
+
+        root->getMGFManager().storeSGF("save.sgf");
 
         root->run();
 

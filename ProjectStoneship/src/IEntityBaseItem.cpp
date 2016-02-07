@@ -145,7 +145,7 @@ namespace Stoneship
 	{
 	    if(entity->getEntityType() & IEntity::ENTITYTYPE_ITEM)
 	    {
-	        if(Root::getSingleton()->getEventPipeline()->dispatch(Event(Event::TYPE_PICKUP, entity, actor)))
+	        if(Root::getSingleton()->getEventPipeline().dispatch(Event(Event::TYPE_PICKUP, entity, actor)))
 	        {
                 EntityItem *itemEntity = static_cast<EntityItem*>(entity);
 

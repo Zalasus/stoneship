@@ -14,6 +14,7 @@
 #include "Record.h"
 #include "Types.h"
 #include "String.h"
+#include "SubrecordField.h"
 
 namespace Stoneship
 {
@@ -40,10 +41,11 @@ namespace Stoneship
         virtual void loadFromRecord(RecordAccessor &record);
         virtual void storeToRecord(RecordBuilder &record);
 
+        void setWorldName(const String &s);
 
     private:
 
-        String mDungeonName;
+        SubrecordField<String> mDungeonName;
         std::vector<IEntity*> mEntities;
 
     };

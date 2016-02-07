@@ -17,8 +17,7 @@
 #include "MGFManager.h"
 #include "StoneshipDefines.h"
 #include "Root.h"
-#include "EntityManager.h"
-#include "WorldManager.h"
+#include "GameCache.h"
 
 namespace Stoneship
 {
@@ -100,7 +99,7 @@ namespace Stoneship
 			{
 				String filename;
 				ds >> filename;
-				if(Root::getSingleton()->getMGFManager()->getLoadedMGF(filename) == nullptr)
+				if(Root::getSingleton()->getMGFManager().getLoadedMGF(filename) == nullptr)
 				{
 					STONESHIP_EXCEPT(StoneshipException::DEPENDENCY_NOT_MET, "Dependency '" + filename + "' was not loaded before depending MGF");
 				}
@@ -131,17 +130,17 @@ namespace Stoneship
 			{
 			case RES_TYPE_FS:
 			    mResources[i].type = ResourceManager::PATH_FILESYSTEM;
-				Root::getSingleton()->getResourceManager()->addResourcePath(resPath, ResourceManager::PATH_FILESYSTEM, mOrdinal);
+				Root::getSingleton()->getResourceManager().addResourcePath(resPath, ResourceManager::PATH_FILESYSTEM, mOrdinal);
 				break;
 
 			case RES_TYPE_ZIP:
 			    mResources[i].type = ResourceManager::PATH_ZIP_FILE;
-				Root::getSingleton()->getResourceManager()->addResourcePath(resPath, ResourceManager::PATH_ZIP_FILE, mOrdinal);
+				Root::getSingleton()->getResourceManager().addResourcePath(resPath, ResourceManager::PATH_ZIP_FILE, mOrdinal);
 				break;
 
 			case RES_TYPE_GZIP:
 			    mResources[i].type = ResourceManager::PATH_GZIP_FILE;
-				Root::getSingleton()->getResourceManager()->addResourcePath(resPath, ResourceManager::PATH_GZIP_FILE, mOrdinal);
+				Root::getSingleton()->getResourceManager().addResourcePath(resPath, ResourceManager::PATH_GZIP_FILE, mOrdinal);
 				break;
 
 			case RES_TYPE_SINGLE:
@@ -269,9 +268,8 @@ namespace Stoneship
 
 
 	    // done writing header. now we need to write the top groups
-	    mRecordGroupCount += Root::getSingleton()->getEntityManager()->storeCache(writer); // EntityManager gets to store everything it has cached
-	    //Root::getSingleton()->getEntityManager()->storeCacheMods(writer); // append MODIFY top group
-	    mRecordGroupCount += Root::getSingleton()->getWorldManager()->storeWorldCache(writer);
+	    mRecordGroupCount += Root::getSingleton()->getGameCache().storeCache(writer); // GameCache gets to store everything it has cached
+	    //mRecordGroupCount += Root::getSingleton()->getGameCache().storeCacheMods(writer); // append MODIFY top group
 
 
 	    writer << static_cast<uint8_t>(0xF0); // end marker (legacy)
@@ -290,14 +288,14 @@ namespace Stoneship
         }
 
 
-        MGFManager *mgfm = Root::getSingleton()->getMGFManager();
+        MGFManager &mgfm = Root::getSingleton()->getMGFManager();
 
-        mDependencies.allocate(mgfm->getLoadedMGFCount());
+        mDependencies.allocate(mgfm.getLoadedMGFCount());
 
         for(uint32_t i = 0; i < mDependencies.size(); ++i)
         {
-            mDependencies[i].ordinal = mgfm->getLoadedMGF(i)->getOrdinal();
-            mDependencies[i].filename = mgfm->getLoadedMGF(i)->getFilename();
+            mDependencies[i].ordinal = mgfm.getLoadedMGF(i)->getOrdinal();
+            mDependencies[i].filename = mgfm.getLoadedMGF(i)->getFilename();
         }
 
 
@@ -365,7 +363,7 @@ namespace Stoneship
 		{
 			if(mDependencies[i].ordinal == local)
 			{
-				MasterGameFile *refMgf = Root::getSingleton()->getMGFManager()->getLoadedMGF(mDependencies[i].filename);
+				MasterGameFile *refMgf = Root::getSingleton()->getMGFManager().getLoadedMGF(mDependencies[i].filename);
 				if(refMgf == nullptr)
 				{
 					STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Supposedly loaded dependency was not loaded. This probably is a bug.");
