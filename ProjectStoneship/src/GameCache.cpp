@@ -243,4 +243,76 @@ namespace Stoneship
         return groupCount;
     }
 
+    uint32_t GameCache::storeCacheMods(MGFDataWriter &writer)
+    {
+        // FIXME: Same as in storeCache(). Combined cache is crap. Make method better
+        std::vector<RecordReflector*> combinedCache;
+
+        for(uint32_t i = 0; i < mBaseCache.size(); ++i)
+        {
+            combinedCache.push_back(mBaseCache[i]);
+        }
+
+        for(uint32_t i = 0; i < mWorldCache.size(); ++i)
+        {
+            combinedCache.push_back(mWorldCache[i]);
+        }
+
+
+        if(combinedCache.size() == 0)
+        {
+            // nothing to store. skip!
+
+            return 0;
+        }
+
+
+        // first, we sort the cache so we can archive proper grouping in the MGF
+
+        // lambda for comparing record type of two Base objects
+        auto compare = [](RecordReflector *a, RecordReflector *b) -> bool { return a->getRecordType() < b->getRecordType();};
+
+        std::sort(combinedCache.begin(), combinedCache.end(), compare);
+
+
+        // next, iterate over records and store MODIFYs
+        RecordBuilder groupBuilder(writer);
+        bool writtenStuff = false;
+        groupBuilder.beginGroupRecord(Record::TYPE_MODIFY);
+
+        for(uint32_t i = 0; i < combinedCache.size(); ++i)
+        {
+            RecordReflector *reflector = combinedCache[i];
+
+            // if a reflected was created at runtime or is not dirty, we don't need to store a MODIFY for it
+            if(reflector->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL || !reflector->isDirty())
+            {
+                continue;
+            }
+
+            writtenStuff = true;
+
+            RecordBuilder childBuilder = groupBuilder.createAndBeginChildBuilder(Record::TYPE_MODIFY, 0, UID::NO_ID);
+
+            // write metadata record
+            childBuilder.beginSubrecord(Record::SUBTYPE_MODIFY_METADATA)
+                    << reflector->getCreatedUID()
+                    << reflector->getRecordType()
+                    << static_cast<uint8_t>(0); // dummy modification type
+            childBuilder.endSubrecord();
+
+            reflector->storeToModifyRecord(childBuilder);
+            childBuilder.endRecord();
+        }
+
+        // have we written any MODIFYs?
+        if(writtenStuff)
+        {
+            // yes. write final footer
+            groupBuilder.endRecord();
+        }
+
+        return 1; // ATM, we never write more than a one single MODIFY group
+    }
+
 }

@@ -34,6 +34,7 @@ namespace Stoneship
         virtual String getWorldName() const;
         virtual const std::vector<IEntity*> &getLoadedEntities();
         virtual uint32_t getLoadedEntityCount() const;
+        virtual void addEntity(IEntity *entity);
         virtual void removeEntity(IEntity *entity);
         virtual void removeEntity(UID uid);
 

@@ -36,7 +36,7 @@ namespace Stoneship
         IWorld *manageWorld(IWorld *world);
 
         uint32_t storeCache(MGFDataWriter &writer);
-        void storeCacheMods(MGFDataWriter &writer);
+        uint32_t storeCacheMods(MGFDataWriter &writer);
 
         void collectGarbage();
 

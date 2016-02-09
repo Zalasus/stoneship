@@ -33,7 +33,8 @@ namespace Stoneship
 
 		void loadMGF(const String &filename);
 		uint32_t getLoadedMGFCount() const;
-		MasterGameFile *getLoadedMGF(UID::Ordinal ordinal);
+		MasterGameFile *getGameFileByOrdinal(UID::Ordinal ordinal);
+		MasterGameFile *getLoadedMGFByIndex(uint32_t i);
 		MasterGameFile *getLoadedMGF(const String &filename);
 
 		void loadSGF(const String &filename);

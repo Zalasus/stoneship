@@ -67,6 +67,11 @@ namespace Stoneship
 	{
 	}
 
+	IWorld *EntityWorld::getWorld() const
+	{
+	    return mWorld;
+	}
+
 	void EntityWorld::spawn(IWorld *w)
 	{
 	    mWorld = w;

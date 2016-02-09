@@ -47,8 +47,9 @@ namespace Stoneship
 
 
 
-	EntityBaseFactory::EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc, const String &baseName)
+	EntityBaseFactory::EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc, const String &baseName, bool preloaded)
 	: mRecordType(recordType),
+	  mPreloaded(preloaded),
 	  mAllocator(alloc)
 	{
 	    if(getFactoryForRecordType(recordType) != nullptr)
@@ -66,6 +67,11 @@ namespace Stoneship
 	Record::Type EntityBaseFactory::getRecordType() const
 	{
 		return mRecordType;
+	}
+
+	bool EntityBaseFactory::isPreloaded() const
+	{
+	    return mPreloaded;
 	}
 
 	IEntityBase *EntityBaseFactory::createEntityBase(UID uid)

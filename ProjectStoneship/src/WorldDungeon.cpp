@@ -51,6 +51,16 @@ namespace Stoneship
         return mEntities.size();
     }
 
+    void WorldDungeon::addEntity(IEntity *entity)
+    {
+        if(entity->getWorld() == this)
+        {
+            return;
+        }
+
+        mEntities.push_back(entity);
+    }
+
     void WorldDungeon::removeEntity(IEntity *entity)
     {
         auto it = mEntities.begin();

@@ -18,6 +18,7 @@
 #include "StoneshipDefines.h"
 #include "Root.h"
 #include "GameCache.h"
+#include "Logger.h"
 
 namespace Stoneship
 {
@@ -151,14 +152,13 @@ namespace Stoneship
 
 
 		//load records
-		uint16_t recordGroupCount;
-		ds >> recordGroupCount;
+		ds >> mRecordGroupCount;
 
 		mHeaderEndOfffset = ds.tell(); //store this so we may navigate quickly to start of records
 
 		//skip through the file and index every top record group
-		mHints.allocate(recordGroupCount);
-		for(uint32_t i = 0; i < recordGroupCount; i++)
+		mHints.allocate(mRecordGroupCount);
+		for(uint32_t i = 0; i < mRecordGroupCount; i++)
 		{
 			std::streampos offset = ds.tell();
 
@@ -170,12 +170,20 @@ namespace Stoneship
 				STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF found during scanning (expected Group record, found other)");
 			}
 
+			Logger::info(String("Found group ") + groupHeader.groupType + " at " + uint32_t(offset));
+
 			mHints[i].offset = offset;
 			mHints[i].type = groupHeader.groupType;
 			mHints[i].recordCount = groupHeader.recordCount;
 
-			//there are some records which we want to index one by one like Modify. check if we have on of those on our hands
-			if(mHints[i].type == Record::TYPE_MODIFY)
+            //there are some records which we want to index one by one like Modify. check if we have on of those on our hands
+			EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(groupHeader.type);
+			if(factory != nullptr && factory->isPreloaded())
+			{
+			    // this is an entity base group which must be preloaded
+			    STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "Preloaded entities unsupported ATM");
+
+			}else if(mHints[i].type == Record::TYPE_MODIFY)
 			{
 
 				_indexModifies(mHints[i].recordCount);
@@ -191,7 +199,7 @@ namespace Stoneship
 
 		if(mOrdinal == UID::SELF_REF_ORDINAL)
 		{
-		    // this is a SGF. we don't need to keep open the file stream
+		    // this is an SGF. we don't need to keep open the file stream
 
 		    mInputStream.close();
 		}
@@ -266,16 +274,16 @@ namespace Stoneship
 	    std::streampos topGroupCountOff = writer.tell();
 	    writer << static_cast<uint32_t>(0xCAFEBABE); // top group count (overwritten later)
 
-
 	    // done writing header. now we need to write the top groups
 	    mRecordGroupCount += Root::getSingleton()->getGameCache().storeCache(writer); // GameCache gets to store everything it has cached
-	    //mRecordGroupCount += Root::getSingleton()->getGameCache().storeCacheMods(writer); // append MODIFY top group
+	    mRecordGroupCount += Root::getSingleton()->getGameCache().storeCacheMods(writer); // append MODIFY top group
 
+	    std::streampos prev = writer.tell();
+	    writer.seek(topGroupCountOff);
+	    writer << mRecordGroupCount;
+	    writer.seek(prev);
 
 	    writer << static_cast<uint8_t>(0xF0); // end marker (legacy)
-
-	    writer.seek(topGroupCountOff);
-	    writer << static_cast<uint32_t>(mRecordGroupCount);
 
 	    out.close();
 	}
@@ -294,8 +302,14 @@ namespace Stoneship
 
         for(uint32_t i = 0; i < mDependencies.size(); ++i)
         {
-            mDependencies[i].ordinal = mgfm.getLoadedMGF(i)->getOrdinal();
-            mDependencies[i].filename = mgfm.getLoadedMGF(i)->getFilename();
+            if(mgfm.getLoadedMGFByIndex(i)->getOrdinal() == getOrdinal())
+            {
+                // no self dependence please
+                //continue; This would lead to uninitialized deps. since MGF access methods mof MGFManager exclude SGFs ATM, we can consider this not needed for now
+            }
+
+            mDependencies[i].ordinal = mgfm.getLoadedMGFByIndex(i)->getOrdinal();
+            mDependencies[i].filename = mgfm.getLoadedMGFByIndex(i)->getFilename();
         }
 
 
@@ -468,7 +482,7 @@ namespace Stoneship
 			}
 		}
 
-		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
+		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record " + UID(mOrdinal, id).toString() + " not found in MGF");
 	}
 
 	RecordAccessor MasterGameFile::getRecordByEditorName(const String &name, Record::Type type)

@@ -57,7 +57,7 @@ namespace Stoneship
 	{
 	    if(mCurrentSaveFile != nullptr)
 	    {
-	        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to load SGf when one was still loaded");
+	        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to load SGF when one was still loaded");
 	    }
 
 	    mCurrentSaveFile = new MasterGameFile(filename, UID::SELF_REF_ORDINAL);
@@ -82,28 +82,38 @@ namespace Stoneship
 		return mLoadedGameFileCount;
 	}
 
-	MasterGameFile *MGFManager::getLoadedMGF(UID::Ordinal ordinal)
+	MasterGameFile *MGFManager::getLoadedMGFByIndex(uint32_t i)
 	{
-		if(ordinal == UID::SELF_REF_ORDINAL)
-		{
-			return mCurrentSaveFile;
-		}
-
-		if(ordinal >= mGameFiles.size())
+		if(i >= mGameFiles.size())
 		{
 			return nullptr;
 		}
 
-		if(!mGameFiles[ordinal]->isLoaded())
+		if(!mGameFiles[i]->isLoaded())
 		{
 			return nullptr;
 		}
 
-		return mGameFiles[ordinal];
+		return mGameFiles[i];
+	}
+
+	MasterGameFile *MGFManager::getGameFileByOrdinal(UID::Ordinal ordinal)
+	{
+	    if(ordinal == UID::SELF_REF_ORDINAL)
+	    {
+	        return mCurrentSaveFile;
+	    }
+
+	    return getLoadedMGFByIndex(ordinal);
 	}
 
 	MasterGameFile *MGFManager::getLoadedMGF(const String &filename)
 	{
+	    /*if(mCurrentSaveFile != nullptr && mCurrentSaveFile->getFilename() == filename)
+	    {
+	        return mCurrentSaveFile;
+	    }*/
+
 		for(uint32_t i = 0; i < mGameFiles.size(); i++)
 		{
 			if(mGameFiles[i]->getFilename() == filename && mGameFiles[i]->isLoaded())
@@ -125,7 +135,7 @@ namespace Stoneship
 	//TODO: These functions look almost identical. I don't like that
 	RecordAccessor MGFManager::getRecordByID(UID id)
 	{
-		MasterGameFile *mgf = getLoadedMGF(id.ordinal);
+		MasterGameFile *mgf = getGameFileByOrdinal(id.ordinal);
 
 		if(mgf == nullptr)
 		{
@@ -139,7 +149,7 @@ namespace Stoneship
 
 	RecordAccessor MGFManager::getRecordByTypeID(UID id, Record::Type type)
 	{
-		MasterGameFile *mgf = getLoadedMGF(id.ordinal);
+		MasterGameFile *mgf = getGameFileByOrdinal(id.ordinal);
 
 		if(mgf == nullptr)
 		{

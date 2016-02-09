@@ -238,11 +238,11 @@ namespace Stoneship
     }
 
     REGISTER_ENTITY_BEGIN
-        REGISTER_ENTITY_BASE(0x800, EntityBase_Static,    Static)
-        REGISTER_ENTITY_BASE(0x810, EntityBase_Weapon,    Weapon)
-        REGISTER_ENTITY_BASE(0x820, EntityBase_Book,      Book)
-        REGISTER_ENTITY_BASE(0x821, EntityBase_Stuff,     Stuff)
-        REGISTER_ENTITY_BASE(0x82A, EntityBase_Container, Container)
+        REGISTER_ENTITY_BASE(0x800, EntityBase_Static,    Static,    false)
+        REGISTER_ENTITY_BASE(0x810, EntityBase_Weapon,    Weapon,    false)
+        REGISTER_ENTITY_BASE(0x820, EntityBase_Book,      Book,      false)
+        REGISTER_ENTITY_BASE(0x821, EntityBase_Stuff,     Stuff,     false)
+        REGISTER_ENTITY_BASE(0x82A, EntityBase_Container, Container, false)
     REGISTER_ENTITY_END
 
 }

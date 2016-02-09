@@ -32,7 +32,7 @@ namespace Stoneship
 
 	    }else
 	    {
-	        smSingleton = this; //catch any instantiations not made by the singleton method
+	        smSingleton = this; // catch any instantiations not made by the singleton method
 	    }
 	}
 
@@ -88,11 +88,8 @@ namespace Stoneship
 
 	void Root::run()
 	{
-	    // add default resource path
-	    getResourceManager().addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
 
-
-	    // now that all MGFs are loaded, we need to find an entry point
+	    // we need to find an entry point
 
 
 	    // we are done here. give control back to implementation

@@ -42,7 +42,8 @@ namespace Stoneship
 		virtual Record::Type getRecordType() const;
 
 		// interface
-        virtual EntityType getEntityType() = 0;
+        virtual EntityType getEntityType() const = 0;
+        virtual IWorld *getWorld() const = 0;
         virtual void spawn(IWorld *w) = 0;
         virtual void despawn() = 0;
 
@@ -68,7 +69,8 @@ namespace Stoneship
 		~EntityWorld();
 
         // overrides IEntity
-		virtual EntityType getEntityType() { return ENTITYTYPE_WORLD; }
+		virtual EntityType getEntityType() const { return ENTITYTYPE_WORLD; }
+		virtual IWorld *getWorld() const;
 		void spawn(IWorld *w);
         void despawn();
 

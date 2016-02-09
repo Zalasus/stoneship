@@ -35,15 +35,48 @@ int main(int argc, char **argv)
 	{
 
         root->getOptions().load(argc, argv);
+        root->getResourceManager().addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
         root->loadAllMGFs();
 
-        UID uid = root->getMGFManager().getNewUID();
+        root->getMGFManager().loadSGF("save2.sgf");
+
+        /*UID uid = root->getMGFManager().getNewUID();
         WorldDungeon dungeon(uid);
         root->getGameCache().manageWorld(&dungeon);
         dungeon.setWorldName("Naughty Zal's sex dungeon");
 
+        uid = root->getMGFManager().getNewUID();
+        EntityBase_Book *book = new EntityBase_Book(uid);
+        root->getGameCache().manageBase(book);
+        book->setDisplayName("Book that is to be modified");
+        book->setText("If you can read this, the automatic mod saving didn't quite do the trick.");
+        book->setModelName("book.model");
 
-        root->getMGFManager().storeSGF("save.sgf");
+        uid = root->getMGFManager().getNewUID();
+        book = new EntityBase_Book(uid);
+        root->getGameCache().manageBase(book);
+        book->setDisplayName("Random book");
+        book->setText("Seriously, I have no idea what to put in here.");
+        book->setModelName("book.model");
+
+        uid = root->getMGFManager().getNewUID();
+        IEntity *entity = book->createEntity(uid);
+        dungeon.addEntity(entity);*/
+
+        IEntityBase *base = root->getGameCache().getBase(UID(0,0x0F000001), 0x820);
+        EntityBase_Book *book = static_cast<EntityBase_Book*>(base);
+
+        /*book->setDescription("Also, the description changed!");
+        book->setText("Modified by MODIFY record. Weeee :3\n"
+                      "\n"
+                      "Also, have some whitespace\n"
+                      "\n");
+
+        root->getMGFManager().storeSGF("save2.sgf");*/
+
+        std::cout << "[" << book->getDisplayName() << "]" << std::endl;
+        std::cout << book->getDescription() << std::endl;
+        std::cout << "And on the terminal these words appear: " << book->getText() << std::endl;
 
         root->run();
 
