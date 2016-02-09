@@ -9,6 +9,7 @@
 
 #include "Record.h"
 #include "MasterGameFile.h"
+#include "Logger.h"
 
 namespace Stoneship
 {
@@ -209,6 +210,8 @@ namespace Stoneship
 
     void RecordAccessor::_indexSubrecords()
     {
+        Logger::info(String("Indexing subrecords of record ") + mHeader.id);
+
         //NOTE: No, I'm not gonna use a vector for that. I'm paying the bills here, so I get to choose the fucking container!
 
         //first, count how many subrecords we've got

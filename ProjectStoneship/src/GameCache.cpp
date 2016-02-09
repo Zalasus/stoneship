@@ -278,7 +278,6 @@ namespace Stoneship
         // next, iterate over records and store MODIFYs
         RecordBuilder groupBuilder(writer);
         bool writtenStuff = false;
-        groupBuilder.beginGroupRecord(Record::TYPE_MODIFY);
 
         for(uint32_t i = 0; i < combinedCache.size(); ++i)
         {
@@ -290,7 +289,12 @@ namespace Stoneship
                 continue;
             }
 
-            writtenStuff = true;
+            if(!writtenStuff)
+            {
+                writtenStuff = true;
+
+                groupBuilder.beginGroupRecord(Record::TYPE_MODIFY);
+            }
 
             RecordBuilder childBuilder = groupBuilder.createAndBeginChildBuilder(Record::TYPE_MODIFY, 0, UID::NO_ID);
 
@@ -310,9 +314,11 @@ namespace Stoneship
         {
             // yes. write final footer
             groupBuilder.endRecord();
+
+            return 1; // ATM, we never write more than a one single MODIFY group
         }
 
-        return 1; // ATM, we never write more than a one single MODIFY group
+        return 0;
     }
 
 }

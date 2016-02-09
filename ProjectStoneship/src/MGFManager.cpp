@@ -66,6 +66,8 @@ namespace Stoneship
 
 	void MGFManager::storeSGF(const String &filename)
 	{
+	    Logger::info("Saving SGF '" + filename + "'...");
+
 	    if(mCurrentSaveFile != nullptr)
 	    {
 	        delete mCurrentSaveFile;
@@ -141,8 +143,6 @@ namespace Stoneship
 		{
 		    STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, String("Requested record with invalid ordinal. MGF ") + id.ordinal + " not loaded (UID: " + id.toString() + ")");
 		}
-
-		Logger::warn("Typeless lookup. Slooooowwww!!!");
 
 		return mgf->getRecordByID(id.id);
 	}

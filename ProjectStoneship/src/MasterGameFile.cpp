@@ -163,7 +163,21 @@ namespace Stoneship
 			std::streampos offset = ds.tell();
 
 			RecordHeader groupHeader;
-			ds >> groupHeader;
+			try
+			{
+			    ds >> groupHeader;
+
+			}catch(StoneshipException &e)
+			{
+			    if(e.getType() == StoneshipException::IO_ERROR)
+			    {
+			        STONESHIP_EXCEPT(StoneshipException::IO_ERROR, "Error while scanning top groups. IO error while loading next group header."
+			                "This is most likely caused by an invalid group count field in the MGF header. Original error: "
+			                + e.getMessage());
+			    }
+
+			    throw;
+			}
 
 			if(groupHeader.type != Record::TYPE_GROUP)
 			{
@@ -393,6 +407,8 @@ namespace Stoneship
 	//TODO: Typeless lookups are inefficient atm. Implement more dynamic matching to speed things up a bit
 	RecordAccessor MasterGameFile::getRecordByID(UID::ID id)
 	{
+	    Logger::warn("Typeless lookup. Slooooowwww!!!");
+
 		MGFDataReader ds(&mInputStream, this);
 
 		ds.seek(mHeaderEndOfffset);
@@ -433,7 +449,7 @@ namespace Stoneship
 			ds.endUnit();
 		}
 
-		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
+		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record " + UID(mOrdinal, id).toString() + " not found in MGF '" + mFilename + "'");
 	}
 
 	RecordAccessor MasterGameFile::getRecordByTypeID(UID::ID id, Record::Type type)
@@ -482,7 +498,7 @@ namespace Stoneship
 			}
 		}
 
-		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record " + UID(mOrdinal, id).toString() + " not found in MGF");
+		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record " + UID(mOrdinal, id).toString() + " of type " + type + " not found in MGF '" + mFilename + "'");
 	}
 
 	RecordAccessor MasterGameFile::getRecordByEditorName(const String &name, Record::Type type)

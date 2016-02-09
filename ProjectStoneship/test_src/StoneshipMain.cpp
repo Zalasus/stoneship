@@ -38,7 +38,7 @@ int main(int argc, char **argv)
         root->getResourceManager().addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
         root->loadAllMGFs();
 
-        root->getMGFManager().loadSGF("save2.sgf");
+        //root->getMGFManager().loadSGF("save2.sgf");
 
         /*UID uid = root->getMGFManager().getNewUID();
         WorldDungeon dungeon(uid);
@@ -53,30 +53,34 @@ int main(int argc, char **argv)
         book->setModelName("book.model");
 
         uid = root->getMGFManager().getNewUID();
-        book = new EntityBase_Book(uid);
-        root->getGameCache().manageBase(book);
-        book->setDisplayName("Random book");
-        book->setText("Seriously, I have no idea what to put in here.");
-        book->setModelName("book.model");
-
-        uid = root->getMGFManager().getNewUID();
         IEntity *entity = book->createEntity(uid);
-        dungeon.addEntity(entity);*/
+        dungeon.addEntity(entity);
 
-        IEntityBase *base = root->getGameCache().getBase(UID(0,0x0F000001), 0x820);
+        // let's generate a few more entries ;)
+        for(uint32_t i = 0; i < 1000; ++i)
+        {
+            UID uid = root->getMGFManager().getNewUID();
+            EntityBase_Stuff *stuff = new EntityBase_Stuff(uid);
+            root->getGameCache().manageBase(stuff);
+            stuff->setDisplayName(String("Stuff No. ") + (i+1));
+            stuff->setDescription(String("This stuff was generated to fill this MGF with quite a bit of data. This is number ") + (i+1));
+            stuff->setIconFile("randomIcon.png");
+            stuff->setModelName("randomGunk.model");
+            stuff->setValue(1);
+        }*/
+
+        IEntityBase *base = root->getGameCache().getBase(UID(0, 0x0F000001));
         EntityBase_Book *book = static_cast<EntityBase_Book*>(base);
 
-        /*book->setDescription("Also, the description changed!");
-        book->setText("Modified by MODIFY record. Weeee :3\n"
-                      "\n"
-                      "Also, have some whitespace\n"
-                      "\n");
+        std::cout << "Display name: " << book->getDisplayName() << std::endl;
+        std::cout << "Description: " << book->getDescription() << std::endl;
+        std::cout << "And on the Terminal these words appear: " << book->getText() << std::endl;
 
-        root->getMGFManager().storeSGF("save2.sgf");*/
-
-        std::cout << "[" << book->getDisplayName() << "]" << std::endl;
-        std::cout << book->getDescription() << std::endl;
-        std::cout << "And on the terminal these words appear: " << book->getText() << std::endl;
+        // load a few bases typeless just for speed testing
+        for(uint32_t i = 0x0F000010; i < 0x0F000200; ++i)
+        {
+            root->getGameCache().getBase(UID(0, i), 0x821);
+        }
 
         root->run();
 
