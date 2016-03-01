@@ -26,6 +26,14 @@ namespace Stoneship
 
         MGFDataWriter &beginSubrecord(Record::Subtype type);
         /**
+         * Starts a subrecord of given type and initializes header with given data size. This saves the effort of having to seek back to
+         * the record header to fill in the correct size field after calling endSubrecord(). If this method is used to begin a subrecord,
+         * and the subsequent call to endSubrecord() finds that more bytes have been written than passed to this method, the size field is
+         * overwritten anyway.
+         */
+        MGFDataWriter &beginSubrecord(Record::Subtype type, SubrecordHeader::SizeType dataSize);
+
+        /**
          * Starts a subrecord of _SUBGROUP type and creates and initializes a Builder for contained GROUP record. Headers are
          * written by this method, so the caller can use the returned Builder for IO operations right away. It is, however, neccessary
          * for the caller to call endRecord() on the returned Builder. This call would usually be followed by a call to endSubrecord()
@@ -48,6 +56,7 @@ namespace Stoneship
         RecordHeader::FlagType mFlags;
         UID::ID mID;
         Record::Type mGroupType;
+        SubrecordHeader::SizeType mPredictedDataSize;
 
         std::streampos mRecordSizeFieldOffset;
         std::streampos mChildRecordCountFieldOffset; // for GROUP records only

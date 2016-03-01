@@ -23,6 +23,8 @@ namespace Stoneship
 	{
 	public:
 
+        typedef uint32_t StringSizeType;
+
 		MGFDataWriter(std::ostream *out, MasterGameFile *mgf = nullptr);
 
 		MasterGameFile *getMasterGameFile();
@@ -34,6 +36,10 @@ namespace Stoneship
 		template <typename T>
         MGFDataWriter &operator<<(const T &x);
 
+
+		static uint32_t PUTCS;
+		static uint32_t SEEKS;
+		static uint32_t TELLS;
 
 	private:
 

@@ -1,0 +1,60 @@
+How to define new entity bases
+==============================
+
+1.  Create a class derived from IEntityBase or a predefined derived class
+    Predefined classes are:
+        IEntityBaseWorld     -    For entities that may appear in the world, may be interacted with or generally are to be rendered in some way. Loads a model file name.
+        IEntityBaseItem      -    Derived from IEntityBaseWorld. For entities that are to be picked up, may be carried around in the inventory and every other stuff an item can do.
+
+2.  Define needed methods and constructors
+    Needed methods are:
+        constructor(UID uid)
+            Pass uid parameter to parent constructor. Do whatever you want to initialize here, but keep in mind many fields should be loaded from records later on.
+            Simple fields can be loaded automatically. For this, encapsulate your field of type T in a SubrecordField<T> and initialize this field in the constructor
+            as follows: field( [value to initialize field with], [subrecord type from which field should be loaded], this)
+            For many types(integral types, floats, String, UID etc.) this will automate both loading and storing of that field as well as
+            keeping track of modifications and writing MODIFY records acordingly. If an entity base contains none but these automated fields, there's no need
+            to override loadFromRecord(), storeToRecord() etc.
+                                  
+        Record::Type getRecordType() const
+            Return the record type that represents this entity base.
+        
+        String getBaseName() const
+            Return a symbolic name for the base type. E.g: "Weapon", "Book"
+            
+        IEntity *createEntity(UID uid)
+            Creates an entity referencing this base. If the predefined classes IEntityBaseWorld etc. are used and no additional functionality concerning the spawned
+            instance of this base is desired, this method may be ommitted as it is defined in the parent classes as needed.
+            
+        
+    Classes deriving from IEntityBaseWorld additionally need these:
+    
+        bool canInteract() const
+            Should return true if an Actor may interact with an entity of this type. If this method returns false, no interaction marker will be shown in-game.
+                                              
+        bool onInteract(IEntity *entity, IActor *actor)
+            Called when an Actor interacts with an entity of this type. The actual entity refering to this base that was interacted with is passed as argument entity.
+            The interacting Actor is passed as argument actor. This could also be an instance of type Player if the interacting Actor was the player. This method should
+            return true if the interaction was valid.
+            
+    Classes deriving from IEntityBaseItem need these: (the methods from IEntityBaseWorld are already defined in IEntityBaseItem and create a pickup event on interaction by default)
+        
+        bool onUse(ItemStack *stack, IActor *a)
+        	Called when an item of this type is used inside the inventory. This should return true if the action was valid. If this returns false, a "Can't use XYZ" message will be shown.
+        	
+        	
+
+3.  Register entity base
+    In any source file (no matter which, as long as it gets compiled), write the following:
+    
+    REGISTER_ENTITY_BEGIN
+    	REGISTER_ENTITY_BASE(recordType, classname, symbolicName, preload)
+   	REGISTER_ENTITY_END
+            
+    Insert an REGISTER_ENTITY_BASE between REGISTER_ENTITY_BEGIN and REGISTER_ENTITY_END for every base you want to register. The parameter's use is as follows:
+        recordType   -   The record type that represents this entity. Should be the same as returned by getRecordType()
+        classname    -   The name of the class representing the base. If the register statement is in another namespace that the class itself, this name might need additional namespace specifiers
+        symbolicName -   A symbolic name for the base, NOT surrounded by quotes. E.g: Book, Weapon
+        preload      -   true/false. Whether base should be loaded when MGF is loaded or not.
+            
+        

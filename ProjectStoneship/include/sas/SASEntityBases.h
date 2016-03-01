@@ -33,7 +33,6 @@ namespace Stoneship
 		Record::Type getRecordType() const { return 0x800; }
 
 		// override IEntityBase
-		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;};
 		String getBaseName() const {return "Static";}
 
 		// override IEntityBaseWorld
@@ -52,7 +51,6 @@ namespace Stoneship
 		Record::Type getRecordType() const {return 0x820;}
 
 		// override IEntityBase
-		IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD | BASETYPE_ITEM;}
 		String getBaseName() const {return "Book";}
 
 		// override IEntityBaseItem
@@ -86,7 +84,6 @@ namespace Stoneship
 		Record::Type getRecordType() const {return 0x810;}
 
 		// override IEntityBase
-		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Weapon";}
 
         // override IEntityBaseItem
@@ -119,7 +116,6 @@ namespace Stoneship
 		Record::Type getRecordType() const {return 0x821;}
 
 		// override IEntityBase
-		IEntityBase::BaseType getBaseType() const {return BASETYPE_ITEM | BASETYPE_WORLD;}
 		String getBaseName() const {return "Stuff";}
 
 		// override IEntityBaseItem
@@ -133,15 +129,12 @@ namespace Stoneship
 	public:
 	    EntityBase_Container(UID uid);
 
-	    // override RecordReflector
-	    Record::Type getRecordType() const {return 0x82A;}
-
 	    // override IEntityBase
-	    IEntityBase::BaseType getBaseType() const {return BASETYPE_WORLD;}
         String getBaseName() const {return "Container";}
         IEntity *createEntity(UID entityUID); // this Base needs a custom Entity that has an Inventory
 
-        // override IRecordReflector
+        // override RecordReflector
+        Record::Type getRecordType() const {return 0x82A;}
         virtual void loadFromRecord(RecordAccessor &record);
         virtual void loadFromModifyRecord(RecordAccessor &record);
         virtual void storeToRecord(RecordBuilder &record);
@@ -159,6 +152,14 @@ namespace Stoneship
         void _loadSingleContainedItem(MGFDataReader &reader);
 
         Inventory mPredefindedInventory;
+
+	};
+
+	class EntityBase_Food : public IEntityBaseItem
+	{
+	public:
+
+
 
 	};
 

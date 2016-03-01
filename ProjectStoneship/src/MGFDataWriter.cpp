@@ -25,6 +25,8 @@ namespace Stoneship
 
 	MGFDataWriter& MGFDataWriter::seek(std::streampos pos)
 	{
+	    ++SEEKS;
+
 		if(mStream->eof())
 		{
 			mStream->clear();
@@ -37,6 +39,8 @@ namespace Stoneship
 
 	std::streampos MGFDataWriter::tell()
 	{
+	    ++TELLS;
+
 		return mStream->tellp();
 	}
 
@@ -111,6 +115,8 @@ namespace Stoneship
 	void MGFDataWriter::_writeNext(uint8_t c)
 	{
 		mStream->put(c);
+
+		++PUTCS;
 	}
 
 	void MGFDataWriter::_except(StoneshipException::ExceptionType type, const String &msg)
@@ -126,6 +132,10 @@ namespace Stoneship
 
 		STONESHIP_EXCEPT(type, nmsg);
 	}
+
+	uint32_t MGFDataWriter::PUTCS = 0;
+	uint32_t MGFDataWriter::SEEKS = 0;
+	uint32_t MGFDataWriter::TELLS = 0;
 
 }
 

@@ -33,6 +33,10 @@ namespace Stoneship
         mDirty = dirty;
     }
 
+    SubrecordHeader::SizeType SubrecordFieldS::getPredictedDataSize() const
+    {
+        return 0;
+    }
 
 
 }

@@ -59,6 +59,10 @@ namespace Stoneship
 		    *mStream << "[WARN] " << msg << std::endl;
 			break;
 
+		case LOGLEVEL_DEBUG:
+		    *mStream << "[DBUG] " << msg << std::endl;
+		    break;
+
 		case LOGLEVEL_INFO:
 		default:
 		    *mStream << "[INFO] " << msg << std::endl;

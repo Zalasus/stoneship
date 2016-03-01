@@ -40,6 +40,7 @@ namespace Stoneship
 		// overrides RecordReflector
 		virtual UID getCreatedUID() const;
 		virtual Record::Type getRecordType() const;
+		virtual void storeToRecord(RecordBuilder &record);
 
 		// interface
         virtual EntityType getEntityType() const = 0;

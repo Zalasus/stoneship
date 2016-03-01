@@ -184,7 +184,7 @@ namespace Stoneship
 				STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF found during scanning (expected Group record, found other)");
 			}
 
-			Logger::info(String("Found group ") + groupHeader.groupType + " at " + uint32_t(offset));
+			Logger::debug(String("Found group ") + groupHeader.groupType + " at " + uint32_t(offset) + " containing " + groupHeader.recordCount + " records");
 
 			mHints[i].offset = offset;
 			mHints[i].type = groupHeader.groupType;
@@ -297,6 +297,8 @@ namespace Stoneship
 	    writer << mRecordGroupCount;
 	    writer.seek(prev);
 
+	    Logger::debug(String("Stored ") + mRecordGroupCount + " record groups");
+
 	    writer << static_cast<uint8_t>(0xF0); // end marker (legacy)
 
 	    out.close();
@@ -407,7 +409,7 @@ namespace Stoneship
 	//TODO: Typeless lookups are inefficient atm. Implement more dynamic matching to speed things up a bit
 	RecordAccessor MasterGameFile::getRecordByID(UID::ID id)
 	{
-	    Logger::warn("Typeless lookup. Slooooowwww!!!");
+	    Logger::debug("Typeless lookup. Slooooowwww!!!");
 
 		MGFDataReader ds(&mInputStream, this);
 

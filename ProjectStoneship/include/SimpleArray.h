@@ -20,6 +20,7 @@ namespace Stoneship
 
         SimpleArray();
         SimpleArray(uint32_t size);
+        SimpleArray(const SimpleArray<T> &s);
         ~SimpleArray();
 
         bool allocate(uint32_t size);
@@ -27,6 +28,7 @@ namespace Stoneship
         T *ptr() const;
 
         T &operator [](uint32_t i);
+        const T &operator [](uint32_t i) const;
         operator T*() const;
         operator const T*() const;
 
@@ -51,6 +53,22 @@ namespace Stoneship
       mSize(size)
     {
         allocate(size);
+    }
+
+    template <typename T>
+    SimpleArray<T>::SimpleArray(const SimpleArray<T> &s)
+    : mData(nullptr),
+      mSize(0)
+    {
+        if(s.size())
+        {
+            allocate(s.size());
+
+            for(uint32_t i = 0; i < size(); ++i)
+            {
+                mData[i] = s[i];
+            }
+        }
     }
 
     template <typename T>
@@ -103,6 +121,12 @@ namespace Stoneship
         }
 
         return mData[i];
+    }
+
+    template <typename T>
+    const T &SimpleArray<T>::operator [](uint32_t i) const
+    {
+        return operator[](i);
     }
 
     template <typename T>

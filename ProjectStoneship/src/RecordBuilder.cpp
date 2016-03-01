@@ -16,6 +16,7 @@ namespace Stoneship
 	  mFlags(0),
 	  mID(UID::NO_ID),
 	  mGroupType(Record::TYPE_RESERVED),
+      mPredictedDataSize(0),
       mChildRecordCount(0)
     {
     }
@@ -80,11 +81,16 @@ namespace Stoneship
 
     MGFDataWriter &RecordBuilder::beginSubrecord(Record::Subtype type)
     {
+        return beginSubrecord(type, 0); // we just make the static prediction that no bytes will be written TODO: might want to check other values to archive minimum throughput in typical application
+    }
 
+    MGFDataWriter &RecordBuilder::beginSubrecord(Record::Subtype type, SubrecordHeader::SizeType dataSize)
+    {
         mWriter << type;
 
         mSubrecordSizeFieldOffset = mWriter.tell();
-        mWriter << static_cast<SubrecordHeader::SizeType>(0xDEADBEEF); // this is overwritten by endSubrecord()
+        mWriter << dataSize; // this is overwritten by endSubrecord()
+        mPredictedDataSize = dataSize;
 
         return mWriter;
     }
@@ -105,10 +111,13 @@ namespace Stoneship
 
         SubrecordHeader::SizeType size = pos - mSubrecordSizeFieldOffset - sizeof(SubrecordHeader::SizeType);
 
-        mWriter.seek(mSubrecordSizeFieldOffset);
-        mWriter << size;
-
-        mWriter.seek(pos);
+        if(size != mPredictedDataSize)
+        {
+            // we have written the wrong data size before. overwrite it
+            mWriter.seek(mSubrecordSizeFieldOffset);
+            mWriter << size;
+            mWriter.seek(pos);
+        }
     }
 
     RecordBuilder RecordBuilder::createAndBeginChildBuilder(Record::Type type, RecordHeader::FlagType flags, UID::ID id)

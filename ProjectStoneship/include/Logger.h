@@ -23,7 +23,8 @@ namespace Stoneship
 		{
 			LOGLEVEL_INFO,
 			LOGLEVEL_WARNING,
-			LOGLEVEL_SEVERE
+			LOGLEVEL_SEVERE,
+			LOGLEVEL_DEBUG
 		};
 
 		Logger(const String &name, std::ostream *stream = &std::cout);
@@ -37,10 +38,10 @@ namespace Stoneship
 
 
         static Logger &getDefaultLogger();
-
 		static inline void info(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_INFO); }
 		static inline void warn(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_WARNING); }
 		static inline void severe(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_SEVERE); }
+		static inline void debug(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_DEBUG); }
 
 
 	private:

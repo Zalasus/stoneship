@@ -89,7 +89,7 @@ namespace Stoneship
                 continue;
             }
 
-            MGFDataWriter writer = b.beginSubrecord(field->getSubtype());
+            MGFDataWriter writer = b.beginSubrecord(field->getSubtype(), field->getPredictedDataSize());
 
             field->write(writer);
 

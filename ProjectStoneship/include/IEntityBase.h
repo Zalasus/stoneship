@@ -16,7 +16,7 @@
 #include "Record.h"
 
 //These have to be used to frame the block in which entities are registered
-#define REGISTER_ENTITY_BEGIN std::vector<EntityBaseFactory*> EntityBaseFactory::smFactories;
+#define REGISTER_ENTITY_BEGIN
 #define REGISTER_ENTITY_END ;
 #define REGISTER_ENTITY_BASE(recordType, entityBaseClass, baseName, preloaded) static IEntityBase* create_ ## entityBaseClass ## _instance(UID uid) { return new entityBaseClass(uid); } static EntityBaseFactory entityBaseClass ## _factory(recordType, & create_ ## entityBaseClass ## _instance, # baseName, preloaded);
 
@@ -77,14 +77,13 @@ namespace Stoneship
 
 		static EntityBaseFactory *getFactoryForRecordType(Record::Type t);
 
-
 	private:
+
+		static std::vector<EntityBaseFactory*> &getFactoryVector();
 
 		Record::Type mRecordType;
 		bool mPreloaded;
 		EntityBaseAllocatorMethodPtr mAllocator;
-
-		static std::vector<EntityBaseFactory*> smFactories;
 	};
 
 }

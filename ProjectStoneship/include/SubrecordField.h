@@ -27,6 +27,7 @@ namespace Stoneship
         virtual void write(MGFDataWriter &writer) = 0;
         virtual void read(MGFDataReader &read) = 0;
         virtual Record::Subtype getSubtype() const = 0;
+        virtual SubrecordHeader::SizeType getPredictedDataSize() const;
 
         bool isDirty() const;
         void setDirty(bool dirty);
@@ -48,6 +49,7 @@ namespace Stoneship
         virtual void write(MGFDataWriter &writer);
         virtual void read(MGFDataReader &reader);
         virtual Record::Subtype getSubtype() const;
+        virtual SubrecordHeader::SizeType getPredictedDataSize() const;
 
         const T &get() const;
         void set(const T &v);
@@ -113,6 +115,18 @@ namespace Stoneship
     Record::Subtype SubrecordField<T>::getSubtype() const
     {
         return mSubtype;
+    }
+
+    /*template <>
+    SubrecordHeader::SizeType SubrecordField<String>::getPredictedDataSize() const
+    {
+        return mV.size() + sizeof(MGFDataWriter::StringSizeType);
+    }*/
+
+    template <typename T>
+    SubrecordHeader::SizeType SubrecordField<T>::getPredictedDataSize() const
+    {
+        return sizeof(mV);
     }
 
     /*template <typename T, Record::Subtype RT>

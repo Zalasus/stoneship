@@ -12,6 +12,7 @@
 #include "IWorld.h"
 #include "GameCache.h"
 #include "Logger.h"
+#include "RecordBuilder.h"
 
 namespace Stoneship
 {
@@ -53,6 +54,16 @@ namespace Stoneship
 	{
 	    return Record::TYPE_ENTITY;
 	}
+
+    void IEntity::storeToRecord(RecordBuilder &record)
+    {
+        RecordReflector::storeToRecord(record);
+
+        record.beginSubrecord(Record::SUBTYPE_ENTITY, sizeof(UID) + sizeof(Record::Type))
+                << mBase->getUID()
+                << mBase->getRecordType();
+        record.endRecord();
+    }
 
 
 

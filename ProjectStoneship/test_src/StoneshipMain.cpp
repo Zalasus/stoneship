@@ -38,49 +38,21 @@ int main(int argc, char **argv)
         root->getResourceManager().addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
         root->loadAllMGFs();
 
-        //root->getMGFManager().loadSGF("save2.sgf");
+        // get last record in that group. for speed testing
+        IEntityBase *base = root->getGameCache().getBase(UID(0, 0x0F000D0A));
+        EntityBase_Stuff *stuff = static_cast<EntityBase_Stuff*>(base);
+        stuff->setDisplayName("Modified " + stuff->getDisplayName());
 
-        /*UID uid = root->getMGFManager().getNewUID();
-        WorldDungeon dungeon(uid);
-        root->getGameCache().manageWorld(&dungeon);
-        dungeon.setWorldName("Naughty Zal's sex dungeon");
 
+        UID uid = root->getMGFManager().getNewUID();
+        WorldDungeon *dungeon = new WorldDungeon(uid);
+        root->getGameCache().manageWorld(dungeon);
+        dungeon->setWorldName("Naughty Zal's sex dungeon");
         uid = root->getMGFManager().getNewUID();
-        EntityBase_Book *book = new EntityBase_Book(uid);
-        root->getGameCache().manageBase(book);
-        book->setDisplayName("Book that is to be modified");
-        book->setText("If you can read this, the automatic mod saving didn't quite do the trick.");
-        book->setModelName("book.model");
+        IEntity *entity = stuff->createEntity(uid);
+        dungeon->addEntity(entity);
 
-        uid = root->getMGFManager().getNewUID();
-        IEntity *entity = book->createEntity(uid);
-        dungeon.addEntity(entity);
-
-        // let's generate a few more entries ;)
-        for(uint32_t i = 0; i < 1000; ++i)
-        {
-            UID uid = root->getMGFManager().getNewUID();
-            EntityBase_Stuff *stuff = new EntityBase_Stuff(uid);
-            root->getGameCache().manageBase(stuff);
-            stuff->setDisplayName(String("Stuff No. ") + (i+1));
-            stuff->setDescription(String("This stuff was generated to fill this MGF with quite a bit of data. This is number ") + (i+1));
-            stuff->setIconFile("randomIcon.png");
-            stuff->setModelName("randomGunk.model");
-            stuff->setValue(1);
-        }*/
-
-        IEntityBase *base = root->getGameCache().getBase(UID(0, 0x0F000001));
-        EntityBase_Book *book = static_cast<EntityBase_Book*>(base);
-
-        std::cout << "Display name: " << book->getDisplayName() << std::endl;
-        std::cout << "Description: " << book->getDescription() << std::endl;
-        std::cout << "And on the Terminal these words appear: " << book->getText() << std::endl;
-
-        // load a few bases typeless just for speed testing
-        for(uint32_t i = 0x0F000010; i < 0x0F000200; ++i)
-        {
-            root->getGameCache().getBase(UID(0, i), 0x821);
-        }
+        root->getMGFManager().storeSGF("slave.mgf");
 
         root->run();
 
@@ -91,7 +63,8 @@ int main(int argc, char **argv)
 	    gracefully = false;
 	}
 
-	Logger::info(String("Total tp: getcs=") + MGFDataReader::GETCS + " seeks=" + MGFDataReader::SEEKS + " tells=" + MGFDataReader::TELLS);
+	Logger::debug(String("Total read tp:  getcs=") + MGFDataReader::GETCS + " seeks=" + MGFDataReader::SEEKS + " tells=" + MGFDataReader::TELLS);
+	Logger::debug(String("Total write tp: putcs=") + MGFDataWriter::PUTCS + " seeks=" + MGFDataWriter::SEEKS + " tells=" + MGFDataWriter::TELLS);
 
 	if(gracefully)
 	{

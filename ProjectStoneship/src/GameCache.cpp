@@ -20,7 +20,9 @@ namespace Stoneship
 {
 
     GameCache::GameCache(Root *root)
-    : mRoot(root)
+    : mRoot(root),
+      mPolicy(POLICY_KEEP_NEEDED),
+      mLRULimit(3)
     {
     }
 

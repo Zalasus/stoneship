@@ -33,6 +33,7 @@ namespace Stoneship
             virtual void write(MGFDataWriter &writer) { writer << mFlags << mSlotCount << mMaxStackSize; }
             virtual void read(MGFDataReader &reader) { reader >> mFlags >> mSlotCount >> mMaxStackSize >> MGFDataReader::endr; }
             Record::Subtype getSubtype() const { return Record::SUBTYPE_INVENTORY; }
+            SubrecordHeader::SizeType getPredictedDataSize() const { return sizeof(*this); }
 
             uint8_t getFlags() const { return mFlags; }
             void setFlags(uint8_t i) { mFlags = i; setDirty(true); }
@@ -56,6 +57,7 @@ namespace Stoneship
 
 		// override IEntityBase
 		virtual IEntity *createEntity(UID uid);
+		virtual BaseType getBaseType() const { return BASETYPE_ITEM | BASETYPE_WORLD; }
 
 		// override IEntityBaseWorld
         virtual bool canInteract() const; // true by default

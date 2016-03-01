@@ -21,12 +21,12 @@ namespace Stoneship
     : mUID(uid),
 	  mUserCount(0)
 	{
-	    Logger::info("Allocated entity base " + mUID.toString());
+	    //Logger::info("Allocated entity base " + mUID.toString());
 	}
 
 	IEntityBase::~IEntityBase()
 	{
-	    Logger::info("Deallocated entity base " + mUID.toString());
+	    //Logger::info("Deallocated entity base " + mUID.toString());
 	}
 
 	UID IEntityBase::getUID() const
@@ -60,7 +60,7 @@ namespace Stoneship
 	    {
 	        Logger::info("Registered Entity Base type '" + baseName + "'");
 
-	        smFactories.push_back(this);
+	        getFactoryVector().push_back(this);
 	    }
 	}
 
@@ -82,15 +82,24 @@ namespace Stoneship
 
 	EntityBaseFactory *EntityBaseFactory::getFactoryForRecordType(Record::Type t)
 	{
-		for(uint32_t i = 0; i < smFactories.size(); ++i)
+	    std::vector<EntityBaseFactory*> &factories = getFactoryVector();
+
+		for(uint32_t i = 0; i < factories.size(); ++i)
 		{
-			if(smFactories[i]->getRecordType() == t)
+			if(factories[i]->getRecordType() == t)
 			{
-				return smFactories[i];
+				return factories[i];
 			}
 		}
 
 		return nullptr;
+	}
+
+	std::vector<EntityBaseFactory*> &EntityBaseFactory::getFactoryVector()
+	{
+	    static std::vector<EntityBaseFactory*> sFactories;
+
+	    return sFactories;
 	}
 
 }

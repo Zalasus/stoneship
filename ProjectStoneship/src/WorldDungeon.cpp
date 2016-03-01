@@ -118,7 +118,8 @@ namespace Stoneship
                 Record::Type baseType;
                 child.getReaderForSubrecord(Record::SUBTYPE_ENTITY)
                         >> baseUID
-                        >> baseType;
+                        >> baseType
+                        >> MGFDataReader::endr;
 
                 IEntityBase *base = Root::getSingleton()->getGameCache().getBase(baseUID, baseType);
                 if(base == nullptr)
@@ -126,12 +127,12 @@ namespace Stoneship
                     STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Base " + baseUID.toString() + " for Entity " + entityUID.toString() + " not found");
                 }
 
-                // The base lookup might have accessed the MGF and thus changed the pointers location. Reset it. TODO: we can't do this everytime. it's hard to debug where the rollback was omitted
+                // The base lookup might have accessed the MGF and thus changed the pointers location. Reset it. TODO: we can't do this everytime. it's hard to debug if and where the rollback was omitted
                 child.rollback();
 
                 IEntity *entity = base->createEntity(entityUID);
                 mEntities.push_back(entity);
-                entity->loadFromRecord(child);
+                entity->loadFromRecord(child); // <- this is the call that is sensitive to stream position (reason for rollback() )
                 entity->spawn(this);
 
                 if(i < subgroup.getHeader().recordCount-1) // reached end of list yet?
@@ -156,7 +157,7 @@ namespace Stoneship
 
                 if(entity->getUID().ordinal != getUID().ordinal)
                 {
-                    // skip this entity if it was not creat
+                    // skip this entity if it was not created by the same MGF as the dungeon
                     continue;
                 }
 

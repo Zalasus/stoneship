@@ -20,8 +20,7 @@ namespace Stoneship
       mGameFile(mgf),
       mInternalReader(mStream, mgf, mHeader.dataSize),
       mDataOffset(mStream->tellg()),
-      mSubrecordCount(0),
-      mSubrecordHeaders(nullptr)
+      mSubrecordHeaders()
     {
     }
 
@@ -31,30 +30,12 @@ namespace Stoneship
       mGameFile(a.mGameFile),
       mInternalReader(mStream, mGameFile, mHeader.dataSize),
       mDataOffset(a.mDataOffset),
-      mSubrecordCount(a.mSubrecordCount),
-      mSubrecordHeaders(nullptr)
+      mSubrecordHeaders(a.mSubrecordHeaders)
     {
-        if(a.mSubrecordHeaders != nullptr)
-        {
-            //create deep copy of index field
-            mSubrecordHeaders = new SubrecordHeader[mSubrecordCount];
-
-            for(uint32_t i = 0; i < mSubrecordCount; ++i)
-            {
-                mSubrecordHeaders[i] = a.mSubrecordHeaders[i];
-            }
-        }
-
     }
 
     RecordAccessor::~RecordAccessor()
     {
-        if(mSubrecordHeaders != nullptr)
-        {
-            delete[] mSubrecordHeaders;
-
-            mSubrecordHeaders = nullptr;
-        }
     }
 
     const RecordHeader &RecordAccessor::getHeader() const
@@ -79,19 +60,19 @@ namespace Stoneship
             return 0;
         }
 
-        if(mSubrecordHeaders == nullptr)
+        if(mSubrecordHeaders.ptr() == nullptr)
         {
             rollback();
 
             _indexSubrecords();
         }
 
-        return mSubrecordCount;
+        return mSubrecordHeaders.size();
     }
 
     uint32_t RecordAccessor::getSubrecordCountForType(Record::Subtype subtype)
     {
-        if(mSubrecordHeaders == nullptr)
+        if(mSubrecordHeaders.ptr() == nullptr)
         {
             rollback();
 
@@ -100,7 +81,7 @@ namespace Stoneship
 
         uint32_t count = 0;
 
-        for(uint32_t i = 0; i <  mSubrecordCount; ++i)
+        for(uint32_t i = 0; i <  mSubrecordHeaders.size(); ++i)
         {
             if(mSubrecordHeaders[i].type == subtype)
             {
@@ -215,12 +196,13 @@ namespace Stoneship
         //NOTE: No, I'm not gonna use a vector for that. I'm paying the bills here, so I get to choose the fucking container!
 
         //first, count how many subrecords we've got
+        uint32_t subrecordCount = 0;
         while(mInternalReader.bytesRemainingInUnit())
         {
             SubrecordHeader header;
             mInternalReader >> header;
 
-            ++mSubrecordCount;
+            ++subrecordCount;
 
             mInternalReader.skip(header.dataSize);
         }
@@ -230,9 +212,9 @@ namespace Stoneship
 
         // next, read headers and store them
 
-        mSubrecordHeaders = new SubrecordHeader[mSubrecordCount];
+        mSubrecordHeaders.allocate(subrecordCount);
 
-        for(uint32_t i = 0; i < mSubrecordCount; ++i)
+        for(uint32_t i = 0; i < mSubrecordHeaders.size(); ++i)
         {
             mInternalReader >> mSubrecordHeaders[i];
 

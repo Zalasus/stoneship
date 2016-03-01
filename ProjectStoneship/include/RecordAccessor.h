@@ -10,6 +10,7 @@
 
 #include "Record.h"
 #include "MGFDataReader.h"
+#include "SimpleArray.h"
 
 namespace Stoneship
 {
@@ -111,8 +112,7 @@ namespace Stoneship
         MasterGameFile *mGameFile;
         MGFDataReader mInternalReader;
         std::streampos mDataOffset; //offset of data field
-        uint32_t mSubrecordCount;
-        SubrecordHeader *mSubrecordHeaders;
+        SimpleArray<SubrecordHeader> mSubrecordHeaders;
 
     };
 
