@@ -26,6 +26,8 @@ namespace Stoneship
 
     void RecordReflector::loadFromRecord(RecordAccessor &record)
     {
+        record.rollback(); // ensure the Accessor is in the right position before reading anything
+
         const std::vector<SubrecordFieldS*> &fields = getReflectedFields();
 
         for(uint32_t i = 0; i < fields.size(); ++i)

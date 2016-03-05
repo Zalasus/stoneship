@@ -127,12 +127,9 @@ namespace Stoneship
                     STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Base " + baseUID.toString() + " for Entity " + entityUID.toString() + " not found");
                 }
 
-                // The base lookup might have accessed the MGF and thus changed the pointers location. Reset it. TODO: we can't do this everytime. it's hard to debug if and where the rollback was omitted
-                child.rollback();
-
                 IEntity *entity = base->createEntity(entityUID);
                 mEntities.push_back(entity);
-                entity->loadFromRecord(child); // <- this is the call that is sensitive to stream position (reason for rollback() )
+                entity->loadFromRecord(child);
                 entity->spawn(this);
 
                 if(i < subgroup.getHeader().recordCount-1) // reached end of list yet?
@@ -142,7 +139,6 @@ namespace Stoneship
                 }
             }// for each entity record
         } // if entity list not empty
-
     }
 
     void WorldDungeon::storeToRecord(RecordBuilder &record)
@@ -155,9 +151,9 @@ namespace Stoneship
             {
                 IEntity *entity = mEntities[i];
 
-                if(entity->getUID().ordinal != getUID().ordinal)
+                // skip this entity if it was not created by the same MGF as the dungeon
+                if(entity->getCreatedUID().ordinal != getCreatedUID().ordinal)
                 {
-                    // skip this entity if it was not created by the same MGF as the dungeon
                     continue;
                 }
 

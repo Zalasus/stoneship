@@ -28,6 +28,10 @@ namespace Stoneship
         virtual ~RecordReflector();
 
         // interface
+        /**
+         * Returns the UID this Reflector was created with. In most cases, implementing classes will have a getUID()
+         * method and will just redirect getCreatedUID() to that method.
+         */
         virtual UID getCreatedUID() const = 0;
         virtual Record::Type getRecordType() const = 0;
         virtual void loadFromRecord(RecordAccessor &record); // Loads everything. Throws if subrecord is missing

@@ -126,7 +126,12 @@ namespace Stoneship
     template <typename T>
     const T &SimpleArray<T>::operator [](uint32_t i) const
     {
-        return operator[](i);
+        if(i >= mSize)
+        {
+            STONESHIP_EXCEPT(StoneshipException::OUT_OF_BOUNDS, String("Requested index ") + i + " where size was " + mSize);
+        }
+
+        return mData[i];
     }
 
     template <typename T>

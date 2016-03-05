@@ -33,6 +33,7 @@ namespace Stoneship
 
         String getLoggerName();
         void setEnableTimestamp(bool ts);
+        void setPrintDebug(bool b);
         void setOutputStream(std::ostream *s);
         void setChildLogger(Logger *l);
 
@@ -48,6 +49,7 @@ namespace Stoneship
 
 		String mName;
 		bool mEnableTimestamp;
+		bool mPrintDebugInfo;
 		std::ostream *mStream;
 		Logger *mChildLogger;
 

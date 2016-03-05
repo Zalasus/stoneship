@@ -13,20 +13,24 @@
 
 using namespace Stoneship;
 
+#ifndef _LIBRARY
+
 int main(int argc, char **argv)
 {
     bool gracefully = true;
 
     Logger::getDefaultLogger().setEnableTimestamp(false); //get rid of those annoying timestamps on the console. let the file logger do this
+    Logger::getDefaultLogger().setPrintDebug(true);
     Logger::info("Initializing Stoneship v" STONESHIP_VERSION "...");
 
     std::ofstream logStream("stoneship.log", std::ios::out | std::ios::app);
     if(logStream.good())
     {
-        // put an empty line between executions just for readability
+        // put an empty line between executions for readability
         logStream << std::endl;
     }
     Logger fileLogger("Logfile", &logStream);
+    fileLogger.setPrintDebug(true);
     Logger::getDefaultLogger().setChildLogger(&fileLogger);
 
     Root *root = new Stoneship::Root();
@@ -38,21 +42,32 @@ int main(int argc, char **argv)
         root->getResourceManager().addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
         root->loadAllMGFs();
 
-        // get last record in that group. for speed testing
-        IEntityBase *base = root->getGameCache().getBase(UID(0, 0x0F000D0A));
-        EntityBase_Stuff *stuff = static_cast<EntityBase_Stuff*>(base);
-        stuff->setDisplayName("Modified " + stuff->getDisplayName());
+        for(uint32_t i = 0; i < 100; ++i)
+        {
+            UID uid = root->getMGFManager().getNewUID();
+            EntityBase_Book *book = new EntityBase_Book(uid);
+            root->getGameCache().manageBase(book);
+            book->setDisplayName("A book at bedtime");
+            book->setText(String("This is the book with ID ") + uid.toString());
+            book->setDescription("Test Test Test");
+            book->setIconFile("book.png");
+            book->setModelName("book.model");
+        }
 
+        EntityBase_Stuff *stuff = new EntityBase_Stuff(root->getMGFManager().getNewUID());
+        root->getGameCache().manageBase(stuff);
+        stuff->setDisplayName("Gunk");
+        stuff->setDescription("Dunkygunkydunkygunk");
 
-        UID uid = root->getMGFManager().getNewUID();
-        WorldDungeon *dungeon = new WorldDungeon(uid);
+        WorldDungeon *dungeon = new WorldDungeon(root->getMGFManager().getNewUID());
         root->getGameCache().manageWorld(dungeon);
-        dungeon->setWorldName("Naughty Zal's sex dungeon");
-        uid = root->getMGFManager().getNewUID();
-        IEntity *entity = stuff->createEntity(uid);
-        dungeon->addEntity(entity);
+        dungeon->setWorldName("Isao's cave");
+        for(uint32_t i = 0; i < 20; ++i)
+        {
+            dungeon->addEntity(stuff->createEntity(root->getMGFManager().getNewUID()));
+        }
 
-        root->getMGFManager().storeSGF("slave.mgf");
+        root->getMGFManager().storeSGF("master.mgf");
 
         root->run();
 
@@ -81,5 +96,7 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+
+#endif
 
 

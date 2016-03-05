@@ -2,3 +2,5 @@
 /Release/
 .project
 .cproject
+/LibDebug/
+/LibRelease/

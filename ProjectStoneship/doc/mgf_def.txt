@@ -325,15 +325,16 @@ C2: Chunk
 		
 C5: Dungeon
 	6: dungeon display name
-		string: dungeon name
+	7:
 	0: entity subgroup
-
+	
 
 D0: Entity
 	10: position data
 	11: scale data
 	F0: entity base data
 	F2: count data
+	
 	
 FFF0: Modify
 	FFF9: modification data

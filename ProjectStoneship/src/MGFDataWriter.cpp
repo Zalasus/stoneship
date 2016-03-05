@@ -79,7 +79,11 @@ namespace Stoneship
 	template <>
     MGFDataWriter &MGFDataWriter::operator << <float>(const float &f)
     {
-        *this << static_cast<uint32_t>(0); // TODO: Implement proper float storage
+	    // TODO: Implement proper float storage
+	    for(uint8_t i = 0; i < sizeof(float); ++i)
+	    {
+	        _writeNext(0);
+	    }
 
         return *this;
     }
@@ -87,7 +91,11 @@ namespace Stoneship
 	template <>
     MGFDataWriter &MGFDataWriter::operator << <double>(const double &f)
     {
-        *this << static_cast<uint64_t>(0); // TODO: Implement proper double storage
+	    // TODO: Implement proper double storage
+        for(uint8_t i = 0; i < sizeof(double); ++i)
+        {
+            _writeNext(0);
+        }
 
         return *this;
     }

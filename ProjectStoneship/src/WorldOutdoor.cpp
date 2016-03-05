@@ -68,6 +68,13 @@ namespace Stoneship
         }
     }
 
+    void WorldOutdoor::storeToRecord(RecordBuilder &record)
+    {
+        IWorld::storeToRecord(record);
+
+
+    }
+
 }
 
 

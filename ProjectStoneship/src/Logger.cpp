@@ -27,6 +27,7 @@ namespace Stoneship
 	Logger::Logger(const String &name, std::ostream *stream)
 	: mName(name),
 	  mEnableTimestamp(true),
+	  mPrintDebugInfo(false),
 	  mStream(stream),
 	  mChildLogger(nullptr)
 	{
@@ -40,6 +41,11 @@ namespace Stoneship
 	    }
 
 	    if(mStream == nullptr || !mStream->good())
+	    {
+	        return;
+	    }
+
+	    if(!mPrintDebugInfo && level == LOGLEVEL_DEBUG)
 	    {
 	        return;
 	    }
@@ -77,6 +83,11 @@ namespace Stoneship
     void Logger::setEnableTimestamp(bool ts)
     {
         mEnableTimestamp = ts;
+    }
+
+    void Logger::setPrintDebug(bool b)
+    {
+        mPrintDebugInfo = b;
     }
 
     void Logger::setOutputStream(std::ostream *s)

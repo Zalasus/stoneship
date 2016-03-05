@@ -49,6 +49,7 @@ namespace Stoneship
 
 	EntityBaseFactory::EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc, const String &baseName, bool preloaded)
 	: mRecordType(recordType),
+	  mBaseName(baseName),
 	  mPreloaded(preloaded),
 	  mAllocator(alloc)
 	{
@@ -69,6 +70,11 @@ namespace Stoneship
 		return mRecordType;
 	}
 
+	String EntityBaseFactory::getBaseName() const
+	{
+	    return mBaseName;
+	}
+
 	bool EntityBaseFactory::isPreloaded() const
 	{
 	    return mPreloaded;
@@ -78,6 +84,7 @@ namespace Stoneship
 	{
 		return (mAllocator(uid));
 	}
+
 
 
 	EntityBaseFactory *EntityBaseFactory::getFactoryForRecordType(Record::Type t)
@@ -93,6 +100,11 @@ namespace Stoneship
 		}
 
 		return nullptr;
+	}
+
+	uint32_t EntityBaseFactory::getRegisteredFactoryCount()
+	{
+	    return getFactoryVector().size();
 	}
 
 	std::vector<EntityBaseFactory*> &EntityBaseFactory::getFactoryVector()

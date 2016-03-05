@@ -29,6 +29,7 @@ namespace Stoneship
         MasterGameFile *getGameFile();
         std::streampos getDataOffset(); /** @returns Offset of record's data field */
         std::streampos getOffset(); /** @returns Absolute offset of record */
+        bool hasChildren() const;
 
         UID getUID() const;
 
@@ -53,6 +54,14 @@ namespace Stoneship
          * the call returns. Subsequent calls will not require another indexing.
          */
         uint32_t getSubrecordCountForType(Record::Subtype subtype);
+
+        /**
+         * This method returns an array of all subrecord headers contained in this record in the order they appear
+         * in the MGF. It operates on the internal index of subrecords, which is not
+         * aquired by default. If this method is called on an Accessor with empty index, it is filled before
+         * the call returns. Subsequent calls will not require another indexing.
+         */
+        const SimpleArray<SubrecordHeader> &getSubrecordHeaders();
 
         /**
          * @brief Creates data reader for first subrecord of given type to be found.

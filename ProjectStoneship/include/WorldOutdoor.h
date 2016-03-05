@@ -33,6 +33,7 @@ namespace Stoneship
 
         // override IRecordReflector
         virtual void loadFromRecord(RecordAccessor &record);
+        virtual void storeToRecord(RecordBuilder &record);
 
         void setWorldName(const String &s);
 

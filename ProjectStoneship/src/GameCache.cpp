@@ -15,6 +15,7 @@
 #include "RecordReflector.h"
 #include "RecordBuilder.h"
 #include "IWorld.h"
+#include "Logger.h"
 
 namespace Stoneship
 {
@@ -32,6 +33,16 @@ namespace Stoneship
         {
             delete mBaseCache[i];
         }
+    }
+
+    void GameCache::setCachePolicy(GameCachePolicy policy)
+    {
+        mPolicy = policy;
+    }
+
+    void GameCache::setLRULimit(uint32_t i)
+    {
+        mLRULimit = i;
     }
 
     IEntityBase *GameCache::getBase(const UID &uid, Record::Type type)
@@ -98,16 +109,14 @@ namespace Stoneship
 
 
         // store new base in cache
-        mBaseCache.push_back(base);
+        manageBase(base);
 
         return base;
     }
 
-    IEntityBase *GameCache::manageBase(IEntityBase *base)
+    void GameCache::manageBase(IEntityBase *base)
     {
         mBaseCache.push_back(base);
-
-        return base;
     }
 
     IWorld *GameCache::getWorld(UID uid)
@@ -115,11 +124,9 @@ namespace Stoneship
         return nullptr; // TODO: implement me!
     }
 
-    IWorld *GameCache::manageWorld(IWorld *world)
+    void GameCache::manageWorld(IWorld *world)
     {
         mWorldCache.push_back(world);
-
-        return world;
     }
 
     uint32_t GameCache::getBaseCacheSize()
@@ -134,8 +141,28 @@ namespace Stoneship
         {
             IEntityBase *base = (*it);
 
-            // don't delete a base that's still used, is dirty or was created ingame
-            if((base->getUserCount() == 0) && !base->isDirty() && (base->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL))
+            // should we delete this base?
+            bool del;
+            switch(mPolicy)
+            {
+            case POLICY_KEEP_NEEDED:
+                // don't delete a base that's still used, is dirty or was created ingame
+                del = ((base->getUserCount() == 0) && !base->isDirty() && (base->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL));
+                break;
+
+            // TODO: Implement this policy. Just do the same as for the default one for now
+            case POLICY_KEEP_RECENTLY_USED:
+                del = ((base->getUserCount() == 0) && !base->isDirty() && (base->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL));
+                break;
+
+            case POLICY_PRELOAD_ALL:
+            case POLICY_KEEP_ALL:
+            default:
+                del = false;
+                break;
+            }
+
+            if(del)
             {
                 delete base;
 
@@ -153,14 +180,23 @@ namespace Stoneship
         // FIXME: This combined cache breaks with our no-redundant-storage philosophy. also, building it takes a heck lot of time and is not very elegant. find better solution
         std::vector<RecordReflector*> combinedCache;
 
+        // build combined cache of all elements that need to be stored (were newly created)
         for(uint32_t i = 0; i < mBaseCache.size(); ++i)
         {
-            combinedCache.push_back(mBaseCache[i]);
+            // only transfer newly created bases
+            if(mBaseCache[i]->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL)
+            {
+                combinedCache.push_back(mBaseCache[i]);
+            }
         }
 
         for(uint32_t i = 0; i < mWorldCache.size(); ++i)
         {
-            combinedCache.push_back(mWorldCache[i]);
+            // only transfer newly created worlds
+            if(mWorldCache[i]->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL)
+            {
+                combinedCache.push_back(mWorldCache[i]);
+            }
         }
 
 
@@ -183,31 +219,14 @@ namespace Stoneship
         // next, iterate over records and store them
         Record::Type lastGroup = Record::TYPE_RESERVED;
         uint32_t groupCount = 0;
-        //bool hasDirtyThings = false;
         RecordBuilder groupBuilder(writer);
 
         for(uint32_t i = 0; i < combinedCache.size(); ++i)
         {
             RecordReflector *reflector = combinedCache[i];
 
-            // first, check if and where we have to store this reflected
-            if(reflector->getCreatedUID().ordinal != UID::SELF_REF_ORDINAL)
-            {
-                // this reflected was not created during runtime but loaded from a MGF. whether we need to store it or not depends on it's dirty state.
-
-                // if reflected is dirty, we need to store a MODIFY record to allow recreation of it's current state without modifiying the MGF that created it
-                // for proper grouping, this pass is delayed to a second pass, which is done by another function.
-                if(reflector->isDirty())
-                {
-                    //hasDirtyThings = true;
-                }
-
-                // if it isn't dirty it's state can be recreated entirely by that MGF, so we don't have to store it anywhere.
-                continue;
-            }
             // this reflected was created during runtime or loaded from savegame (which is volatile). no MODIFY needed, regardless of dirty state
             // just store it as-is
-
 
             // do we need to start a new group?
             if(lastGroup != reflector->getRecordType())
@@ -217,6 +236,7 @@ namespace Stoneship
                 {
                     // yes -> write a footer and start new group
                     groupBuilder.endRecord();
+                    Logger::debug(String("Stored record group ") + lastGroup + " containing " + groupBuilder.getChildRecordCount() + " records");
                     groupBuilder.beginGroupRecord(reflector->getRecordType());
 
                 }else
@@ -240,6 +260,7 @@ namespace Stoneship
         {
             // yes. write final footer
             groupBuilder.endRecord();
+            Logger::debug(String("Stored record group ") + lastGroup + " containing " + groupBuilder.getChildRecordCount() + " records");
         }
 
         return groupCount;
@@ -250,14 +271,23 @@ namespace Stoneship
         // FIXME: Same as in storeCache(). Combined cache is crap. Make method better
         std::vector<RecordReflector*> combinedCache;
 
+        // build combined cache with all elements that need a MODIFY record
         for(uint32_t i = 0; i < mBaseCache.size(); ++i)
         {
-            combinedCache.push_back(mBaseCache[i]);
+            // we only need to store a MODIFY for a reflected that was not created at runtime and is dirty
+            if(mBaseCache[i]->getCreatedUID().ordinal != UID::SELF_REF_ORDINAL && mBaseCache[i]->isDirty())
+            {
+                combinedCache.push_back(mBaseCache[i]);
+            }
         }
 
         for(uint32_t i = 0; i < mWorldCache.size(); ++i)
         {
-            combinedCache.push_back(mWorldCache[i]);
+            // we only need to store a MODIFY for a reflected that was not created at runtime and is dirty
+            if(mWorldCache[i]->getCreatedUID().ordinal != UID::SELF_REF_ORDINAL && mWorldCache[i]->isDirty())
+            {
+                combinedCache.push_back(mWorldCache[i]);
+            }
         }
 
 
@@ -284,12 +314,6 @@ namespace Stoneship
         for(uint32_t i = 0; i < combinedCache.size(); ++i)
         {
             RecordReflector *reflector = combinedCache[i];
-
-            // if a reflected was created at runtime or is not dirty, we don't need to store a MODIFY for it
-            if(reflector->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL || !reflector->isDirty())
-            {
-                continue;
-            }
 
             if(!writtenStuff)
             {

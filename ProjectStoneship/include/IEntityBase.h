@@ -71,17 +71,21 @@ namespace Stoneship
 		EntityBaseFactory(Record::Type recordType, EntityBaseAllocatorMethodPtr alloc, const String &baseName, bool preloaded);
 
 		Record::Type getRecordType() const;
+		String getBaseName() const;
 		bool isPreloaded() const;
 		IEntityBase *createEntityBase(UID uid);
 
 
 		static EntityBaseFactory *getFactoryForRecordType(Record::Type t);
+		static uint32_t getRegisteredFactoryCount();
+
 
 	private:
 
 		static std::vector<EntityBaseFactory*> &getFactoryVector();
 
 		Record::Type mRecordType;
+		String mBaseName;
 		bool mPreloaded;
 		EntityBaseAllocatorMethodPtr mAllocator;
 	};

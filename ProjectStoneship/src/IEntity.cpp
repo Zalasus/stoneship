@@ -62,7 +62,7 @@ namespace Stoneship
         record.beginSubrecord(Record::SUBTYPE_ENTITY, sizeof(UID) + sizeof(Record::Type))
                 << mBase->getUID()
                 << mBase->getRecordType();
-        record.endRecord();
+        record.endSubrecord();
     }
 
 

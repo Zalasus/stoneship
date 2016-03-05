@@ -43,6 +43,12 @@ namespace Stoneship
         void endSubrecord();
 
         /**
+         * Returns the amount of child records that were written to this record so far. In accordance with the MGF spec, only GROUP
+         * records may contain child records, so this method will return invalid data if called on a non-GROUP type record.
+         */
+        uint32_t getChildRecordCount();
+
+        /**
          * Creates a Builder for a new child record and writes headers for the new child. The returned builder can be used for IO right away,
          * as there is no need for the caller to invoke beginRecord anymore. In accordance with the MGF spec, only GROUP
          * records may contain child records, so this method will throw if called on a non-GROUP type record.
@@ -56,6 +62,7 @@ namespace Stoneship
         RecordHeader::FlagType mFlags;
         UID::ID mID;
         Record::Type mGroupType;
+        Record::Subtype mSubrecordType;
         SubrecordHeader::SizeType mPredictedDataSize;
 
         std::streampos mRecordSizeFieldOffset;
@@ -63,6 +70,9 @@ namespace Stoneship
         std::streampos mSubrecordSizeFieldOffset;
 
         RecordHeader::ChildRecordCountType mChildRecordCount;
+
+        bool mBuildingSubrecord; // true if subrecord is beeing build ATM
+        bool mBuildingRecord; // true if record is beeing build ATM
 
     };
 

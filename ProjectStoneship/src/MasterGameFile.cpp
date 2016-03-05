@@ -46,7 +46,7 @@ namespace Stoneship
 	    }
 	}
 
-	void MasterGameFile::load()
+	void MasterGameFile::load(bool ignoreDependencies)
 	{
 	    if(mLoaded)
 	    {
@@ -100,7 +100,7 @@ namespace Stoneship
 			{
 				String filename;
 				ds >> filename;
-				if(Root::getSingleton()->getMGFManager().getLoadedMGF(filename) == nullptr)
+				if(Root::getSingleton()->getMGFManager().getLoadedMGF(filename) == nullptr && !ignoreDependencies)
 				{
 					STONESHIP_EXCEPT(StoneshipException::DEPENDENCY_NOT_MET, "Dependency '" + filename + "' was not loaded before depending MGF");
 				}
@@ -190,9 +190,9 @@ namespace Stoneship
 			mHints[i].type = groupHeader.groupType;
 			mHints[i].recordCount = groupHeader.recordCount;
 
-            //there are some records which we want to index one by one like Modify. check if we have on of those on our hands
+            //there are some records which we want to index one by one like Modify or load right at startup. check if we have on of those on our hands
 			EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(groupHeader.type);
-			if(factory != nullptr && factory->isPreloaded())
+			if((factory != nullptr && factory->isPreloaded()))
 			{
 			    // this is an entity base group which must be preloaded
 			    STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "Preloaded entities unsupported ATM");
@@ -281,7 +281,7 @@ namespace Stoneship
             }
 
 	        writer << resType
-	               << static_cast<uint8_t>('Z')
+	               << static_cast<uint8_t>('Z') // dummy byte
 	               << mResources[i].path;
 	    }
 
@@ -289,6 +289,7 @@ namespace Stoneship
 	    writer << static_cast<uint32_t>(0xCAFEBABE); // top group count (overwritten later)
 
 	    // done writing header. now we need to write the top groups
+	    mRecordGroupCount = 0;
 	    mRecordGroupCount += Root::getSingleton()->getGameCache().storeCache(writer); // GameCache gets to store everything it has cached
 	    mRecordGroupCount += Root::getSingleton()->getGameCache().storeCacheMods(writer); // append MODIFY top group
 
@@ -321,13 +322,17 @@ namespace Stoneship
             if(mgfm.getLoadedMGFByIndex(i)->getOrdinal() == getOrdinal())
             {
                 // no self dependence please
-                //continue; This would lead to uninitialized deps. since MGF access methods mof MGFManager exclude SGFs ATM, we can consider this not needed for now
+                //continue; This would lead to uninitialized deps. since MGF access methods of MGFManager exclude SGFs ATM, we can consider this not needed for now
             }
 
             mDependencies[i].ordinal = mgfm.getLoadedMGFByIndex(i)->getOrdinal();
             mDependencies[i].filename = mgfm.getLoadedMGFByIndex(i)->getFilename();
         }
 
+        // initialize timestamp with current time
+        time_t rawtime;
+        std::time(&rawtime);
+        mTimestamp = *std::localtime(&rawtime);
 
         mLoaded = true;
 	}
@@ -403,7 +408,7 @@ namespace Stoneship
 			}
 		}
 
-		STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Referenced ordinal not found in dependency table. This probably means a dependency of one or more MGFs was not loaded or unloaded.");
+		STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Referenced ordinal not found in dependency table. This probably means a dependency of one or more MGFs was not loaded or wrongly unloaded.");
 	}
 
 	//TODO: Typeless lookups are inefficient atm. Implement more dynamic matching to speed things up a bit
@@ -552,7 +557,19 @@ namespace Stoneship
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
 	}
 
-	RecordAccessor MasterGameFile::getFirstRecord(Record::Type type)
+	RecordAccessor MasterGameFile::getFirstRecord()
+	{
+	    MGFDataReader ds(&mInputStream, this);
+
+	    ds.seek(mHeaderEndOfffset);
+
+        RecordHeader firstHeader;
+        ds >> firstHeader;
+
+        return RecordAccessor(firstHeader, &mInputStream, this);
+	}
+
+	RecordAccessor MasterGameFile::getFirstRecordOfType(Record::Type type)
 	{
 		OffsetHint *hint = _getHint(type);
 		if(hint == nullptr)

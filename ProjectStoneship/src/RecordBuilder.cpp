@@ -7,6 +7,8 @@
 
 #include "RecordBuilder.h"
 
+#include "Logger.h"
+
 namespace Stoneship
 {
 
@@ -16,13 +18,26 @@ namespace Stoneship
 	  mFlags(0),
 	  mID(UID::NO_ID),
 	  mGroupType(Record::TYPE_RESERVED),
+	  mSubrecordType(0),
       mPredictedDataSize(0),
-      mChildRecordCount(0)
+      mChildRecordCount(0),
+      mBuildingSubrecord(false),
+      mBuildingRecord(false)
     {
     }
 
     void RecordBuilder::beginRecord(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
     {
+        if(mBuildingSubrecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin building record while subrecord was still beeing built.");
+        }
+
+        if(mBuildingRecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin building record while other record was still beeing built.");
+        }
+
         if(type == Record::TYPE_GROUP)
         {
             STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Called beginRecord() in RecordBuilder for GROUP record. Must use beginGroupRecord() instead. This indicated a bug in the engine.");
@@ -39,12 +54,25 @@ namespace Stoneship
         mWriter << static_cast<RecordHeader::SizeType>(0xDEADBEEF) // this field is overwritten by endRecord()
                 << mFlags
                 << mID;
+
+        mBuildingRecord = true;
     }
 
     void RecordBuilder::beginGroupRecord(Record::Type groupType)
     {
+        if(mBuildingSubrecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin building group record while subrecord was still beeing built.");
+        }
+
+        if(mBuildingRecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin building group record while other record was still beeing built.");
+        }
+
         mType = Record::TYPE_GROUP;
         mGroupType = groupType;
+        mChildRecordCount = 0;
 
         mWriter << mType;
 
@@ -54,10 +82,22 @@ namespace Stoneship
         mWriter << mGroupType;
         mChildRecordCountFieldOffset = mWriter.tell();
         mWriter << static_cast<RecordHeader::ChildRecordCountType>(0xDEADBEEF);  // this field is overwritten by endRecord()
+
+        mBuildingRecord = true;
     }
 
     void RecordBuilder::endRecord()
     {
+        if(mBuildingSubrecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Finished record while still building subrecord. Did you call endRecord() instead of endSubrecord()?");
+        }
+
+        if(!mBuildingRecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to end record while no record was beeing built.");
+        }
+
         // store our current position. to finish the record, we need to update it's header
         std::streamoff pos = mWriter.tell();
 
@@ -77,6 +117,8 @@ namespace Stoneship
 
         // we are done. return to record footer
         mWriter.seek(pos);
+
+        mBuildingRecord = false;
     }
 
     MGFDataWriter &RecordBuilder::beginSubrecord(Record::Subtype type)
@@ -86,11 +128,20 @@ namespace Stoneship
 
     MGFDataWriter &RecordBuilder::beginSubrecord(Record::Subtype type, SubrecordHeader::SizeType dataSize)
     {
+        if(mBuildingSubrecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin new subrecord while still building other one.");
+        }
+
+        mPredictedDataSize = dataSize;
+        mSubrecordType = type;
+
         mWriter << type;
 
         mSubrecordSizeFieldOffset = mWriter.tell();
-        mWriter << dataSize; // this is overwritten by endSubrecord()
-        mPredictedDataSize = dataSize;
+        mWriter << mPredictedDataSize; // this is overwritten by endSubrecord()
+
+        mBuildingSubrecord = true;
 
         return mWriter;
     }
@@ -107,6 +158,11 @@ namespace Stoneship
 
     void RecordBuilder::endSubrecord()
     {
+        if(!mBuildingSubrecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to end subrecord when no subrecord was beeing built.");
+        }
+
         std::streamoff pos = mWriter.tell();
 
         SubrecordHeader::SizeType size = pos - mSubrecordSizeFieldOffset - sizeof(SubrecordHeader::SizeType);
@@ -118,6 +174,13 @@ namespace Stoneship
             mWriter << size;
             mWriter.seek(pos);
         }
+
+        mBuildingSubrecord = false;
+    }
+
+    uint32_t RecordBuilder::getChildRecordCount()
+    {
+        return mChildRecordCount;
     }
 
     RecordBuilder RecordBuilder::createAndBeginChildBuilder(Record::Type type, RecordHeader::FlagType flags, UID::ID id)

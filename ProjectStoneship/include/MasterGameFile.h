@@ -70,7 +70,7 @@ namespace Stoneship
          * If called on a MGF that already has dependencies loaded or has an ordinal different to 0xFFFF, this method will throw.
          */
 		void initCreated();
-		void load();
+		void load(bool ignoreDependencies = false);
 		void store();
 
 		const String &getFilename() const;
@@ -94,7 +94,8 @@ namespace Stoneship
 
 		RecordAccessor getRecordByEditorName(const String &name, Record::Type type);
 
-		RecordAccessor getFirstRecord(Record::Type type);
+		RecordAccessor getFirstRecord();
+		RecordAccessor getFirstRecordOfType(Record::Type type);
 
 		void applyModifications(RecordReflector *reflector);
 

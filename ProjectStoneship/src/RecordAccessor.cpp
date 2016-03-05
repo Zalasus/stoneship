@@ -53,6 +53,11 @@ namespace Stoneship
         return mInternalReader;
     }
 
+    bool RecordAccessor::hasChildren() const
+    {
+        return (mHeader.type == Record::TYPE_GROUP) && (mHeader.recordCount > 0);
+    }
+
     uint32_t RecordAccessor::getSubrecordCount()
     {
         if(mHeader.type == Record::TYPE_GROUP)
@@ -90,6 +95,18 @@ namespace Stoneship
         }
 
         return count;
+    }
+
+    const SimpleArray<SubrecordHeader> &RecordAccessor::getSubrecordHeaders()
+    {
+        if(mSubrecordHeaders.ptr() == nullptr)
+        {
+            rollback();
+
+            _indexSubrecords();
+        }
+
+        return mSubrecordHeaders;
     }
 
     MGFDataReader RecordAccessor::getReaderForSubrecord(Record::Subtype subtype)
