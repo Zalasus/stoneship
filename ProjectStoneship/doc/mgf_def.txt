@@ -12,17 +12,40 @@ Basic types:
     long:    8 byte, signed
     integer types prefixed with u are unsigned
     
-    string:  zero terminated character sequence prefixed with 4 byte length field
+    float:   32 bit IEEE 754 floating point number
+    double:  64 bit IEEE 754 floating point number 
+    
+    string:  zero terminated character sequence prefixed with 4 byte length field (not including terminator)
     
 
-dependency = {string: filename, short: ordinal}
-recordHint = {short: type, int: offset, int: count}
-resource = {byte: type, byte: dummy, string: path}
-subrecord = {short: type, int: size, byte[~]: data} (6 bytes overhead)
-uid = {short: ordinal, int: id}
-record = {short: type, int: sizeInBytes, short: flags, int: recordId, byte[~]: data}
-record_group = {short: type = 0x0000, int: sizeInBytes, short: groupType, int: childRecordCount, record[~]: records}
+dependency = {string: filename, ushort: ordinal}
+resource = {ubyte: type, ubyte: dummy, string: path}
+subrecord = {ushort: type, uint: size, byte[~]: data} (6 bytes overhead)
 
+uid = {ushort: ordinal, uint: id}
+
+record = 
+{
+    ushort: type, 
+    uint: sizeInBytes, 
+    ushort: flags,
+    ubyte: created author id,
+    ubyte: modified author id,
+    uint: recordId, 
+    byte[~]: data
+}
+
+record_group = 
+{
+    ushort: type = 0x0000, 
+    uint: sizeInBytes, 
+    ushort: flags, 
+    ushort: groupType, 
+    uint: childRecordCount, 
+    record[~]: records
+}
+
+author = {ubyte: author id, string: author name}
 
 File structure
 --------------
@@ -31,12 +54,15 @@ File structure
 
 ubyte[8]: 		 magic id = "NRPG3MGF"
 string:		     game id
-uint:			 file flags
+ushort:			 file flags
+
+(team information)
+ubyte:           author count
+author[~]:       authors
 
 (meta information)
-string:		     author (name of MGF's author)
 string:		     description (descripton of MGF's content)
-ulong:           timestamp (in UNIX epoch milliseconds format)
+ulong:           creation timestamp (in UNIX epoch milliseconds format)
 
 ushort:			 dependency count
 dependency[~]:	 dependencies (list of MGFs which hold content that's used by this MGF and must be loaded before it)
@@ -47,8 +73,8 @@ resource[~]:	 resources (a list of paths/archive files where this MGFs BLOBs are
 
 (records)
 
-uint:			 record top group count
-record_group[~]: record groups
+uint:			 top group count
+record_group[~]: top groups
 
 ubyte:           end marker = 0xF0
 
@@ -128,13 +154,18 @@ and never contain the size of any other fields in the structure including the si
 Record groups
 -------------
 The main unit of record storage in a MGF are record groups. These containers list records of the same type and
-allow fast skipping through the file. Additionally, record groups may be embedded in subrecords(see chapter "Records") of 
-other records which need a set of data that can't be stored efficiently in subrecords or has a typical record structure (with UID etc.).
-For instance, a Dungeon record contains a subrecord of type 0, containing a group of Entity records, in turn containing all Entities in this Dungeon.
+allow fast skipping through the file. Additionally, record groups may follow records that need a set of data that can't be stored 
+efficiently in subrecords or has a typical record structure (with ID etc.). For instance, a Dungeon record is always followed by
+a group of Entity records defining all Entities in this Dungeon. If a record is followed by another one that it is logically linked to,
+the ATTACHMENT flag in the first record's header is set.
 
 Child records (records contained within a data field which still have a full record header) are only valid for records of type Group.
-Every other record type must either store all it's data in subrecords directly, or encapsulate a group record in the special Group-subrecord type.
-This convention ensures consitency in the structure of the record's data fields and stuff.
+Every other record type must store all it's data in subrecords. This convention ensures consitency in the structure of the record's data fields and stuff.
+
+Since records don't have a footer, a MGF can be "linearized" by simply ignoring all GROUP record headers, removing any sort of nesting. This can
+be useful when searching for a specific record by ID or editor name without knowing whether it is nested or not. To further speed up the
+process of searching, the flag field of a GROUP record contains information whether it contains identifiable records or not, so groups
+that are not relevant for searching can be skipped.
 
 Since record groups contain whole records as subunits, and records are not guaranteed to be read entirely by the
 application, the amount of remaining bytes in the record data field is no safe indicator whether a full record is still
@@ -143,28 +174,11 @@ available or not. Therefore, group records provide an additional child record co
 Upon loading, all top groups and their respective offsets in the file are indexed so record groups may
 be found quickly when specific types of records are requested for load.
 
+The flag field of record groups is defined as follows:
 
-Dynlen
-------
-00000000 -                            01111111                             0-127
-10000000 00000000 -                   10111111 11111111                    128-49151
-11000000 00000000 00000000 -          11011111 11111111 11111111
-11100000 00000000 00000000 00000000 - 11111111 11111111 11111111 11111111
-
-
-0XXXXXXX
-10XXXXXX XXXXXXXX
-110XXXXX XXXXXXXX XXXXXXXX
-111XXXXX XXXXXXXX XXXXXXXX XXXXXXXX
-
-1   =    00000001
-...
-127 =    01111111
-128 =    10000000 10000000
-129 =    10000000 10000001
-         10111111 11111111
-         11000000 00000000 00000000
-         11000000 00000000 00000001
+    0x0001    TOP_GROUP        Indicates a top group if set
+    0x0002    ID_PRESENT       If set, at least one record in the group has a unique ID
+    0x0004    EDATA_PRESENT    If set, at least one record in the group contains an _EDITOR_DATA subrecord
 
 IDs / UIDs
 ----------
@@ -201,9 +215,12 @@ For more information on these IDs, see the previous chapter "IDs / UIDs"
 
 For additional data, every record contains a flag byte. The meanings of the flag bits are as follows:
 
-	Bit 0 -> DELETED:           If set, this record is scratched, and should not be bought
-	Bit 1 -> FULLOFEELS:        If set, your hovercraft is full of eels (The sane reader can consider this bit as unused)
-	Bit 2 -> EDATA_PRESENT:     If set, this record contains an _EDITOR_DATA subrecord (does not apply for GROUP records)
+	0x0001    DELETED            If set, this record is scratched, and should not be bought
+	0x0002    FULLOFEELS         If set, your hovercraft is full of eels
+	0x0004    EDATA_PRESENT      If set, this record contains an _EDITOR_DATA subrecord (does not apply for GROUP records)
+	0x0008    ATTACHMENT         If set, this record is followed by an additional record that is logically connected to it (usually a GROUP)
+	0x0010    BLOB_RECORD        If set, this record contains raw binary data rather than subrecords
+	
 
 The data of records is stored in subrecords which consist of an 16 bit type ID that is specific for the record's
 type ID, meaning that subrecords with equal type IDs must not necessarily contain the same type of data unless
@@ -307,7 +324,7 @@ B1: ScalesGlobal
 
 C0: Outdoor World
 	6: world display name
-	0: chunk group subgroup (contains group record of chunk groups)
+	(record is followed by 
 	
 C1: Chunk group
 	100: chunk group data
@@ -453,7 +470,8 @@ Common subrecord types with typical fields they contain (these definitions may n
 	string: description
 	
 8: trading information
-	uint: trading value
+	uint:  trading value
+	ubyte: interest rating
 	
 A: inventory information
 	byte: item flags (0x01 = IS_ESSENTIAL, 0x02 = IS_CURRENCY, 0x04 = IS_UNIDENTIFIED, 0x10 = IS_UNIQUE)

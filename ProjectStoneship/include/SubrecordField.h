@@ -102,7 +102,7 @@ namespace Stoneship
     template <typename T>
     void SubrecordField<T>::read(MGFDataReader &reader)
     {
-        reader >> mV >> MGFDataReader::endr;
+        reader >> mV;
     }
 
     template <typename T>

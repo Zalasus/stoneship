@@ -24,6 +24,7 @@ namespace Stoneship
       mBuildingSubrecord(false),
       mBuildingRecord(false)
     {
+
     }
 
     void RecordBuilder::beginRecord(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
@@ -133,6 +134,16 @@ namespace Stoneship
             STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin new subrecord while still building other one.");
         }
 
+        if(!mBuildingRecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin subrecord while not building encasing record.");
+        }
+
+        if(mType == Record::TYPE_GROUP)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin subrecord inside GROUP record.");
+        }
+
         mPredictedDataSize = dataSize;
         mSubrecordType = type;
 
@@ -146,7 +157,7 @@ namespace Stoneship
         return mWriter;
     }
 
-    RecordBuilder RecordBuilder::beginSubgroupSubrecord(Record::Type groupType)
+    /*RecordBuilder RecordBuilder::beginSubgroupSubrecord(Record::Type groupType)
     {
         MGFDataWriter &writer = beginSubrecord(Record::SUBTYPE_SUBGROUP);
 
@@ -154,7 +165,7 @@ namespace Stoneship
         builder.beginGroupRecord(groupType);
 
         return builder;
-    }
+    }*/
 
     void RecordBuilder::endSubrecord()
     {
@@ -185,6 +196,11 @@ namespace Stoneship
 
     RecordBuilder RecordBuilder::createAndBeginChildBuilder(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
     {
+        if(!mBuildingRecord)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin child record while not building encasing GROUP record.");
+        }
+
         if(mType != Record::TYPE_GROUP)
         {
             STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Tried to create child record in non-GROUP type record.");

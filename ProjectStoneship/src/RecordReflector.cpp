@@ -44,6 +44,7 @@ namespace Stoneship
             {
                 MGFDataReader reader = record.getReaderForSubrecord(field->getSubtype());
                 field->read(reader);
+                reader.skipToEnd(); // we might have not read every byte in subrecord. skip remaining so next call to getReaderForSubrecord doesn't read garbage header
 
             }catch(StoneshipException &e)
             {
@@ -56,8 +57,6 @@ namespace Stoneship
                     throw;
                 }
             }
-
-
         }
     }
 
@@ -72,8 +71,8 @@ namespace Stoneship
             if(record.getSubrecordCountForType(field->getSubtype()) > 0)
             {
                 MGFDataReader reader = record.getReaderForSubrecord(field->getSubtype());
-
                 field->read(reader);
+                reader.skipToEnd(); // we might have not read every byte in subrecord. skip remaining so next call to getReaderForSubrecord doesn't read garbage header
             }
         }
     }
@@ -92,9 +91,7 @@ namespace Stoneship
             }
 
             MGFDataWriter writer = b.beginSubrecord(field->getSubtype(), field->getPredictedDataSize());
-
             field->write(writer);
-
             b.endSubrecord();
         }
     }
@@ -109,10 +106,8 @@ namespace Stoneship
 
             if(field->isDirty())
             {
-                MGFDataWriter writer = b.beginSubrecord(field->getSubtype());
-
+                MGFDataWriter writer = b.beginSubrecord(field->getSubtype(), field->getPredictedDataSize());
                 field->write(writer);
-
                 b.endSubrecord();
             }
         }

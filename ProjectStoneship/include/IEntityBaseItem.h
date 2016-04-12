@@ -92,6 +92,7 @@ namespace Stoneship
         inline bool isToBeIdentified() const { return mInventory.getFlags() & FLAGS_IS_UNIDENTIFIED; }
         inline bool isUnique() const { return mInventory.getFlags() & FLAGS_IS_UNIQUE; }
 
+
 		static const uint8_t FLAGS_IS_ESSENTIAL = 0x01;
 		static const uint8_t FLAGS_IS_CURRENCY = 0x02;
 		static const uint8_t FLAGS_IS_UNIDENTIFIED = 0x04;
