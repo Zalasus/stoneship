@@ -18,7 +18,7 @@ namespace Stoneship
     {
     public:
 
-        RecordBuilder(MGFDataWriter &writer);
+        RecordBuilder(MGFDataWriter &writer, RecordBuilder *parent = nullptr);
 
         void beginRecord(Record::Type type, RecordHeader::FlagType flags, UID::ID id);
         void beginGroupRecord(Record::Type groupType);
@@ -67,6 +67,7 @@ namespace Stoneship
     private:
 
         MGFDataWriter &mWriter;
+        RecordBuilder *mParent;
         Record::Type mType;
         RecordHeader::FlagType mFlags;
         UID::ID mID;

@@ -160,7 +160,7 @@ a group of Entity records defining all Entities in this Dungeon. If a record is 
 the ATTACHMENT flag in the first record's header is set.
 
 Child records (records contained within a data field which still have a full record header) are only valid for records of type Group.
-Every other record type must store all it's data in subrecords. This convention ensures consitency in the structure of the record's data fields and stuff.
+Every other record type must store all it's data in subrecords. This convention ensures consitency in the structure of the record's data fields.
 
 Since records don't have a footer, a MGF can be "linearized" by simply ignoring all GROUP record headers, removing any sort of nesting. This can
 be useful when searching for a specific record by ID or editor name without knowing whether it is nested or not. To further speed up the
@@ -177,7 +177,7 @@ be found quickly when specific types of records are requested for load.
 The flag field of record groups is defined as follows:
 
     0x0001    TOP_GROUP        Indicates a top group if set
-    0x0002    ID_PRESENT       If set, at least one record in the group has a unique ID
+    0x0002    ID_PRESENT       If set, at least one record in the group has an unique ID
     0x0004    EDATA_PRESENT    If set, at least one record in the group contains an _EDITOR_DATA subrecord
 
 IDs / UIDs
@@ -222,10 +222,10 @@ For additional data, every record contains a flag byte. The meanings of the flag
 	0x0010    BLOB_RECORD        If set, this record contains raw binary data rather than subrecords
 	
 
-The data of records is stored in subrecords which consist of an 16 bit type ID that is specific for the record's
-type ID, meaning that subrecords with equal type IDs must not necessarily contain the same type of data unless
-the type ID of their respective record is equal, too. Some groups of record types, however, store common
-information in specific subrecords.
+The data of regular records is stored in subrecords, which consist of an 16 bit subtype ID and a 32 bit size field. 
+Some definitions of subtype IDs may be specific for a given record type, meaning that subrecords with that subtype IDs
+must not necessarily contain the same type of data across the whole file unless the type ID of their containing record is equal, too.
+Most types of records, however, associate a common type and format of data in subrecords with common subtypes.
 
 The subrecord itself is basically a byte array which is interpreted differently depending of the subrecord's type ID.
 Because the [Modify] record (described in the following section) lists modifications on subrecord level, the smallest
@@ -234,9 +234,10 @@ only contain one field or a set of fields which can be assumed to be always modi
 
 Some subrecords may be optional for some type of records. Those may appear once or never in the record. Most other 
 defined subrecord types must appear exactly once. If such a subrecord is defined more than once, the result is
-undefined. Some subrecord types, however, may appear more than once.
+undefined. Some subrecord types, however, may appear more than once. These are marked accordingly in the list of subrecord
+types. Missing obligatory records are considered major errors and will prevent the proper loading of whatever required them.
 
-If a record contains subrecords that are not defined/not used by that type of record, they are simply ignored.
+If a record contains subrecords that are not defined/not required by that type of record, they are simply ignored.
 
 
 Modify records
@@ -487,7 +488,11 @@ C: identification data (only present if undentified flag in SR 9 is set)
 D: count
 	uint: count
 
-10: position data
+F: grid position data
+	int: x
+	int: y
+
+10: 3D position data
 	vector3f: position
 	vector3f: rotation
 	
