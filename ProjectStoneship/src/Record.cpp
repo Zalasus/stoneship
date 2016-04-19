@@ -79,7 +79,7 @@ namespace Stoneship
 
 		}else
 		{
-			*this >> header.groupType >> header.recordCount;
+			*this >> header.flags >> header.groupType >> header.recordCount;
 		}
 
 		return *this;
@@ -96,7 +96,7 @@ namespace Stoneship
 
         }else
         {
-            *this << header.groupType << header.recordCount;
+            *this << header.flags << header.groupType << header.recordCount;
         }
 
         return *this;

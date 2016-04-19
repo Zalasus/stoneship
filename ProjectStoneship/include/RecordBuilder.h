@@ -57,12 +57,14 @@ namespace Stoneship
         uint32_t getChildRecordCount();
 
         /**
-         * Creates a Builder for a new child record and writes headers for the new child. The returned builder can be used for IO right away,
-         * as there is no need for the caller to invoke beginRecord anymore. In accordance with the MGF spec, only GROUP
-         * records may contain child records, so this method will throw if called on a non-GROUP type record.
+         * Creates a child builder without writing headers. This only handles child counting and proper parent indirection.
+         * Before the returned builder can be used for IO the caller has to invoke the appropriate beginRecord method.
+         * In accordance with the MGF spec, only GROUP records may contain child records, so this method will throw if called on a non-GROUP type record.
          */
-        RecordBuilder createAndBeginChildBuilder(Record::Type type, RecordHeader::FlagType flags, UID::ID id);
+        RecordBuilder createChildBuilder();
 
+        RecordHeader::FlagType getFlags() const;
+        void setFlags(RecordHeader::FlagType flags);
 
     private:
 
@@ -75,6 +77,7 @@ namespace Stoneship
         Record::Subtype mSubrecordType;
         SubrecordHeader::SizeType mPredictedDataSize;
 
+        std::streampos mFlagFieldOffset;
         std::streampos mRecordSizeFieldOffset;
         std::streampos mChildRecordCountFieldOffset; // for GROUP records only
         std::streampos mSubrecordSizeFieldOffset;

@@ -96,13 +96,6 @@ namespace Stoneship
         RecordAccessor getFirstChildRecord();
 
         /**
-         * @brief Creates Accessor for GROUP record in subrecord of _SUBGROUP type.
-         *
-         * This method will throw if no _SUBGROUP subrecord is found.
-         */
-        RecordAccessor getSubgroup();
-
-        /**
          * @brief Moves the stream pointer to the beginning of this records data field.
          */
         void rollback();

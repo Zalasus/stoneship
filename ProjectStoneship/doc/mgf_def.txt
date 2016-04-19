@@ -15,7 +15,7 @@ Basic types:
     float:   32 bit IEEE 754 floating point number
     double:  64 bit IEEE 754 floating point number 
     
-    string:  zero terminated character sequence prefixed with 4 byte length field (not including terminator)
+    string:  zero terminated character sequence prefixed with 4 byte length field (length not including terminator)
     
 
 dependency = {string: filename, ushort: ordinal}
@@ -29,7 +29,7 @@ record =
     ushort: type, 
     uint: sizeInBytes, 
     ushort: flags,
-    ubyte: created author id,
+    ubyte: created author id,   <<<--- These are a proposal for version control. Not implemented ATM. Fields do not exist in files
     ubyte: modified author id,
     uint: recordId, 
     byte[~]: data
@@ -176,9 +176,13 @@ be found quickly when specific types of records are requested for load.
 
 The flag field of record groups is defined as follows:
 
-    0x0001    TOP_GROUP        Indicates a top group if set
+    0x0001    DELETED          Indicates this group record and all contained records should be ignored
     0x0002    ID_PRESENT       If set, at least one record in the group has an unique ID
     0x0004    EDATA_PRESENT    If set, at least one record in the group contains an _EDITOR_DATA subrecord
+    0x0008    RESERVED
+    0x0010    RESERVED
+    0x0011    TOP_GROUP        Indicates a top group if set
+    
 
 IDs / UIDs
 ----------
@@ -216,10 +220,12 @@ For more information on these IDs, see the previous chapter "IDs / UIDs"
 For additional data, every record contains a flag byte. The meanings of the flag bits are as follows:
 
 	0x0001    DELETED            If set, this record is scratched, and should not be bought
-	0x0002    FULLOFEELS         If set, your hovercraft is full of eels
-	0x0004    EDATA_PRESENT      If set, this record contains an _EDITOR_DATA subrecord (does not apply for GROUP records)
+	0x0002    FULLOFEELS         If set, your hovercraft is full of eels (this flag is reserved)
+	0x0004    EDATA_PRESENT      If set, this record contains an _EDITOR_DATA subrecord
 	0x0008    ATTACHMENT         If set, this record is followed by an additional record that is logically connected to it (usually a GROUP)
 	0x0010    BLOB_RECORD        If set, this record contains raw binary data rather than subrecords
+	0x0011    RESERVED
+	0x0012    RESERVED
 	
 
 The data of regular records is stored in subrecords, which consist of an 16 bit subtype ID and a 32 bit size field. 
@@ -282,6 +288,12 @@ a world may arbitrarily define chunks anywhere in the grid, and thus rows may co
 row group is omitted. In order to identify the x coordinate to which a row group belongs, a subrecord is inserted in front
 of the groups child records.
 
+The record structure of Dungeon worlds is as follows:
+Dungeons are defined in the Dungeon top group. A [Dungeon] record defines the world's metadata as well as all subrecords that
+a chunk record would define. This means a Dungeon may have terrain, although the terrain's size is limited to the size of a
+single chunk. Internally, Dungeons and Chunks are handled very similiar, with the only exception beeing the lack of metadata in
+the latter. Same as with [Chunk] records, a [Dungeon] is followed by [Group] that lists all entities contained within. Since
+Dungeons don't have a grid, there is no nesting of any kind apart from the single entity group. 
 
 Record types
 ------------

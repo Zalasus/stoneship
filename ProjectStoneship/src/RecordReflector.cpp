@@ -58,6 +58,12 @@ namespace Stoneship
                 }
             }
         }
+
+        //TODO: We could handle reading of this using an optional SubrecordField (once we have implemented proper handling for optional fields)
+        if(record.getSubrecordCountForType(Record::SUBTYPE_EDITOR))
+        {
+            record.getReaderForSubrecord(Record::SUBTYPE_EDITOR) >> mEditorName >> MGFDataReader::endr;
+        }
     }
 
     void RecordReflector::loadFromModifyRecord(RecordAccessor &record)
@@ -94,6 +100,12 @@ namespace Stoneship
             field->write(writer);
             b.endSubrecord();
         }
+
+        if(!mEditorName.empty())
+        {
+            b.beginSubrecord(Record::SUBTYPE_EDITOR, mEditorName.length() + 5) << mEditorName;
+            b.endSubrecord();
+        }
     }
 
     void RecordReflector::storeToModifyRecord(RecordBuilder &b)
@@ -123,6 +135,14 @@ namespace Stoneship
         return true;
     }
 
+    void RecordReflector::postStore(RecordBuilder &last, RecordBuilder &surrounding)
+    {
+    }
+
+    void RecordReflector::postLoad(RecordAccessor &last, RecordAccessor &surrounding)
+    {
+    }
+
     bool RecordReflector::isDirty() const
     {
         for(uint32_t i = 0; i < mReflectedVect.size(); ++i)
@@ -142,6 +162,16 @@ namespace Stoneship
         {
             mReflectedVect[i]->setDirty(false);
         }
+    }
+
+    void RecordReflector::setEditorName(const String &s)
+    {
+        mEditorName = s;
+    }
+
+    String RecordReflector::getEditorName() const
+    {
+        return mEditorName;
     }
 
     void RecordReflector::_registerForReflection(SubrecordFieldS *field)

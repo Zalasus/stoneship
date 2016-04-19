@@ -90,28 +90,30 @@ namespace Stoneship
 	struct RecordHeader
 	{
 	    typedef uint32_t SizeType;
-	    typedef uint32_t ChildRecordCountType;
 	    typedef uint16_t FlagType;
+	    typedef uint32_t ChildRecordCountType;
 
 		Record::Type type;
 		SizeType dataSize;
+		Record::Type groupType; // only for group records
+		FlagType flags;
+		UID::ID id; // not for group records
+		ChildRecordCountType recordCount; // only for group records
 
-		union
+		inline /*duh*/ uint32_t sizeInFile() const
 		{
-			FlagType flags;
-			Record::Type groupType; //only used in group records
-		};
+		    return type == Record::TYPE_GROUP ? SIZE_GROUP_IN_FILE : SIZE_RECORD_IN_FILE;
+		}
 
-		union
-		{
-			UID::ID id;
-			ChildRecordCountType recordCount; //only used in group records
-		};
+		static const uint32_t SIZE_RECORD_IN_FILE = 12;
+		static const uint32_t SIZE_GROUP_IN_FILE = 14;
 
-		inline bool isDeleted() {return flags | 0x01;};
-		inline bool isEDataPresent() {return flags | 0x04;};
-
-		static const uint32_t SIZE_IN_FILE = 12;
+		static const FlagType FLAG_DELETED = 0x0001;
+		static const FlagType FLAG_ID_PRESENT = 0x0002;
+		static const FlagType FLAG_EDATA_PRESENT = 0x0004;
+		static const FlagType FLAG_ATTACHMENT = 0x0008;
+		static const FlagType FLAG_BLOB = 0x0010;
+		static const FlagType FLAG_TOP_GROUP = 0x0011;
 	};
 
 	struct SubrecordHeader

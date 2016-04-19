@@ -102,8 +102,11 @@ namespace Stoneship
     void WorldDungeon::loadFromRecord(RecordAccessor &rec)
     {
         IWorld::loadFromRecord(rec);
+    }
 
-        RecordAccessor subgroup = rec.getSubgroup();
+    void WorldDungeon::postLoad(RecordAccessor &last, RecordAccessor &surrounding)
+    {
+        RecordAccessor subgroup = last.getNextRecord();
 
         if(subgroup.getHeader().recordCount > 0)
         {
@@ -138,34 +141,49 @@ namespace Stoneship
                     child = child.getNextRecord();
                 }
             }// for each entity record
-        } // if entity list not empty
+        } // if entity list not emptyfinished
     }
 
     void WorldDungeon::storeToRecord(RecordBuilder &record)
     {
         IWorld::storeToRecord(record);
 
-        RecordBuilder entityGroup = record.beginSubgroupSubrecord(Record::TYPE_ENTITY);
-
-            for(uint32_t i = 0; i < mEntities.size(); ++i)
-            {
-                IEntity *entity = mEntities[i];
-
-                // skip this entity if it was not created by the same MGF as the dungeon
-                if(entity->getCreatedUID().ordinal != getCreatedUID().ordinal)
-                {
-                    continue;
-                }
-
-                RecordBuilder entityBuilder = entityGroup.createAndBeginChildBuilder(entity->getRecordType(), 0, entity->getUID().id);
-                entity->storeToRecord(entityBuilder);
-                entityBuilder.endRecord();
-            }
-
-            entityGroup.endRecord();
-        record.endSubrecord();
+        if(mEntities.size() > 0)
+        {
+            record.setFlags(record.getFlags() | RecordHeader::FLAG_ATTACHMENT);
+        }
     }
 
+    void WorldDungeon::postStore(RecordBuilder &last, RecordBuilder &surrounding)
+    {
+        IWorld::postStore(last, surrounding);
+
+        if(mEntities.size() > 0)
+        {
+            RecordBuilder entityGroup = surrounding.createChildBuilder();
+            entityGroup.beginGroupRecord(Record::TYPE_ENTITY);
+
+                for(uint32_t i = 0; i < mEntities.size(); ++i)
+                {
+                    IEntity *entity = mEntities[i];
+
+                    // skip this entity if it was not created by the same MGF as the dungeon
+                    // FIXME: What should we do with it, then? New entities are discarded this way
+                    if(entity->getCreatedUID().ordinal != getCreatedUID().ordinal)
+                    {
+                        continue;
+                    }
+
+                    RecordBuilder entityBuilder = entityGroup.createChildBuilder();
+                    entityBuilder.beginRecord(entity->getRecordType(), 0, entity->getUID().id);
+                    entity->storeToRecord(entityBuilder);
+                    entityBuilder.endRecord();
+                    entity->postStore(entityBuilder, entityGroup); // FIXME: every storeToRecord needs a postStore, but the latter is easily omitted. check if we can combine the two so only one call is needed
+                }
+
+            entityGroup.endRecord();
+        }
+    }
 }
 
 

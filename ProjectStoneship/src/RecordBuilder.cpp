@@ -12,8 +12,9 @@
 namespace Stoneship
 {
 
-    RecordBuilder::RecordBuilder(MGFDataWriter &writer)
+    RecordBuilder::RecordBuilder(MGFDataWriter &writer, RecordBuilder *parent)
     : mWriter(writer),
+      mParent(parent),
 	  mType(Record::TYPE_RESERVED),
 	  mFlags(0),
 	  mID(UID::NO_ID),
@@ -26,6 +27,8 @@ namespace Stoneship
     {
 
     }
+
+    //TODO: The builder does not use the provided header structs and serializers. Inconsistency issue
 
     void RecordBuilder::beginRecord(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
     {
@@ -52,11 +55,21 @@ namespace Stoneship
         mWriter << mType;
 
         mRecordSizeFieldOffset = mWriter.tell();
-        mWriter << static_cast<RecordHeader::SizeType>(0xDEADBEEF) // this field is overwritten by endRecord()
-                << mFlags
-                << mID;
+        mWriter << static_cast<RecordHeader::SizeType>(0xDEADBEEF); // this field is overwritten by endRecord()
+
+        mFlagFieldOffset = mWriter.tell();
+        mWriter << mFlags;
+
+        mWriter << mID;
 
         mBuildingRecord = true;
+
+        // have we created an identifiable record here? set flag in surrounding group if present
+        if(mType != UID::NO_ID && mParent != nullptr)
+        {
+            // yes. we should set the ID_PRESENT flag in the group header
+            mParent->setFlags(mParent->getFlags() | RecordHeader::FLAG_ID_PRESENT);
+        }
     }
 
     void RecordBuilder::beginGroupRecord(Record::Type groupType)
@@ -79,6 +92,9 @@ namespace Stoneship
 
         mRecordSizeFieldOffset = mWriter.tell();
         mWriter << static_cast<RecordHeader::SizeType>(0xDEADBEEF); // this field is overwritten by endRecord()
+
+        mFlagFieldOffset = mWriter.tell();
+        mWriter << mFlags;
 
         mWriter << mGroupType;
         mChildRecordCountFieldOffset = mWriter.tell();
@@ -154,6 +170,12 @@ namespace Stoneship
 
         mBuildingSubrecord = true;
 
+        // is this an editor data subrecord? if yes, we should set the appropriate flag in the encasing group (if there is any)
+        if(mSubrecordType == Record::SUBTYPE_EDITOR && mParent != nullptr)
+        {
+            mParent->setFlags(mParent->getFlags() | RecordHeader::FLAG_EDATA_PRESENT);
+        }
+
         return mWriter;
     }
 
@@ -194,7 +216,7 @@ namespace Stoneship
         return mChildRecordCount;
     }
 
-    RecordBuilder RecordBuilder::createAndBeginChildBuilder(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
+    RecordBuilder RecordBuilder::createChildBuilder()
     {
         if(!mBuildingRecord)
         {
@@ -206,12 +228,30 @@ namespace Stoneship
             STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Tried to create child record in non-GROUP type record.");
         }
 
-        RecordBuilder builder(mWriter);
-        builder.beginRecord(type, flags, id);
+        RecordBuilder builder(mWriter, this);
 
         ++mChildRecordCount;
 
         return builder;
+    }
+
+    RecordHeader::FlagType RecordBuilder::getFlags() const
+    {
+        return mFlags;
+    }
+
+    void RecordBuilder::setFlags(RecordHeader::FlagType flags)
+    {
+        mFlags = flags;
+
+        // update the flag field directly. since this may happen more than once while building a record, it might be
+        // more efficient to just store flags in memory and update file once record is finished
+        std::streampos pos = mWriter.tell();
+        mWriter.seek(mFlagFieldOffset);
+
+        mWriter << mFlags;
+
+        mWriter.seek(pos);
     }
 }
 

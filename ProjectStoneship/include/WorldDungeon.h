@@ -41,6 +41,8 @@ namespace Stoneship
         // override RecordReflector
         virtual void loadFromRecord(RecordAccessor &record);
         virtual void storeToRecord(RecordBuilder &record);
+        virtual void postLoad(RecordAccessor &last, RecordAccessor &surrounding);
+        virtual void postStore(RecordBuilder &last, RecordBuilder &surrounding);
 
         void setWorldName(const String &s);
 

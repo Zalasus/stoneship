@@ -40,6 +40,8 @@ namespace Stoneship
         virtual void storeToModifyRecord(RecordBuilder &b); // Just stores dirty fields
         virtual bool mustStore(SubrecordFieldS *field); // true for all fields by default
         virtual bool mustLoad(SubrecordFieldS *field); // true for all fields by default
+        virtual void postStore(RecordBuilder &last, RecordBuilder &surrounding); // called after storeToRecord returns and footers are written
+        virtual void postLoad(RecordAccessor &last, RecordAccessor &surrounding);
 
         bool isDirty() const;
         /**
@@ -49,12 +51,17 @@ namespace Stoneship
         void clean();
         const std::vector<SubrecordFieldS*> &getReflectedFields();
 
+        // does this really belong here?
+        void setEditorName(const String &s);
+        String getEditorName() const;
 
     private:
 
         void _registerForReflection(SubrecordFieldS *field);
 
         std::vector<SubrecordFieldS*> mReflectedVect;
+
+        String mEditorName;
     };
 
 }

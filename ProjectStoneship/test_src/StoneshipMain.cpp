@@ -52,6 +52,7 @@ int main(int argc, char **argv)
             book->setDescription("Test Test Test");
             book->setIconFile("book.png");
             book->setModelName("book.model");
+            book->setEditorName("book_id_" + uid.toString());
         }
 
         EntityBase_Stuff *stuff = new EntityBase_Stuff(root->getMGFManager().getNewUID());

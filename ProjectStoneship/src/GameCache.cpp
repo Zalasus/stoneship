@@ -78,6 +78,8 @@ namespace Stoneship
         try
         {
             base->loadFromRecord(rec);
+            rec.skip();
+            base->postLoad(rec, rec); // FIXME: second parameter should be the surrounding record. it's not used ATM, so this should be fine, but someday this will produce a hell lot of bugs
 
         }catch(StoneshipException &e)
         {
@@ -245,14 +247,19 @@ namespace Stoneship
                     groupBuilder.beginGroupRecord(reflector->getRecordType());
                 }
 
+                // set the top group flag
+                groupBuilder.setFlags(groupBuilder.getFlags() | RecordHeader::FLAG_TOP_GROUP);
+
                 ++groupCount;
                 lastGroup = reflector->getRecordType();
             }
 
 
-            RecordBuilder childBuilder = groupBuilder.createAndBeginChildBuilder(reflector->getRecordType(), 0, reflector->getCreatedUID().id);
+            RecordBuilder childBuilder = groupBuilder.createChildBuilder();
+            childBuilder.beginRecord(reflector->getRecordType(), 0, reflector->getCreatedUID().id);
             reflector->storeToRecord(childBuilder);
             childBuilder.endRecord();
+            reflector->postStore(childBuilder, groupBuilder);
         }
 
         // have we written any groups?
@@ -320,9 +327,13 @@ namespace Stoneship
                 writtenStuff = true;
 
                 groupBuilder.beginGroupRecord(Record::TYPE_MODIFY);
+
+                // set the top group flag
+                groupBuilder.setFlags(groupBuilder.getFlags() | RecordHeader::FLAG_TOP_GROUP);
             }
 
-            RecordBuilder childBuilder = groupBuilder.createAndBeginChildBuilder(Record::TYPE_MODIFY, 0, UID::NO_ID);
+            RecordBuilder childBuilder = groupBuilder.createChildBuilder();
+            childBuilder.beginRecord(Record::TYPE_MODIFY, 0, UID::NO_ID);
 
             // write metadata record
             childBuilder.beginSubrecord(Record::SUBTYPE_MODIFY_METADATA)

@@ -147,7 +147,7 @@ namespace Stoneship
 
     std::streampos RecordAccessor::getOffset()
     {
-        return static_cast<uint32_t>(mDataOffset) - RecordHeader::SIZE_IN_FILE; // cast is neccassary to make compiler stop complaining
+        return static_cast<uint32_t>(mDataOffset) - mHeader.sizeInFile(); // cast is neccassary to make compiler stop complaining
     }
 
     RecordAccessor RecordAccessor::getNextRecord()
@@ -175,25 +175,6 @@ namespace Stoneship
         mInternalReader >> header;
 
         return RecordAccessor(header, mStream, mGameFile);
-    }
-
-    RecordAccessor RecordAccessor::getSubgroup()
-    {
-        // a GROUP does never contain subrecords, so catch any invalid calls here
-        if(mHeader.type == Record::TYPE_GROUP)
-        {
-            STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Tried to access subrecords of GROUP record (UID: " + getUID().toString() + ", Type: " + mHeader.type + ")");
-        }
-
-        RecordHeader header;
-        getReaderForSubrecord(Record::SUBTYPE_SUBGROUP) >> header;
-
-        if(header.type != Record::TYPE_GROUP)
-        {
-            STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "No GROUP record found in _SUBGROUP subrecord (UID: " + getUID().toString() + ", Type: " + mHeader.type + ")");
-        }
-
-        return RecordAccessor(header, mInternalReader.getStream(), mGameFile);
     }
 
     void RecordAccessor::rollback()
