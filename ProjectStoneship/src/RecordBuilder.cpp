@@ -64,11 +64,17 @@ namespace Stoneship
 
         mBuildingRecord = true;
 
-        // have we created an identifiable record here? set flag in surrounding group if present
-        if(mType != UID::NO_ID && mParent != nullptr)
+        // have we created an identifiable record here? set flag in all surrounding group if present
+        if(mType != UID::NO_ID)
         {
-            // yes. we should set the ID_PRESENT flag in the group header
-            mParent->setFlags(mParent->getFlags() | RecordHeader::FLAG_ID_PRESENT);
+            RecordBuilder *b = mParent;
+
+            while(b != nullptr && b->getType() == Record::TYPE_GROUP)
+            {
+                b->setFlags(b->getFlags() | RecordHeader::FLAG_ID_PRESENT);
+
+                b = b->mParent;
+            }
         }
     }
 
@@ -170,10 +176,17 @@ namespace Stoneship
 
         mBuildingSubrecord = true;
 
-        // is this an editor data subrecord? if yes, we should set the appropriate flag in the encasing group (if there is any)
-        if(mSubrecordType == Record::SUBTYPE_EDITOR && mParent != nullptr)
+        // is this an editor data subrecord? if yes, we should set the appropriate flag in the encasing group and all groups surrounding that one
+        if(mSubrecordType == Record::SUBTYPE_EDITOR)
         {
-            mParent->setFlags(mParent->getFlags() | RecordHeader::FLAG_EDATA_PRESENT);
+            RecordBuilder *b = mParent;
+
+            while(b != nullptr && b->getType() == Record::TYPE_GROUP)
+            {
+                b->setFlags(b->getFlags() | RecordHeader::FLAG_EDATA_PRESENT);
+
+                b = b->mParent;
+            }
         }
 
         return mWriter;
@@ -252,6 +265,11 @@ namespace Stoneship
         mWriter << mFlags;
 
         mWriter.seek(pos);
+    }
+
+    Record::Type RecordBuilder::getType() const
+    {
+        return mType;
     }
 }
 

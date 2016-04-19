@@ -514,6 +514,7 @@ namespace Stoneship
 
 		ds.seek(mHeaderEndOfffset);
 
+		//TODO: searches only top groups atm. need to linearize MGF here to reach all nested groups
 		for(uint32_t i = 0; i < mRecordGroupCount; ++i)
 		{
 			RecordHeader groupHeader;
@@ -523,8 +524,14 @@ namespace Stoneship
 				STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF (expected top group record, found other)");
 			}
 
-			ds.beginUnit(groupHeader.dataSize);
-			while(ds.bytesRemainingInUnit())
+            ds.beginUnit(groupHeader.dataSize);
+
+			if(!(groupHeader.flags & RecordHeader::FLAG_EDATA_PRESENT))
+			{
+			    ds.skipToEnd(); // no edata in this group. not neccessary to search it
+			}
+
+			for(uint32_t i = 0; i < groupHeader.recordCount; ++i)
 			{
 				RecordHeader recordHeader;
 				ds >> recordHeader;

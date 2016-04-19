@@ -165,7 +165,7 @@ namespace Stoneship
 		{
 			try
 			{
-				RecordAccessor record = mGameFiles[i]->getRecordByEditorName(name, type);
+				RecordAccessor record = getLoadedMGFByIndex(i)->getRecordByEditorName(name, type);
 				return record;
 
 			}catch(StoneshipException &e)

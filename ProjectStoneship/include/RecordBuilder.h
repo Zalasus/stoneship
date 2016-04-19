@@ -66,6 +66,9 @@ namespace Stoneship
         RecordHeader::FlagType getFlags() const;
         void setFlags(RecordHeader::FlagType flags);
 
+        Record::Type getType() const;
+
+
     private:
 
         MGFDataWriter &mWriter;

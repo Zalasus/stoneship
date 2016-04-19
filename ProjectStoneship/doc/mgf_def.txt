@@ -169,7 +169,8 @@ that are not relevant for searching can be skipped.
 
 Since record groups contain whole records as subunits, and records are not guaranteed to be read entirely by the
 application, the amount of remaining bytes in the record data field is no safe indicator whether a full record is still
-available or not. Therefore, group records provide an additional child record count field to the byte size field.
+available or not. Therefore, group records provide an additional child record count field to the byte size field. This field does not
+include the amount of records in groups nested within the group although it includes the nested group itself.
 
 Upon loading, all top groups and their respective offsets in the file are indexed so record groups may
 be found quickly when specific types of records are requested for load.
@@ -177,11 +178,11 @@ be found quickly when specific types of records are requested for load.
 The flag field of record groups is defined as follows:
 
     0x0001    DELETED          Indicates this group record and all contained records should be ignored
-    0x0002    ID_PRESENT       If set, at least one record in the group has an unique ID
-    0x0004    EDATA_PRESENT    If set, at least one record in the group contains an _EDITOR_DATA subrecord
+    0x0002    ID_PRESENT       If set, at least one record in the group or within a nested group in this group has an unique ID
+    0x0004    EDATA_PRESENT    If set, at least one record in the group or within a nested group in this group contains an _EDITOR_DATA subrecord
     0x0008    RESERVED
     0x0010    RESERVED
-    0x0011    TOP_GROUP        Indicates a top group if set
+    0x0020    TOP_GROUP        Indicates a top group if set
     
 
 IDs / UIDs
@@ -224,8 +225,7 @@ For additional data, every record contains a flag byte. The meanings of the flag
 	0x0004    EDATA_PRESENT      If set, this record contains an _EDITOR_DATA subrecord
 	0x0008    ATTACHMENT         If set, this record is followed by an additional record that is logically connected to it (usually a GROUP)
 	0x0010    BLOB_RECORD        If set, this record contains raw binary data rather than subrecords
-	0x0011    RESERVED
-	0x0012    RESERVED
+	0x0020    RESERVED
 	
 
 The data of regular records is stored in subrecords, which consist of an 16 bit subtype ID and a 32 bit size field. 

@@ -113,7 +113,7 @@ namespace Stoneship
 		static const FlagType FLAG_EDATA_PRESENT = 0x0004;
 		static const FlagType FLAG_ATTACHMENT = 0x0008;
 		static const FlagType FLAG_BLOB = 0x0010;
-		static const FlagType FLAG_TOP_GROUP = 0x0011;
+		static const FlagType FLAG_TOP_GROUP = 0x0020;
 	};
 
 	struct SubrecordHeader

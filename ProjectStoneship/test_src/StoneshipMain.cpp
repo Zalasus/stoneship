@@ -65,7 +65,9 @@ int main(int argc, char **argv)
         dungeon->setWorldName("Isao's cave");
         for(uint32_t i = 0; i < 20; ++i)
         {
-            dungeon->addEntity(stuff->createEntity(root->getMGFManager().getNewUID()));
+            IEntity *entity = stuff->createEntity(root->getMGFManager().getNewUID());
+            entity->setEditorName("ent_stuff_id_" + entity->getCreatedUID().toString());
+            dungeon->addEntity(entity);
         }
 
         root->getMGFManager().storeSGF("master.mgf");
