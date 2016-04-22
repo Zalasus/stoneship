@@ -38,6 +38,11 @@ namespace Stoneship
 		static bool parseInt(const String &s, int32_t &i);
 		static bool parseFloat(const String &s, float &f);
 
+		static int32_t indexOf(const String &s, char find);
+        static int32_t indexOf(const String &s, char find, int32_t startIndex);
+        static int32_t indexOf(const String &s, const String &find);
+        static int32_t indexOf(const String &s, const String &find, int32_t startIndex);
+
 	};
 
 	String operator+(const String &left, uint32_t i);

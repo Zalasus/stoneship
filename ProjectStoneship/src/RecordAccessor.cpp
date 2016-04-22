@@ -19,7 +19,7 @@ namespace Stoneship
       mStream(stream),
       mGameFile(mgf),
       mInternalReader(mStream, mgf, mHeader.dataSize),
-      mDataOffset(mStream->tellg()),
+      mDataOffset(mStream->tellg()), //FIXME: That's an IO operation in the constructor just here
       mSubrecordHeaders()
     {
     }

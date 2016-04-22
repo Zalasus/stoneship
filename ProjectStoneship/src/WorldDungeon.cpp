@@ -135,7 +135,8 @@ namespace Stoneship
                 entity->loadFromRecord(child);
                 entity->spawn(this);
 
-                if(i < subgroup.getHeader().recordCount-1) // reached end of list yet?
+                // reached end of list yet?
+                if(i < subgroup.getHeader().recordCount-1)
                 {
                     // no, fetch next entity record
                     child = child.getNextRecord();
@@ -158,31 +159,28 @@ namespace Stoneship
     {
         IWorld::postStore(last, surrounding);
 
-        if(mEntities.size() > 0)
-        {
-            RecordBuilder entityGroup = surrounding.createChildBuilder();
-            entityGroup.beginGroupRecord(Record::TYPE_ENTITY);
+        RecordBuilder entityGroup = surrounding.createChildBuilder();
+        entityGroup.beginGroupRecord(Record::TYPE_ENTITY, 0);
 
-                for(uint32_t i = 0; i < mEntities.size(); ++i)
+            for(uint32_t i = 0; i < mEntities.size(); ++i)
+            {
+                IEntity *entity = mEntities[i];
+
+                // skip this entity if it was not created by the same MGF as the dungeon
+                // FIXME: What should we do with it, then? New entities are discarded this way
+                if(entity->getCreatedUID().ordinal != getCreatedUID().ordinal)
                 {
-                    IEntity *entity = mEntities[i];
-
-                    // skip this entity if it was not created by the same MGF as the dungeon
-                    // FIXME: What should we do with it, then? New entities are discarded this way
-                    if(entity->getCreatedUID().ordinal != getCreatedUID().ordinal)
-                    {
-                        continue;
-                    }
-
-                    RecordBuilder entityBuilder = entityGroup.createChildBuilder();
-                    entityBuilder.beginRecord(entity->getRecordType(), 0, entity->getUID().id);
-                    entity->storeToRecord(entityBuilder);
-                    entityBuilder.endRecord();
-                    entity->postStore(entityBuilder, entityGroup); // FIXME: every storeToRecord needs a postStore, but the latter is easily omitted. check if we can combine the two so only one call is needed
+                    continue;
                 }
 
-            entityGroup.endRecord();
-        }
+                RecordBuilder entityBuilder = entityGroup.createChildBuilder();
+                entityBuilder.beginRecord(entity->getRecordType(), 0, entity->getUID().id);
+                entity->storeToRecord(entityBuilder);
+                entityBuilder.endRecord();
+                entity->postStore(entityBuilder, entityGroup); // FIXME: every storeToRecord needs a postStore, but the latter is easily omitted. check if we can combine the two so only one call is needed
+            }
+
+        entityGroup.endRecord();
     }
 }
 

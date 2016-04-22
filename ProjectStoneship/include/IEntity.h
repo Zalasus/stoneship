@@ -41,6 +41,7 @@ namespace Stoneship
 		virtual UID getCreatedUID() const;
 		virtual Record::Type getRecordType() const;
 		virtual void storeToRecord(RecordBuilder &record);
+		  // don't need to implement loadFromRecord. The only subrecord in this class is loaded by implementation of IWorld
 
 		// interface
         virtual EntityType getEntityType() const = 0;

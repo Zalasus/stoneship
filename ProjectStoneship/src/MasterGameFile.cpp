@@ -46,7 +46,7 @@ namespace Stoneship
 	    }
 	}
 
-	void MasterGameFile::load(bool ignoreDependencies)
+	void MasterGameFile::load(bool ignoreDependencies, bool createIndex)
 	{
 	    if(mLoaded)
 	    {
@@ -156,58 +156,66 @@ namespace Stoneship
 
 		mHeaderEndOfffset = ds.tell(); //store this so we may navigate quickly to start of records
 
-		//skip through the file and index every top record group
-		mHints.allocate(mRecordGroupCount);
-		for(uint32_t i = 0; i < mRecordGroupCount; i++)
+		if(createIndex)
 		{
-			std::streampos offset = ds.tell();
+            //skip through the file and index every top record group
+            mHints.allocate(mRecordGroupCount);
+            for(uint32_t i = 0; i < mRecordGroupCount; i++)
+            {
+                std::streampos offset = ds.tell();
 
-			RecordHeader groupHeader;
-			try
-			{
-			    ds >> groupHeader;
+                RecordHeader groupHeader;
+                try
+                {
+                    ds >> groupHeader;
 
-			}catch(StoneshipException &e)
-			{
-			    if(e.getType() == StoneshipException::IO_ERROR)
-			    {
-			        STONESHIP_EXCEPT(StoneshipException::IO_ERROR, "Error while scanning top groups. IO error while loading next group header."
-			                "This is most likely caused by an invalid group count field in the MGF header. Original error: "
-			                + e.getMessage());
-			    }
+                }catch(StoneshipException &e)
+                {
+                    if(e.getType() == StoneshipException::IO_ERROR)
+                    {
+                        STONESHIP_EXCEPT(StoneshipException::IO_ERROR, "Error while scanning top groups. IO error while loading next group header."
+                                "This is most likely caused by an invalid group count field in the MGF header. Original error: "
+                                + e.getMessage());
+                    }
 
-			    throw;
-			}
+                    throw;
+                }
 
-			if(groupHeader.type != Record::TYPE_GROUP)
-			{
-				STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF found during scanning (expected Group record, found other)");
-			}
+                if(groupHeader.type != Record::TYPE_GROUP)
+                {
+                    STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, String("Corrupted MGF found during scanning (expected Group record, found ") + groupHeader.type);
+                }
 
-			Logger::debug(String("Found group ") + groupHeader.groupType + " at " + uint32_t(offset) + " containing " + groupHeader.recordCount + " records");
+                if(!(groupHeader.flags & RecordHeader::FLAG_TOP_GROUP))
+                {
+                    STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF found during scanning (scanned Group was not a top group)");
+                }
 
-			mHints[i].offset = offset;
-			mHints[i].type = groupHeader.groupType;
-			mHints[i].recordCount = groupHeader.recordCount;
+                Logger::debug(String("Found group ") + groupHeader.groupType + " at " + uint32_t(offset) + " containing " + groupHeader.recordCount + " records");
 
-            //there are some records which we want to index one by one like Modify or load right at startup. check if we have on of those on our hands
-			EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(groupHeader.type);
-			if((factory != nullptr && factory->isPreloaded()))
-			{
-			    // this is an entity base group which must be preloaded
-			    STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "Preloaded entities unsupported ATM");
+                mHints[i].offset = offset;
+                mHints[i].type = groupHeader.groupType;
+                mHints[i].recordCount = groupHeader.recordCount;
 
-			}else if(mHints[i].type == Record::TYPE_MODIFY)
-			{
+                //there are some records which we want to index one by one like Modify or load right at startup. check if we have on of those on our hands
+                EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(groupHeader.type);
+                if((factory != nullptr && factory->isPreloaded()))
+                {
+                    // this is an entity base group which must be preloaded
+                    STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "Preloaded entities unsupported ATM");
 
-				_indexModifies(mHints[i].recordCount);
+                }else if(mHints[i].type == Record::TYPE_MODIFY)
+                {
 
-			}else
-			{
-				//no special group here. just skip to the next one
-				ds.skip(groupHeader.dataSize);
-			}
-		}
+                    _indexModifies(mHints[i].recordCount);
+
+                }else
+                {
+                    //no special group here. just skip to the next one
+                    ds.skip(groupHeader.dataSize);
+                }
+            }
+	    }
 
 		mLoaded = true;
 

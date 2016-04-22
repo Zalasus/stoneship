@@ -105,8 +105,30 @@ namespace Stoneship
 		    return type == Record::TYPE_GROUP ? SIZE_GROUP_IN_FILE : SIZE_RECORD_IN_FILE;
 		}
 
-		static const uint32_t SIZE_RECORD_IN_FILE = 12;
-		static const uint32_t SIZE_GROUP_IN_FILE = 14;
+		bool operator==(const RecordHeader &r) const
+        {
+		    if(type != r.type || dataSize != r.dataSize || flags != r.flags)
+		    {
+		        return false;
+		    }
+
+		    if(type == Record::TYPE_GROUP)
+		    {
+		        return groupType == r.groupType && recordCount == r.recordCount;
+
+		    }else
+		    {
+		        return id == r.id;
+		    }
+        }
+
+		bool operator!=(const RecordHeader &r) const
+        {
+            return !(this->operator ==(r));
+        }
+
+		static const uint32_t SIZE_RECORD_IN_FILE = sizeof(type) + sizeof(dataSize) + sizeof(flags) + sizeof(id);
+		static const uint32_t SIZE_GROUP_IN_FILE = sizeof(type) + sizeof(dataSize) + sizeof(groupType) + sizeof(flags) + sizeof(recordCount);
 
 		static const FlagType FLAG_DELETED = 0x0001;
 		static const FlagType FLAG_ID_PRESENT = 0x0002;
@@ -122,6 +144,23 @@ namespace Stoneship
 
 		Record::Subtype type;
 		SizeType dataSize;
+
+		inline /*duh*/ uint32_t sizeInFile() const
+		{
+		    return SIZE_IN_FILE;
+		}
+
+		bool operator==(const SubrecordHeader &r) const
+		{
+		    return type == r.type && dataSize == r.dataSize;
+		}
+
+		bool operator!=(const SubrecordHeader &r) const
+        {
+		    return !(this->operator ==(r));
+        }
+
+		static const uint32_t SIZE_IN_FILE = sizeof(type) + sizeof(dataSize);
 	};
 
 }

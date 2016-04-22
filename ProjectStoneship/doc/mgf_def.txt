@@ -15,7 +15,7 @@ Basic types:
     float:   32 bit IEEE 754 floating point number
     double:  64 bit IEEE 754 floating point number 
     
-    string:  zero terminated character sequence prefixed with 4 byte length field (length not including terminator)
+    string:  zero terminated character sequence prefixed with 4 byte length field (length not including terminator or length field)
     
 
 dependency = {string: filename, ushort: ordinal}
@@ -47,6 +47,7 @@ record_group =
 
 author = {ubyte: author id, string: author name}
 
+
 File structure
 --------------
 
@@ -77,6 +78,28 @@ uint:			 top group count
 record_group[~]: top groups
 
 ubyte:           end marker = 0xF0
+
+
+Size fields
+-----------
+Many structures in Master Game Files contain size fields given in bytes. These almost exclusively precede array structures
+and never contain the size of any other fields in the structure including the size field itself.
+
+
+Strings and Encoding
+--------------------
+The data type string used in this document is a dynamic width field for textual data. Every string field
+is prefixed with a 4-byte length field giving the exact amount of bytes in the string. The length field
+is followed by the actual text data, which in turn is followed by a zero byte for termination. The string
+itself must not contain a zero byte. Neither the zero terminator nor the length prefix is included in the 
+value the length field stores.
+
+The encoding to be used for all textual data is UTF-8.
+
+
+Localization
+------------
+Facilities for automated localization will be provided. I promise.
 
 
 File flags
@@ -122,9 +145,8 @@ resource entry specifies how to handle the resource given in the path field. The
 	3: Gzip file (Implementation is considered optional for now)
 	
 Real file system paths given in the resource path field should be relative. The engine accepts both '/' and '\' as directory
-seperators, and internally replaces them to match the system's ones (so MGFs created under UNIX can be used in DOS environments
-like Microsoft Windows). However, it can not remap absoulte paths, so a MGF defining 'C:/example/' as a resource path would be
-unusable under UNIX.
+seperators, and internally replaces them to match the system's ones (so MGFs created in a DOS environment can be used on *NIX operating systems).
+However, it can not remap absoulte paths, so a MGF defining 'C:/example/' as a resource path would be unusable under UNIX.
 	
 Resource locations are searched by priority until the wanted resource is found, with the default priority beeing:
 	1. 'res/'-Folder
@@ -145,12 +167,6 @@ In that case the modder could store the new textures in an archive file, define 
 otherwise empty MGF and instruct users to load the HD mod _after_ the main game files. 
 
 
-Size fields
------------
-Many structures in Master Game Files contain size fields given in bytes. These almost exclusively precede array structures
-and never contain the size of any other fields in the structure including the size field itself.
-
-
 Record groups
 -------------
 The main unit of record storage in a MGF are record groups. These containers list records of the same type and
@@ -162,7 +178,7 @@ the ATTACHMENT flag in the first record's header is set.
 Child records (records contained within a data field which still have a full record header) are only valid for records of type Group.
 Every other record type must store all it's data in subrecords. This convention ensures consitency in the structure of the record's data fields.
 
-Since records don't have a footer, a MGF can be "linearized" by simply ignoring all GROUP record headers, removing any sort of nesting. This can
+Since records don't have a footer, an MGF can be "linearized" by simply ignoring all GROUP record headers, removing any sort of nesting. This can
 be useful when searching for a specific record by ID or editor name without knowing whether it is nested or not. To further speed up the
 process of searching, the flag field of a GROUP record contains information whether it contains identifiable records or not, so groups
 that are not relevant for searching can be skipped.
@@ -178,7 +194,7 @@ be found quickly when specific types of records are requested for load.
 The flag field of record groups is defined as follows:
 
     0x0001    DELETED          Indicates this group record and all contained records should be ignored
-    0x0002    ID_PRESENT       If set, at least one record in the group or within a nested group in this group has an unique ID
+    0x0002    ID_PRESENT       If set, at least one record in the group or within a nested group in this group has an ID
     0x0004    EDATA_PRESENT    If set, at least one record in the group or within a nested group in this group contains an _EDITOR_DATA subrecord
     0x0008    RESERVED
     0x0010    RESERVED
@@ -189,7 +205,7 @@ IDs / UIDs
 ----------
 Each record (see next chapter) holds an 4-byte wide identifier that is used to uniquely reference the object/entity/etc
 defined by the record. The special ID 0xFFFFFFFF is used for records without the need for reference by other records.
-It is the only ID that is allowed to exist more than once each MGF.
+It is the only ID that is allowed to exist more than once per MGF.
 
 Wherever a record refers to another record, a 6-byte wide identifier is used. This so-called UID (unique identifier)
 consists of the ordinal number of the MGF that defines the referenced record (a short field that prepends the int ID field)
@@ -198,13 +214,13 @@ MGF ordinal 0xFFFF is used. This special MGF ordinal is also used in savegames f
 that are not defined in any MGF but were created during gameplay. Thus, the currently loaded savegame will always have the ordinal 0xFFFF.
 Please note that the endianness of the ordinal/ID is treated as if both fields were seperate structures: {short, int}
 
-This system restricts NRPG3 to a maximum possible MGF count of 65.535 with 4.294.967.296 IDs each. This amount
+This system restricts NRPG3 to a maximum possible MGF count of 65,535 with 4,294,967,296 IDs each. This amount
 should be sufficient for any application the engine might have in it's lifespan.
 
 
 Records
 -------
-The main data unit in a MGF is a record. A MGF may contain up to (2^32)-1 = 4294967295 records (Only in theory. In practice, amounts
+The main data unit in a MGF is a record. A MGF may contain up to (2^32)-1 = 4,294,967,295 records (Only in theory. In practice, amounts
 this high will most likely fail on 32-bit platforms as NRPG relies heavily on offset indices).
 
 Every record has a 16 bit wide type ID that gives information on the type of the record's content. A table of
@@ -217,7 +233,6 @@ Each record holds a 4-byte-wide identifier that is used to reference the object/
 Some records may not use this field, in which cases it is set to the reserved value of 0xFFFFFFFF.
 For more information on these IDs, see the previous chapter "IDs / UIDs"
 	
-
 For additional data, every record contains a flag byte. The meanings of the flag bits are as follows:
 
 	0x0001    DELETED            If set, this record is scratched, and should not be bought
@@ -227,21 +242,21 @@ For additional data, every record contains a flag byte. The meanings of the flag
 	0x0010    BLOB_RECORD        If set, this record contains raw binary data rather than subrecords
 	0x0020    RESERVED
 	
-
 The data of regular records is stored in subrecords, which consist of an 16 bit subtype ID and a 32 bit size field. 
 Some definitions of subtype IDs may be specific for a given record type, meaning that subrecords with that subtype IDs
 must not necessarily contain the same type of data across the whole file unless the type ID of their containing record is equal, too.
 Most types of records, however, associate a common type and format of data in subrecords with common subtypes.
+For example, subrecord 0x6 always contains a display name, while 0x100 is interpreted differently depending on the record type.
 
 The subrecord itself is basically a byte array which is interpreted differently depending of the subrecord's type ID.
 Because the [Modify] record (described in the following section) lists modifications on subrecord level, the smallest
-possible modification if a field affects all other fields stored in the same subrecord. Therefore a subrecord should
+possible modification of a field affects all other fields stored in the same subrecord. Therefore a subrecord should
 only contain one field or a set of fields which can be assumed to be always modified together.
 
 Some subrecords may be optional for some type of records. Those may appear once or never in the record. Most other 
 defined subrecord types must appear exactly once. If such a subrecord is defined more than once, the result is
 undefined. Some subrecord types, however, may appear more than once. These are marked accordingly in the list of subrecord
-types. Missing obligatory records are considered major errors and will prevent the proper loading of whatever required them.
+types. Missing obligatory records are considered major errors and will prevent proper loading of whatever required them.
 
 If a record contains subrecords that are not defined/not required by that type of record, they are simply ignored.
 
@@ -294,6 +309,7 @@ a chunk record would define. This means a Dungeon may have terrain, although the
 single chunk. Internally, Dungeons and Chunks are handled very similiar, with the only exception beeing the lack of metadata in
 the latter. Same as with [Chunk] records, a [Dungeon] is followed by [Group] that lists all entities contained within. Since
 Dungeons don't have a grid, there is no nesting of any kind apart from the single entity group. 
+
 
 Record types
 ------------
@@ -513,7 +529,7 @@ F: grid position data
 	
 F0: entity base data
 	uid: base uid
-	short: base type id
+	ushort: base type id
 	
 100: specific data
 	

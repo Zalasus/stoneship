@@ -70,7 +70,7 @@ namespace Stoneship
          * If called on a MGF that already has dependencies loaded or has an ordinal different to 0xFFFF, this method will throw.
          */
 		void initCreated();
-		void load(bool ignoreDependencies = false);
+		void load(bool ignoreDependencies = false, bool createIndex = true);
 		void store();
 
 		const String &getFilename() const;

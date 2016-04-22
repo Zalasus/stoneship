@@ -21,7 +21,7 @@ namespace Stoneship
         RecordBuilder(MGFDataWriter &writer, RecordBuilder *parent = nullptr);
 
         void beginRecord(Record::Type type, RecordHeader::FlagType flags, UID::ID id);
-        void beginGroupRecord(Record::Type groupType);
+        void beginGroupRecord(Record::Type groupType, RecordHeader::FlagType flags);
         void endRecord();
 
         /**
@@ -68,24 +68,17 @@ namespace Stoneship
 
         Record::Type getType() const;
 
-
     private:
 
         MGFDataWriter &mWriter;
         RecordBuilder *mParent;
-        Record::Type mType;
-        RecordHeader::FlagType mFlags;
-        UID::ID mID;
-        Record::Type mGroupType;
-        Record::Subtype mSubrecordType;
-        SubrecordHeader::SizeType mPredictedDataSize;
+        RecordHeader mRecordHeader;
+        RecordHeader mWrittenRecordHeader;
+        SubrecordHeader mSubrecordHeader;
+        SubrecordHeader mWrittenSubrecordHeader;
 
-        std::streampos mFlagFieldOffset;
-        std::streampos mRecordSizeFieldOffset;
-        std::streampos mChildRecordCountFieldOffset; // for GROUP records only
-        std::streampos mSubrecordSizeFieldOffset;
-
-        RecordHeader::ChildRecordCountType mChildRecordCount;
+        std::streampos mRecordHeaderOffset;
+        std::streampos mSubrecordHeaderOffset;
 
         bool mBuildingSubrecord; // true if subrecord is beeing build ATM
         bool mBuildingRecord; // true if record is beeing build ATM

@@ -73,13 +73,13 @@ namespace Stoneship
 	{
 		*this >> header.type >> header.dataSize;
 
-		if(header.type != Record::TYPE_GROUP)
+		if(header.type == Record::TYPE_GROUP)
 		{
-			*this >> header.flags >> header.id;
+			*this >> header.flags >> header.groupType >> header.recordCount;
 
 		}else
 		{
-			*this >> header.flags >> header.groupType >> header.recordCount;
+			*this >> header.flags >> header.id;
 		}
 
 		return *this;
@@ -90,13 +90,13 @@ namespace Stoneship
     {
 	    *this << header.type << header.dataSize;
 
-        if(header.type != Record::TYPE_GROUP)
+        if(header.type == Record::TYPE_GROUP)
         {
-            *this << header.flags << header.id;
+            *this << header.flags << header.groupType << header.recordCount;
 
         }else
         {
-            *this << header.flags << header.groupType << header.recordCount;
+            *this << header.flags << header.id;
         }
 
         return *this;

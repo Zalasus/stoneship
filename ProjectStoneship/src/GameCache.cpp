@@ -239,16 +239,13 @@ namespace Stoneship
                     // yes -> write a footer and start new group
                     groupBuilder.endRecord();
                     Logger::debug(String("Stored record group ") + lastGroup + " containing " + groupBuilder.getChildRecordCount() + " records");
-                    groupBuilder.beginGroupRecord(reflector->getRecordType());
+                    groupBuilder.beginGroupRecord(reflector->getRecordType(), RecordHeader::FLAG_TOP_GROUP);
 
                 }else
                 {
                     // no, this is our first record group. no need to write footer. just start group right ahead
-                    groupBuilder.beginGroupRecord(reflector->getRecordType());
+                    groupBuilder.beginGroupRecord(reflector->getRecordType(), RecordHeader::FLAG_TOP_GROUP);
                 }
-
-                // set the top group flag
-                groupBuilder.setFlags(groupBuilder.getFlags() | RecordHeader::FLAG_TOP_GROUP);
 
                 ++groupCount;
                 lastGroup = reflector->getRecordType();
@@ -326,10 +323,7 @@ namespace Stoneship
             {
                 writtenStuff = true;
 
-                groupBuilder.beginGroupRecord(Record::TYPE_MODIFY);
-
-                // set the top group flag
-                groupBuilder.setFlags(groupBuilder.getFlags() | RecordHeader::FLAG_TOP_GROUP);
+                groupBuilder.beginGroupRecord(Record::TYPE_MODIFY, RecordHeader::FLAG_TOP_GROUP);
             }
 
             RecordBuilder childBuilder = groupBuilder.createChildBuilder();

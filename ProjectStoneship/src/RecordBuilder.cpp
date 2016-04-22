@@ -15,20 +15,10 @@ namespace Stoneship
     RecordBuilder::RecordBuilder(MGFDataWriter &writer, RecordBuilder *parent)
     : mWriter(writer),
       mParent(parent),
-	  mType(Record::TYPE_RESERVED),
-	  mFlags(0),
-	  mID(UID::NO_ID),
-	  mGroupType(Record::TYPE_RESERVED),
-	  mSubrecordType(0),
-      mPredictedDataSize(0),
-      mChildRecordCount(0),
       mBuildingSubrecord(false),
       mBuildingRecord(false)
     {
-
     }
-
-    //TODO: The builder does not use the provided header structs and serializers. Inconsistency issue
 
     void RecordBuilder::beginRecord(Record::Type type, RecordHeader::FlagType flags, UID::ID id)
     {
@@ -47,25 +37,16 @@ namespace Stoneship
             STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Called beginRecord() in RecordBuilder for GROUP record. Must use beginGroupRecord() instead. This indicated a bug in the engine.");
         }
 
-        mType = type;
-        mFlags = flags;
-        mID = id;
+        mRecordHeader.type = type;
+        mRecordHeader.flags = flags;
+        mRecordHeader.id = id;
+        mRecordHeader.dataSize = 0xEFBEADDE; // this field is overwritten by endRecord(). if not, we will probably notice when viewing MGF in hex
 
-
-        mWriter << mType;
-
-        mRecordSizeFieldOffset = mWriter.tell();
-        mWriter << static_cast<RecordHeader::SizeType>(0xDEADBEEF); // this field is overwritten by endRecord()
-
-        mFlagFieldOffset = mWriter.tell();
-        mWriter << mFlags;
-
-        mWriter << mID;
-
-        mBuildingRecord = true;
+        mRecordHeaderOffset = mWriter.tell();
+        mWriter << mRecordHeader;
 
         // have we created an identifiable record here? set flag in all surrounding group if present
-        if(mType != UID::NO_ID)
+        if(mRecordHeader.id != UID::NO_ID)
         {
             RecordBuilder *b = mParent;
 
@@ -76,9 +57,11 @@ namespace Stoneship
                 b = b->mParent;
             }
         }
+
+        mBuildingRecord = true;
     }
 
-    void RecordBuilder::beginGroupRecord(Record::Type groupType)
+    void RecordBuilder::beginGroupRecord(Record::Type groupType, RecordHeader::FlagType flags)
     {
         if(mBuildingSubrecord)
         {
@@ -90,21 +73,15 @@ namespace Stoneship
             STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin building group record while other record was still beeing built.");
         }
 
-        mType = Record::TYPE_GROUP;
-        mGroupType = groupType;
-        mChildRecordCount = 0;
+        mRecordHeader.type = Record::TYPE_GROUP;
+        mRecordHeader.groupType = groupType;
+        mRecordHeader.recordCount = 0;
+        mRecordHeader.dataSize = 0xEFBEADDE; // these fields are overwritten by endRecord(). if not, we will probably notice when viewing MGF in hex
+        mRecordHeader.flags = flags;
 
-        mWriter << mType;
-
-        mRecordSizeFieldOffset = mWriter.tell();
-        mWriter << static_cast<RecordHeader::SizeType>(0xDEADBEEF); // this field is overwritten by endRecord()
-
-        mFlagFieldOffset = mWriter.tell();
-        mWriter << mFlags;
-
-        mWriter << mGroupType;
-        mChildRecordCountFieldOffset = mWriter.tell();
-        mWriter << static_cast<RecordHeader::ChildRecordCountType>(0xDEADBEEF);  // this field is overwritten by endRecord()
+        mRecordHeaderOffset = mWriter.tell();
+        mWriter << mRecordHeader;
+        mWrittenRecordHeader = mRecordHeader; // store what we've just written so we can check if we need to update it when it changed
 
         mBuildingRecord = true;
     }
@@ -121,25 +98,20 @@ namespace Stoneship
             STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to end record while no record was beeing built.");
         }
 
-        // store our current position. to finish the record, we need to update it's header
+        // store our current position. to finish the record, we may need to update it's header
         std::streamoff pos = mWriter.tell();
 
-        // determine size of record data field, subtracting remaining header fields
-        RecordHeader::SizeType size = pos - mRecordSizeFieldOffset - sizeof(RecordHeader::SizeType) - sizeof(RecordHeader::FlagType) - sizeof(UID::ID);
+        // determine size of record data field (also subtracting header size)
+        mRecordHeader.dataSize = pos - mRecordHeaderOffset - mRecordHeader.sizeInFile();
 
-        mWriter.seek(mRecordSizeFieldOffset);
-        mWriter << size;
-
-        if(mType == Record::TYPE_GROUP)
+        // has the previously written header changed? if yes, update header in file
+        if(mWrittenRecordHeader != mRecordHeader)
         {
-            // in a group record, we have to overwrite the child record count field
+            mWriter.seek(mRecordHeaderOffset);
+            mWriter << mRecordHeader;
 
-            mWriter.seek(mChildRecordCountFieldOffset);
-            mWriter << mChildRecordCount;
+            mWriter.seek(pos);
         }
-
-        // we are done. return to record footer
-        mWriter.seek(pos);
 
         mBuildingRecord = false;
     }
@@ -161,23 +133,20 @@ namespace Stoneship
             STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin subrecord while not building encasing record.");
         }
 
-        if(mType == Record::TYPE_GROUP)
+        if(mRecordHeader.type == Record::TYPE_GROUP)
         {
             STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin subrecord inside GROUP record.");
         }
 
-        mPredictedDataSize = dataSize;
-        mSubrecordType = type;
+        mSubrecordHeader.type = type;
+        mSubrecordHeader.dataSize = dataSize; // predicted data size
 
-        mWriter << type;
+        mSubrecordHeaderOffset = mWriter.tell();
+        mWriter << mSubrecordHeader;
+        mWrittenSubrecordHeader = mSubrecordHeader; // store what we've just written so we can check if we need to update it when it changed
 
-        mSubrecordSizeFieldOffset = mWriter.tell();
-        mWriter << mPredictedDataSize; // this is overwritten by endSubrecord()
-
-        mBuildingSubrecord = true;
-
-        // is this an editor data subrecord? if yes, we should set the appropriate flag in the encasing group and all groups surrounding that one
-        if(mSubrecordType == Record::SUBTYPE_EDITOR)
+        // is this an editor data subrecord? if yes, we set the appropriate flag in the encasing group and all groups surrounding that one
+        if(mSubrecordHeader.type == Record::SUBTYPE_EDITOR)
         {
             RecordBuilder *b = mParent;
 
@@ -188,6 +157,8 @@ namespace Stoneship
                 b = b->mParent;
             }
         }
+
+        mBuildingSubrecord = true;
 
         return mWriter;
     }
@@ -211,13 +182,14 @@ namespace Stoneship
 
         std::streamoff pos = mWriter.tell();
 
-        SubrecordHeader::SizeType size = pos - mSubrecordSizeFieldOffset - sizeof(SubrecordHeader::SizeType);
+        mSubrecordHeader.dataSize = pos - mSubrecordHeaderOffset - mSubrecordHeader.sizeInFile();
 
-        if(size != mPredictedDataSize)
+        if(mWrittenSubrecordHeader != mSubrecordHeader)
         {
-            // we have written the wrong data size before. overwrite it
-            mWriter.seek(mSubrecordSizeFieldOffset);
-            mWriter << size;
+            // subrecord header has changed. update it
+            mWriter.seek(mSubrecordHeaderOffset);
+            mWriter << mSubrecordHeader;
+
             mWriter.seek(pos);
         }
 
@@ -226,7 +198,7 @@ namespace Stoneship
 
     uint32_t RecordBuilder::getChildRecordCount()
     {
-        return mChildRecordCount;
+        return mRecordHeader.recordCount;
     }
 
     RecordBuilder RecordBuilder::createChildBuilder()
@@ -236,40 +208,31 @@ namespace Stoneship
             STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to begin child record while not building encasing GROUP record.");
         }
 
-        if(mType != Record::TYPE_GROUP)
+        if(mRecordHeader.type != Record::TYPE_GROUP)
         {
             STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Tried to create child record in non-GROUP type record.");
         }
 
         RecordBuilder builder(mWriter, this);
 
-        ++mChildRecordCount;
+        ++(mRecordHeader.recordCount);
 
         return builder;
     }
 
     RecordHeader::FlagType RecordBuilder::getFlags() const
     {
-        return mFlags;
+        return mRecordHeader.flags;
     }
 
     void RecordBuilder::setFlags(RecordHeader::FlagType flags)
     {
-        mFlags = flags;
-
-        // update the flag field directly. since this may happen more than once while building a record, it might be
-        // more efficient to just store flags in memory and update file once record is finished
-        std::streampos pos = mWriter.tell();
-        mWriter.seek(mFlagFieldOffset);
-
-        mWriter << mFlags;
-
-        mWriter.seek(pos);
+        mRecordHeader.flags = flags;
     }
 
     Record::Type RecordBuilder::getType() const
     {
-        return mType;
+        return mRecordHeader.type;
     }
 }
 
