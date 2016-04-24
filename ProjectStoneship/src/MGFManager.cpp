@@ -129,7 +129,7 @@ namespace Stoneship
 
 	UID MGFManager::getNewUID(UID::Ordinal ordinal)
 	{
-	    static UID::ID lastID = 0xF000000;
+	    static UID::ID lastID = 0xF000000; //TODO: implement proper ID generation
 
 	    return UID(ordinal, lastID++);
 	}
@@ -184,10 +184,16 @@ namespace Stoneship
 	{
 		for(uint32_t i = 0; i < mLoadedGameFileCount; ++i) // modifications are applied incrementally. not sure if this is the most efficient way, but it should work
 		{
-			mGameFiles[i]->applyModifications(loadable);
+		    if(mGameFiles[i]->getOrdinal() == loadable->getCreatedUID().ordinal)
+			{
+		        // MGFs do not contain Modify records for their own records. no need to iterate the table
+		        continue;
+			}
+
+		    mGameFiles[i]->applyModifications(loadable);
 		}
 
-		if(mCurrentSaveFile != nullptr)
+		if(mCurrentSaveFile != nullptr && mCurrentSaveFile->getOrdinal() != loadable->getCreatedUID().ordinal)
 		{
 			mCurrentSaveFile->applyModifications(loadable);
 		}
