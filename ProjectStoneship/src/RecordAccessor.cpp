@@ -111,6 +111,8 @@ namespace Stoneship
 
     MGFDataReader RecordAccessor::getReaderForSubrecord(Record::Subtype subtype)
     {
+        // NOTE: Do not rollback here. Program relies on this method ignoring previous subrecords. rollback() has to be called manually
+
         // a GROUP does never contain subrecords, so catch any invalid calls here
         if(mHeader.type == Record::TYPE_GROUP)
         {

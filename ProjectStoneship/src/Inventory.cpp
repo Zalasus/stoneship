@@ -99,16 +99,21 @@ namespace Stoneship
 	    }
 	}
 
+	void Inventory::clear()
+	{
+	    mItems.clear();
+	}
+
 	uint32_t Inventory::addItem(IEntityBase *base, uint32_t count)
 	{
 		uint32_t countRemaining = count;
 
-		if(!(base->getBaseType() & IEntityBase::BASETYPE_ITEM))
+		IEntityBaseItem *itemBase = dynamic_cast<IEntityBaseItem*>(base); // TODO: buähhh
+
+		if(itemBase == nullptr)
 		{
 			STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Can't add non-item base type " + base->getBaseName() + " to inventory");
 		}
-
-		IEntityBaseItem *itemBase = static_cast<IEntityBaseItem*>(base);
 
 		if(itemBase->isStackable()) //is item stackable?
 		{

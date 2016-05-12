@@ -26,14 +26,6 @@ namespace Stoneship
 	{
 	public:
 
-        // TODO: create bitmask type for this
-		typedef uint32_t EntityType;
-		static const EntityType ENTITYTYPE_DEFAULT = 1;
-		static const EntityType ENTITYTYPE_WORLD = 2;
-		static const EntityType ENTITYTYPE_ITEM = 4;
-		static const EntityType ENTITYTYPE_CONTAINER = 8;
-
-
 		IEntity(UID uid, IEntityBase *base);
 		virtual ~IEntity();
 
@@ -44,7 +36,6 @@ namespace Stoneship
 		  // don't need to implement loadFromRecord. The only subrecord in this class is loaded by implementation of IWorld
 
 		// interface
-        virtual EntityType getEntityType() const = 0;
         virtual IWorld *getWorld() const = 0;
         virtual void spawn(IWorld *w) = 0;
         virtual void despawn() = 0;
@@ -71,7 +62,6 @@ namespace Stoneship
 		~EntityWorld();
 
         // overrides IEntity
-		virtual EntityType getEntityType() const { return ENTITYTYPE_WORLD; }
 		virtual IWorld *getWorld() const;
 		void spawn(IWorld *w);
         void despawn();
@@ -96,7 +86,6 @@ namespace Stoneship
         ~EntityItem();
 
         // overrides EntityWorld
-        virtual EntityType getEntityType() { return ENTITYTYPE_WORLD | ENTITYTYPE_ITEM; }
 
         uint32_t getCount() const;
         void setCount(uint32_t count);

@@ -19,12 +19,12 @@
 namespace Stoneship
 {
 
-	Root::Root()
-	: mOptions(this),
-	  mMGFManager(this),
-	  mResourceManager(this),
-	  mGameCache(this),
-	  mEventPipeline()
+	Root::Root(Options &options)
+	: mOptions(options)
+	, mMGFManager(this)
+	, mResourceManager(this)
+	, mGameCache(this)
+	, mEventPipeline()
 	{
 	    if(smSingleton != nullptr)
 	    {
@@ -89,9 +89,6 @@ namespace Stoneship
 	void Root::run()
 	{
 
-	    // we need to find an entry point
-
-
 	    // we are done here. give control back to implementation
 	    Logger::info("Stop signal received. Shutting down engine.");
 	}
@@ -114,3 +111,4 @@ namespace Stoneship
 
 
 }
+;

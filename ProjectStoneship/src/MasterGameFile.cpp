@@ -516,7 +516,7 @@ namespace Stoneship
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record " + UID(mOrdinal, id).toString() + " of type " + type + " not found in MGF '" + mFilename + "'");
 	}
 
-	RecordAccessor MasterGameFile::getRecordByEditorName(const String &name, Record::Type type)
+	RecordAccessor MasterGameFile::getRecordByEditorName(const String &name)
 	{
 		MGFDataReader ds(&mInputStream, this);
 

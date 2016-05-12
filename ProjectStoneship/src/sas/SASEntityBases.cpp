@@ -115,7 +115,8 @@ namespace Stoneship
 
 	EntityBase_Container::EntityBase_Container(UID uid)
 	: IEntityBaseWorld(uid),
-	  mPredefindedInventory(0)
+	  //mPredefindedInventory(0)
+	  mSlotCount(0, Record::SUBTYPE_CONTAINER, this)
 	{
 	}
 
@@ -123,7 +124,7 @@ namespace Stoneship
     {
         IEntityBaseWorld::loadFromRecord(record);
 
-        uint32_t slotCount;
+        /*uint32_t slotCount;
         uint32_t storedItemCount;
         record.getReaderForSubrecord(Record::SUBTYPE_CONTAINER)
                 >> slotCount
@@ -144,28 +145,28 @@ namespace Stoneship
         {
             MGFDataReader reader = record.getReaderForSubrecord(Record::SUBTYPE_CONTAINED_ITEM);
             _loadSingleContainedItem(reader);
-        }
+        }*/
     }
 
     void EntityBase_Container::loadFromModifyRecord(RecordAccessor &record)
     {
         IEntityBaseWorld::loadFromModifyRecord(record);
 
-        // adding item records TODO: modifying/removing items and changing slot count
-        uint32_t itemCount = record.getSubrecordCountForType(Record::SUBTYPE_CONTAINED_ITEM);
+        // adding item records
+        /*uint32_t itemCount = record.getSubrecordCountForType(Record::SUBTYPE_CONTAINED_ITEM);
 
         while((itemCount--) > 0)
         {
             MGFDataReader reader = record.getReaderForSubrecord(Record::SUBTYPE_CONTAINED_ITEM);
             _loadSingleContainedItem(reader);
-        }
+        }*/
     }
 
     void EntityBase_Container::storeToRecord(RecordBuilder &record)
     {
         IEntityBaseWorld::storeToRecord(record);
 
-        record.beginSubrecord(Record::SUBTYPE_CONTAINER)
+        /*record.beginSubrecord(Record::SUBTYPE_CONTAINER)
                 << mPredefindedInventory.getSlotCount()
                 << mPredefindedInventory.getItems().size();
         record.endSubrecord();
@@ -179,12 +180,12 @@ namespace Stoneship
                     << items[i].getItemBase()->getUID()
                     << items[i].getCount();
             record.endSubrecord();
-        }
+        }*/
     }
 
     void EntityBase_Container::storeToModifyRecord(RecordBuilder &record)
     {
-        // TODO: store modified items
+        IEntityBaseWorld::storeToModifyRecord(record);
     }
 
     bool EntityBase_Container::canInteract() const
@@ -197,9 +198,19 @@ namespace Stoneship
         return true;
     }
 
-    Inventory &EntityBase_Container::getPredefinedInventory()
+    /*Inventory &EntityBase_Container::getPredefinedInventory()
     {
         return mPredefindedInventory;
+    }*/
+
+    uint32_t EntityBase_Container::getSlotCount() const
+    {
+        return mSlotCount.get();
+    }
+
+    void EntityBase_Container::setSlotCount(uint32_t i)
+    {
+        mSlotCount.set(i);
     }
 
     IEntity *EntityBase_Container::createEntity(UID entityUID)
@@ -207,7 +218,7 @@ namespace Stoneship
         return new EntityContainer(entityUID, this);
     }
 
-    void EntityBase_Container::_loadSingleContainedItem(MGFDataReader &reader)
+    /*void EntityBase_Container::_loadSingleContainedItem(MGFDataReader &reader)
     {
         UID itemUID;
         uint32_t itemCount;
@@ -224,18 +235,11 @@ namespace Stoneship
             STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Could not find base for contained item " + itemUID.toString());
         }
 
-        if(!(base->getBaseType() | IEntityBase::BASETYPE_ITEM))
-        {
-            STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Specified UID for contained item is of non-item type");
-        }
-
-        IEntityBaseItem *itemBase = static_cast<IEntityBaseItem*>(base);
-
-        mPredefindedInventory.addItem(ItemStack(itemBase, itemCount));
+        mPredefindedInventory.addItem(base, itemCount);
 
         //restore old position in case it changed
         reader.seek(pos);
-    }
+    }*/
 
     REGISTER_ENTITY_BEGIN
         REGISTER_ENTITY_BASE(0x800, EntityBase_Static,    Static,    false)

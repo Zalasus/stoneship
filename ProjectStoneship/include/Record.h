@@ -68,6 +68,7 @@ namespace Stoneship
 
 		typedef uint16_t Subtype;
 		static const Subtype SUBTYPE_SUBGROUP = 0x0;
+		static const Subtype SUBTYPE_PROPERTY = 0x01;
 		static const Subtype SUBTYPE_WORLD_MODEL_NAME = 0x5;
 		static const Subtype SUBTYPE_DISPLAY_NAME = 0x6;
 		static const Subtype SUBTYPE_DESCRIPTION = 0x7;

@@ -25,7 +25,6 @@ namespace Stoneship
         ~EntityContainer();
 
         // overrides EntityWorld
-        virtual EntityType getEntityType() { return ENTITYTYPE_WORLD | ENTITYTYPE_CONTAINER; }
 
         // overrides IRecordReflector
         virtual void loadFromRecord(RecordAccessor &record);

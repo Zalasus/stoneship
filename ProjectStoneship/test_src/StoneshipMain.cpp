@@ -10,6 +10,7 @@
 
 #include "Stoneship.h"
 #include "sas/SASEntityBases.h"
+#include "sas/SASEntities.h"
 
 using namespace Stoneship;
 
@@ -23,26 +24,22 @@ int main(int argc, char **argv)
     Logger::getDefaultLogger().setPrintDebug(true);
     Logger::info("Initializing Stoneship v" STONESHIP_VERSION "...");
 
-    std::ofstream logStream("stoneship.log", std::ios::out | std::ios::app);
-    if(logStream.good())
-    {
-        // put an empty line between executions for readability
-        logStream << std::endl;
-    }
+    std::ofstream logStream("stoneship.log", std::ios::out);
     Logger fileLogger("Logfile", &logStream);
     fileLogger.setPrintDebug(true);
     Logger::getDefaultLogger().setChildLogger(&fileLogger);
 
-    Root *root = new Stoneship::Root();
+    Options options();
+
+    Root *root = new Stoneship::Root(options);
 
     try
 	{
 
-        root->getOptions().load(argc, argv);
         root->getResourceManager().addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
         root->loadAllMGFs();
 
-        for(uint32_t i = 0; i < 100; ++i)
+        for(uint32_t i = 0; i < 10; ++i)
         {
             UID uid = root->getMGFManager().getNewUID();
             EntityBase_Book *book = new EntityBase_Book(uid);
@@ -60,15 +57,32 @@ int main(int argc, char **argv)
         stuff->setDisplayName("Gunk");
         stuff->setDescription("Dunkygunkydunkygunk");
 
+        EntityBase_Weapon *weapon = new EntityBase_Weapon(root->getMGFManager().getNewUID());
+        root->getGameCache().manageBase(weapon);
+        weapon->setDisplayName("Rusty sword");
+        weapon->setDescription("A random test weapon");
+
         WorldDungeon *dungeon = new WorldDungeon(root->getMGFManager().getNewUID());
         root->getGameCache().manageWorld(dungeon);
         dungeon->setWorldName("Isao's cave");
-        for(uint32_t i = 0; i < 20; ++i)
+        for(uint32_t i = 0; i < 5; ++i)
         {
             IEntity *entity = stuff->createEntity(root->getMGFManager().getNewUID());
             entity->setEditorName("ent_stuff_id_" + entity->getCreatedUID().toString());
             dungeon->addEntity(entity);
         }
+
+        EntityBase_Container *containerBase = new EntityBase_Container(root->getMGFManager().getNewUID());
+        root->getGameCache().manageBase(containerBase);
+        containerBase->setSlotCount(20);
+        containerBase->setEditorName("cont_test_1");
+        containerBase->setModelName("chest1.model");
+
+        EntityContainer *containerEntity = static_cast<EntityContainer*>(containerBase->createEntity(root->getMGFManager().getNewUID()));
+        containerEntity->getInventory().addItem(stuff, 10);
+        containerEntity->getInventory().addItem(weapon, 1);
+        containerEntity->setEditorName("ent_cont");
+        dungeon->addEntity(containerEntity);
 
         root->getMGFManager().storeSGF("master.mgf");
 
@@ -84,20 +98,34 @@ int main(int argc, char **argv)
 	Logger::debug(String("Total read tp:  getcs=") + MGFDataReader::GETCS + " seeks=" + MGFDataReader::SEEKS + " tells=" + MGFDataReader::TELLS);
 	Logger::debug(String("Total write tp: putcs=") + MGFDataWriter::PUTCS + " seeks=" + MGFDataWriter::SEEKS + " tells=" + MGFDataWriter::TELLS);
 
-	if(gracefully)
-	{
-	    Logger::info("Stopping gracefully...");
-
-	}else
-	{
-	    Logger::warn("Stopping with errors...");
-	}
 
 	delete root;
 
 	logStream.close();
 
-	return 0;
+
+	if(gracefully)
+    {
+        Logger::info("Stopping gracefully...");
+
+        return 0;
+
+    }else
+    {
+        Logger::warn("Stopping with errors...");
+        Logger::warn("Exporting log to stoneship_crash.log");
+
+        std::ofstream out("stoneship_crash.log", std::ios::out);
+        std::ifstream in("stoneship.log", std::ios::in);
+        if(in.good() && out.good())
+        {
+            out << in;
+        }
+        out.close();
+        in.close();
+
+        return -1;
+    }
 }
 
 #endif

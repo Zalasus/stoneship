@@ -57,6 +57,12 @@ namespace Stoneship
         void setLRULimit(uint32_t i);
 
         /**
+         * Resolves UID for given editor name. If name is not found in cache, MGFs are searched. Throws if name
+         * can't be located anywhere.
+         */
+        UID editorNameToUID(const String &name);
+
+        /**
          * Searches the cache for an entity base with given UID. If the requested base is not yet cached,
          * it is searched in the corresponding MGF and subsequently allocated, cached and returned. If a non-cached
          * base is also not found in it's MGF, this method will throw. The optional parameter type may be

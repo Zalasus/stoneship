@@ -34,7 +34,6 @@ namespace Stoneship
 		uint32_t mCount;
 	};
 
-
 	class IEntityBase;
 
 	class Inventory
@@ -57,6 +56,11 @@ namespace Stoneship
 		 * and are not affected otherwise.
 		 */
 		void copyItems(const Inventory &inv);
+
+		/**
+		 * Removes all contained items.
+		 */
+		void clear();
 
 		/**
 		 * @returns The amount of items that effectively were added to the inventory. Equal to count if enough room for all elements was available.

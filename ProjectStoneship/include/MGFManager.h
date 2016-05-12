@@ -57,7 +57,7 @@ namespace Stoneship
 		 *
 		 * @param name The editor name of the record
 		 */
-		RecordAccessor getRecordByEditorName(const String &name, Record::Type type);
+		RecordAccessor getRecordByEditorName(const String &name);
 
 		void applyModifications(RecordReflector *reflector);
 

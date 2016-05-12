@@ -68,9 +68,9 @@ namespace Stoneship
 
 
 	EntityWorld::EntityWorld(UID uid, IEntityBaseWorld *base)
-	: IEntity(uid, base),
-	  mWorld(nullptr),
-	  mScale(1, Record::SUBTYPE_SCALE, this)
+	: IEntity(uid, base)
+	, mWorld(nullptr)
+	, mScale(1, Record::SUBTYPE_SCALE, this)
 	{
 	}
 

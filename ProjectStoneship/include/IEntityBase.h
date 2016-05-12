@@ -32,14 +32,8 @@ namespace Stoneship
 		friend class IEntity;
         friend class ItemStack; //TODO: I'd prefer a solution in which ItemStack just uses an Entity instance to do GC
 
-        // TODO: Maybe create a bitmask type for this
-		typedef uint32_t BaseType;
-		static const BaseType BASETYPE_ITEM = 1;
-		static const BaseType BASETYPE_WORLD = 2;
-		static const BaseType BASETYPE_SPECIAL = 4;
 
-
-		IEntityBase();
+        IEntityBase();
 		IEntityBase(UID uid);
 		virtual ~IEntityBase();
 
@@ -47,7 +41,6 @@ namespace Stoneship
 		virtual UID getCreatedUID() const;
 
 		// interface
-		virtual BaseType getBaseType() const = 0;
 		virtual String getBaseName() const = 0;
 		virtual IEntity *createEntity(UID entityUID) = 0;
 

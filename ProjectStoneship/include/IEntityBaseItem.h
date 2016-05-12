@@ -57,7 +57,6 @@ namespace Stoneship
 
 		// override IEntityBase
 		virtual IEntity *createEntity(UID uid);
-		virtual BaseType getBaseType() const { return BASETYPE_ITEM | BASETYPE_WORLD; }
 
 		// override IEntityBaseWorld
         virtual bool canInteract() const; // true by default

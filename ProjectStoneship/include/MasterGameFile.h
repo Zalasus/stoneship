@@ -92,7 +92,7 @@ namespace Stoneship
 		RecordAccessor getRecordByID(UID::ID id);
 		RecordAccessor getRecordByTypeID(UID::ID id, Record::Type type);
 
-		RecordAccessor getRecordByEditorName(const String &name, Record::Type type);
+		RecordAccessor getRecordByEditorName(const String &name);
 
 		RecordAccessor getFirstRecord();
 		RecordAccessor getFirstRecordOfType(Record::Type type);

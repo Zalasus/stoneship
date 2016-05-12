@@ -22,7 +22,7 @@ namespace Stoneship
 	{
 	public:
 
-		Root();
+		Root(Options &options);
 		~Root();
 
 		Options &getOptions();
@@ -39,13 +39,15 @@ namespace Stoneship
 		 */
 		void run();
 
+		IWorld *getActiveWorld();
+
 
 		static Root *getSingleton();
 
 
 	private:
 
-		Options mOptions;
+		Options &mOptions;
 
 		MGFManager mMGFManager;
 		ResourceManager mResourceManager;

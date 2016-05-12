@@ -14,6 +14,7 @@
 #include "MGFDataWriter.h"
 #include "RecordReflector.h"
 #include "RecordBuilder.h"
+#include "MasterGameFile.h"
 #include "IWorld.h"
 #include "Logger.h"
 
@@ -21,9 +22,9 @@ namespace Stoneship
 {
 
     GameCache::GameCache(Root *root)
-    : mRoot(root),
-      mPolicy(POLICY_KEEP_NEEDED),
-      mLRULimit(3)
+    : mRoot(root)
+    , mPolicy(POLICY_KEEP_NEEDED)
+    , mLRULimit(3)
     {
     }
 
@@ -43,6 +44,60 @@ namespace Stoneship
     void GameCache::setLRULimit(uint32_t i)
     {
         mLRULimit = i;
+    }
+
+    UID GameCache::editorNameToUID(const String &name)
+    {
+        // FIXME: This combined cache breaks with our no-redundant-storage philosophy. also, building it takes a heck lot of time and is not very elegant. find better solution
+        std::vector<RecordReflector*> combinedCache;
+
+        // build combined cache of all elements that need to be stored (were newly created)
+        for(uint32_t i = 0; i < mBaseCache.size(); ++i)
+        {
+            // only transfer newly created bases
+            if(mBaseCache[i]->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL)
+            {
+                combinedCache.push_back(mBaseCache[i]);
+            }
+        }
+
+        for(uint32_t i = 0; i < mWorldCache.size(); ++i)
+        {
+            // only transfer newly created worlds
+            if(mWorldCache[i]->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL)
+            {
+                combinedCache.push_back(mWorldCache[i]);
+            }
+        }
+
+
+        for(uint32_t i = 0; i < combinedCache.size(); ++i)
+        {
+            if(combinedCache[i]->getEditorName() == name)
+            {
+                return combinedCache[i]->getCreatedUID();
+            }
+        }
+
+
+        for(uint32_t i = 0; i < mRoot->getMGFManager().getLoadedMGFCount(); ++i)
+        {
+            try
+            {
+                RecordAccessor record = mRoot->getMGFManager().getLoadedMGFByIndex(i)->getRecordByEditorName(name);
+
+                return record.getUID();
+
+            }catch(StoneshipException &e)
+            {
+                if(e.getType() != StoneshipException::RECORD_NOT_FOUND)
+                {
+                    throw;
+                }
+            }
+        }
+
+        STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Could not resolve editor name '" + name + "'");
     }
 
     IEntityBase *GameCache::getBase(const UID &uid, Record::Type type)
@@ -91,7 +146,7 @@ namespace Stoneship
             throw;
         }
 
-        //apply modifications. do this only for records that were loaded from MGFs, as SGFs will never modify their own records and MGFs don't see SGF's records
+        // apply modifications. do this only for records that were loaded from MGFs, as SGFs will never modify their own records and MGFs don't see SGF's records
         if(base->getCreatedUID().id != UID::SELF_REF_ORDINAL)
         {
             try

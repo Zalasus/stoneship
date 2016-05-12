@@ -144,14 +144,17 @@ namespace Stoneship
         bool canInteract() const;
         bool onInteract(IEntity *entity, IActor *actor);
 
-        Inventory &getPredefinedInventory();
+        uint32_t getSlotCount() const;
+        void setSlotCount(uint32_t i);
+        //Inventory &getPredefinedInventory();
 
 
 	private:
 
-        void _loadSingleContainedItem(MGFDataReader &reader);
+        //void _loadSingleContainedItem(MGFDataReader &reader);
 
-        Inventory mPredefindedInventory;
+        //Inventory mPredefindedInventory;
+        SubrecordField<uint32_t> mSlotCount;
 
 	};
 

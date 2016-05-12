@@ -159,13 +159,13 @@ namespace Stoneship
 		return mgf->getRecordByTypeID(id.id, type);
 	}
 
-	RecordAccessor MGFManager::getRecordByEditorName(const String &name, Record::Type type)
+	RecordAccessor MGFManager::getRecordByEditorName(const String &name)
 	{
 		for(uint16_t i = 0; i < mLoadedGameFileCount; ++i)
 		{
 			try
 			{
-				RecordAccessor record = getLoadedMGFByIndex(i)->getRecordByEditorName(name, type);
+				RecordAccessor record = getLoadedMGFByIndex(i)->getRecordByEditorName(name);
 				return record;
 
 			}catch(StoneshipException &e)

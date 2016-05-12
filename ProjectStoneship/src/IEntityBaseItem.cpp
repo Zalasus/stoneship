@@ -5,6 +5,8 @@
  *      Author: Zalasus
  */
 
+#include <typeinfo>
+
 #include <IEntity.h>
 #include <IEntityBaseItem.h>
 #include "IActor.h"
@@ -143,7 +145,7 @@ namespace Stoneship
 
 	bool IEntityBaseItem::_pickupOnInteract(IEntity *entity, IActor *actor)
 	{
-	    if(entity->getEntityType() & IEntity::ENTITYTYPE_ITEM)
+	    if(typeid(*entity) == typeid(EntityItem))  // TODO: buähhh
 	    {
 	        if(Root::getSingleton()->getEventPipeline().dispatch(Event(Event::TYPE_PICKUP, entity, actor)))
 	        {

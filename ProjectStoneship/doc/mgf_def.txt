@@ -344,10 +344,12 @@ B1: ScalesGlobal
 		double: value
 	4: [Optional] string value
 		string: value
+	5: [Optional] uid value
+		uid: value
 	100: Global data
 		string: namespace
 		string: name
-		byte: data type (as in Scales specification. Subrecord with this ID is required)
+		ubyte: data type (as in Scales specification. Subrecord with this ID is required)
 		
 
 
@@ -358,22 +360,16 @@ C0: Outdoor World
 C1: Chunk group
 	100: chunk group data
 		vector2i: origin coordinates (for row groups y field is ignored)
-	0: chunk subgroup (contains groups record of chunks)
 	
 C2: Chunk
 	100: chunk data
 		ubyte: chunk flags ( 1 = IS_END_CHUNK )
 		vector2i: chunk coordinates
 		string: chunk name
-	0: entity subgroup
-	
-
 		
 C5: Dungeon
 	6: dungeon display name
 	7:
-	0: entity subgroup
-	
 
 D0: Entity
 	10: position data
@@ -486,6 +482,10 @@ Common subrecord types with typical fields they contain (these definitions may n
 0: subgroup
 	record_group: sub group record
 	
+1: property
+	string: name
+	ubyte: type
+	byte[#]: data
 	
 (the following subrecords are common for all item types)
 	
