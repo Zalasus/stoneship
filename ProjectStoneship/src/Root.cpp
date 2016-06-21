@@ -68,18 +68,18 @@ namespace Stoneship
 	void Root::loadAllMGFs()
 	{
 	    // load MGFs from config file
-        const std::vector<IniFile::IniEntry> &mgfEntries = getOptions().getIniFile().getEntriesInSection("mgf");
+        std::vector<String> &mgfEntries = mOptions.getMGFList();
         for(uint32_t i = 0; i < mgfEntries.size(); ++i)
         {
             try
             {
-                Logger::info("Loading MGF '" + mgfEntries[i].value + "'");
+                Logger::info("Loading MGF '" + mgfEntries[i] + "'");
 
-                getMGFManager().loadMGF(mgfEntries[i].value);
+                getMGFManager().loadMGF(mgfEntries[i]);
 
             }catch(StoneshipException &e)
             {
-                STONESHIP_EXCEPT(e.getType(), "Error while loading MGF " + mgfEntries[i].value + " from config file: " + e.getMessage());
+                STONESHIP_EXCEPT(e.getType(), "Error while loading MGF " + mgfEntries[i] + " from config file: " + e.getMessage());
             }
         }
 
@@ -89,7 +89,9 @@ namespace Stoneship
 	void Root::run()
 	{
 
-	    // we are done here. give control back to implementation
+
+
+	    // we are done here
 	    Logger::info("Stop signal received. Shutting down engine.");
 	}
 
@@ -101,9 +103,7 @@ namespace Stoneship
 	{
 	    if(smSingleton == nullptr)
 	    {
-	        Logger::warn("Initial Root singleton created using singleton method. ATM, this creates a memory leak and should be avoided.");
-
-	        smSingleton = new Root(); //TODO: technically, this method creates a memory leak. might be worth checking out
+	        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Singleton requested when no root was created yet.");
 	    }
 
 	    return smSingleton;
@@ -111,4 +111,3 @@ namespace Stoneship
 
 
 }
-;
