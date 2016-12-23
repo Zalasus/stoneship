@@ -14,6 +14,7 @@
 #include "String.h"
 #include "Exception.h"
 
+
 namespace Stoneship
 {
 
@@ -35,7 +36,7 @@ namespace Stoneship
 
 		template <typename T>
         MGFDataWriter &operator<<(const T &x);
-
+        
 
 		static uint32_t PUTCS;
 		static uint32_t SEEKS;
@@ -49,6 +50,8 @@ namespace Stoneship
 		template <typename T>
         void _stupidlyWriteIntegral(T v)
         {
+            //TODO: this is very stupid indeed. try to provide some portability when serializing integrals
+            
             for(uint8_t i = 0; i < sizeof(T); ++i)
             {
                 _writeNext(v & 0xFF);

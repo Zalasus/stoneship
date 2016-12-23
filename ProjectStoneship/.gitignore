@@ -1,6 +1,6 @@
-/Debug/
-/Release/
-.project
-.cproject
-/LibDebug/
-/LibRelease/
+/*
+!/src/
+!/test_src/
+!/include/
+!/doc/
+!/res/

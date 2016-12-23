@@ -14,6 +14,8 @@
 #include "Logger.h"
 #include "RecordBuilder.h"
 
+#include <osgDB/ReadFile>
+
 namespace Stoneship
 {
 
@@ -70,7 +72,9 @@ namespace Stoneship
 	EntityWorld::EntityWorld(UID uid, IEntityBaseWorld *base)
 	: IEntity(uid, base)
 	, mWorld(nullptr)
+	, mPosRot(PosRot(), Record::SUBTYPE_POSROT, this)
 	, mScale(1, Record::SUBTYPE_SCALE, this)
+	, mBaseTransform(nullptr)
 	{
 	}
 
@@ -94,6 +98,31 @@ namespace Stoneship
 	{
 	    Logger::info("Despawned entity " + getUID().toString() + " in world " + mWorld->getUID().toString());
 	}
+	
+	void EntityWorld::attachNodes(osg::Group *group, ResourceManager *resMan)
+	{
+	    IEntityBaseWorld *base = static_cast<IEntityBaseWorld*>(mBase);
+	    
+	    mBaseTransform = osg::ref_ptr<osg::PositionAttitudeTransform>(new osg::PositionAttitudeTransform());
+	    
+	    if(!(base->getModelName().empty()))
+        {
+            osg::Node *modelNode = osgDB::readNodeFile(base->getModelName());
+            
+            mBaseTransform->setScale(osg::Vec3d(getScale(),getScale(),getScale()));
+            mBaseTransform->setPosition(mPosRot.get().getPosition());
+            mBaseTransform->setAttitude(mPosRot.get().getRotation());
+            
+            mBaseTransform->addChild(modelNode);
+        }
+	    
+	    group->addChild(mBaseTransform);
+	}
+	
+    void EntityWorld::detachNodes(osg::Group *node)
+    {
+        node->removeChild(mBaseTransform);
+    }
 
 	float EntityWorld::getScale() const
 	{

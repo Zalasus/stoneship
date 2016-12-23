@@ -26,6 +26,7 @@ namespace Stoneship
     class ResourceManager;
     class IEntityBase;
     class RecordReflector;
+    class GameCache;
 
 	class MasterGameFile
 	{
@@ -61,17 +62,19 @@ namespace Stoneship
 			Record::ModifyType modType;
 		};
 
-		MasterGameFile(const String &filename, UID::Ordinal ordinal);
+		MasterGameFile(const String &filename, UID::Ordinal ordinal, MGFManager *mgfManager);
 		virtual ~MasterGameFile();
 
 		/**
+		 * @brief Initializes newly created MGF/SGF.
+		 *
          * Dependencies of newly created SGFs are all MGFs that are loaded at the time of this objects instantiation. This
          * Method copies all loaded MGFs from the MGFManager object to the dependency array to allow proper storage of dependencies.
          * If called on a MGF that already has dependencies loaded or has an ordinal different to 0xFFFF, this method will throw.
          */
 		void initCreated();
-		void load(bool ignoreDependencies = false, bool createIndex = true);
-		void store();
+		void load(bool ignoreDependencies = false);
+		void store(GameCache *gameCache);
 
 		const String &getFilename() const;
 		UID::Ordinal getOrdinal() const;
@@ -93,11 +96,25 @@ namespace Stoneship
 		RecordAccessor getRecordByTypeID(UID::ID id, Record::Type type);
 
 		RecordAccessor getRecordByEditorName(const String &name);
+		
+		/**
+		 * @brief Creates iterator pointing to the first record in this MGF
+		 */
+		RecordIterator getRecordIterator();
+		
+		/**
+		 * @brief Creates iterator pointing to the first record in top group of type t
+		 */
+		RecordIterator getRecordIteratorForType(Record::Type t);
 
-		RecordAccessor getFirstRecord();
-		RecordAccessor getFirstRecordOfType(Record::Type type);
-
-		void applyModifications(RecordReflector *reflector);
+		/**
+		 * @brief Creates iterator pointing to end marker. Should not be dereferenced.
+		 *
+		 * 
+		 */
+		RecordIterator getRecordEnd();
+		
+		void applyModifications(RecordReflector *reflector, GameCache *gameCache);
 
 
 	private:
@@ -109,6 +126,8 @@ namespace Stoneship
 		std::ifstream mInputStream;
 		UID::Ordinal mOrdinal;
 
+		MGFManager *mMGFManager;
+		
 		bool mLoaded;
 
 		uint32_t mFlags;
@@ -123,6 +142,7 @@ namespace Stoneship
 		uint32_t mRecordGroupCount;
 
 		std::streampos mHeaderEndOfffset;
+		std::streampos mEndMarkerOffset;
 
 		std::vector<ModHint> mMods; //TODO: Replace this with array. we know the total amount of records
 

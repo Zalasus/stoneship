@@ -13,10 +13,14 @@
 #include "String.h"
 
 #ifdef _DEBUG
-	#define STONESHIP_EXCEPT(type, msg) throw StoneshipException(type, msg, __FILE__, __LINE__);
+	#define STONESHIP_EXCEPT(type, msg) throw Stoneship::StoneshipException(type, msg, __FILE__, __LINE__);
 #else
-	#define STONESHIP_EXCEPT(type, msg) throw StoneshipException(type, msg);
+	#define STONESHIP_EXCEPT(type, msg) throw Stoneship::StoneshipException(type, msg);
 #endif
+
+//TODO: These macros produce exceptions that are far from beeing user readable
+#define ASSERT_RECORD_TYPE(expr) if(!(expr)) { STONESHIP_EXCEPT(Stoneship::StoneshipException::INVALID_RECORD_TYPE, "Record type assertion failed: " #expr); }
+#define ASSERT_ARG(expr) if(!(expr)) { STONESHIP_EXCEPT(Stoneship::StoneshipException::INVALID_ARGUMENT, "Argument assertion failed: " #expr); }
 
 namespace Stoneship
 {
@@ -39,7 +43,8 @@ namespace Stoneship
 			RENDERER_ERROR,
 			UNSUPPSORTED,
 			OUT_OF_BOUNDS,
-			INVALID_STATE
+			INVALID_STATE,
+			INVALID_ARGUMENT
 		};
 
 		StoneshipException(ExceptionType type, const String &msg);

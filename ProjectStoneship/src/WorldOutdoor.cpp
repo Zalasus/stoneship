@@ -9,6 +9,7 @@
 
 #include "RecordAccessor.h"
 #include "RecordBuilder.h"
+#include "Logger.h"
 
 namespace Stoneship
 {
@@ -16,12 +17,22 @@ namespace Stoneship
 
     WorldOutdoor::WorldOutdoor(UID uid)
     : IWorld(uid),
-      mWorldName("Xelis", Record::SUBTYPE_DISPLAY_NAME, this)
+      mWorldName("Unnamed", Record::SUBTYPE_DISPLAY_NAME, this)
     {
     }
 
     WorldOutdoor::~WorldOutdoor()
     {
+    }
+    
+    void WorldOutdoor::attachNodes(osg::Group *group, ResourceManager *resMan)
+    {
+        
+    }
+    
+    void WorldOutdoor::detachNodes(osg::Group *group)
+    {
+        
     }
 
     String WorldOutdoor::getWorldName() const
@@ -45,6 +56,11 @@ namespace Stoneship
     {
         return 0; //testing...
     }
+    
+    void WorldOutdoor::addEntity(IEntity *e)
+    {
+        Logger::debug("Added entity " + e->getUID().toString() + " to world " + getUID().toString()); // use Stringify?
+    }
 
     void WorldOutdoor::removeEntity(IEntity *entity)
     {
@@ -56,23 +72,34 @@ namespace Stoneship
 
     }
 
-    void WorldOutdoor::loadFromRecord(RecordAccessor &rec)
+    void WorldOutdoor::loadFromRecord(RecordAccessor &rec, GameCache *gameCache)
     {
-        IWorld::loadFromRecord(rec);
-
-        //create initial chunk map for faster loading without having to seek the MGF everytime
-        rec = rec.getNextRecord();
-        if(rec.getHeader().type == Record::TYPE_CHUNK_GROUP)
-        {
-
-        }
+        IWorld::loadFromRecord(rec, gameCache);
     }
 
+    std::vector<Chunk*> &WorldOutdoor::getLoadedChunks()
+    {
+        return mLoadedChunks;
+    }
+    
     void WorldOutdoor::storeToRecord(RecordBuilder &record)
     {
         IWorld::storeToRecord(record);
 
-
+        record.beginSubrecord(Record::SUBTYPE_DATA)
+            << uint32_t(0)    // flags
+            << uint32_t(0);   // world radius
+        record.endSubrecord();
+    }
+    
+    void WorldOutdoor::postStore(RecordBuilder &last, RecordBuilder &surrounding)
+    {
+        RecordBuilder chunkGroupBuilder = surrounding.createChildBuilder();
+        chunkGroupBuilder.beginGroupRecord(Record::TYPE_GROUP, 0);
+        
+            
+        
+        chunkGroupBuilder.endRecord();
     }
 
 }

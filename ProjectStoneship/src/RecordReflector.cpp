@@ -11,6 +11,7 @@
 #include "RecordAccessor.h"
 #include "RecordBuilder.h"
 #include "Exception.h"
+#include "GameCache.h"
 
 namespace Stoneship
 {
@@ -24,12 +25,10 @@ namespace Stoneship
         return mReflectedVect;
     }
 
-    void RecordReflector::loadFromRecord(RecordAccessor &record)
+    void RecordReflector::loadFromRecord(RecordAccessor &record, GameCache *gameCache)
     {
-        record.rollback(); // ensure the Accessor is in the right position before reading anything
-
         const std::vector<SubrecordFieldS*> &fields = getReflectedFields();
-
+        
         for(uint32_t i = 0; i < fields.size(); ++i)
         {
             SubrecordFieldS *field = fields[i];
@@ -66,7 +65,7 @@ namespace Stoneship
         }
     }
 
-    void RecordReflector::loadFromModifyRecord(RecordAccessor &record)
+    void RecordReflector::loadFromModifyRecord(RecordAccessor &record, GameCache *gameCache)
     {
         const std::vector<SubrecordFieldS*> &fields = getReflectedFields();
 
@@ -139,7 +138,7 @@ namespace Stoneship
     {
     }
 
-    void RecordReflector::postLoad(RecordAccessor &last, RecordAccessor &surrounding)
+    void RecordReflector::postLoad(RecordAccessor &last, RecordAccessor &surrounding, GameCache *gameCache)
     {
     }
 

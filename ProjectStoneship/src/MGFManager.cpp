@@ -9,16 +9,15 @@
 #include "Exception.h"
 #include "MGFManager.h"
 #include "MasterGameFile.h"
-#include "Root.h"
 #include "Logger.h"
 
 namespace Stoneship
 {
 
-	MGFManager::MGFManager(Root *root)
-	: mRoot(root),
-	  mCurrentSaveFile(nullptr),
-	  mLoadedGameFileCount(0)
+	MGFManager::MGFManager(ResourceManager *resourceManager)
+	: mResourceManager(resourceManager)
+    , mCurrentSaveFile(nullptr)
+    , mLoadedGameFileCount(0)
 	{
 	}
 
@@ -45,7 +44,7 @@ namespace Stoneship
 	    }
 
 		UID::Ordinal ordinal = mGameFiles.size();
-		MasterGameFile *mgf = new MasterGameFile(filename, ordinal);
+		MasterGameFile *mgf = new MasterGameFile(filename, ordinal, this);
 		mGameFiles.push_back(mgf);
 
 		mgf->load();
@@ -60,11 +59,11 @@ namespace Stoneship
 	        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to load SGF when one was still loaded");
 	    }
 
-	    mCurrentSaveFile = new MasterGameFile(filename, UID::SELF_REF_ORDINAL);
+	    mCurrentSaveFile = new MasterGameFile(filename, UID::SELF_REF_ORDINAL, this);
 	    mCurrentSaveFile->load();
 	}
 
-	void MGFManager::storeSGF(const String &filename)
+	void MGFManager::storeSGF(const String &filename, GameCache *gameCache)
 	{
 	    Logger::info("Saving SGF '" + filename + "'...");
 
@@ -73,10 +72,10 @@ namespace Stoneship
 	        delete mCurrentSaveFile;
 	    }
 
-	    mCurrentSaveFile = new MasterGameFile(filename, UID::SELF_REF_ORDINAL);
+	    mCurrentSaveFile = new MasterGameFile(filename, UID::SELF_REF_ORDINAL, this);
 	    mCurrentSaveFile->initCreated();
 
-	    mCurrentSaveFile->store();
+	    mCurrentSaveFile->store(gameCache);
 	}
 
 	uint32_t MGFManager::getLoadedMGFCount() const
@@ -180,7 +179,7 @@ namespace Stoneship
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record with editor name '" + name + "' not found in loaded MGFs");
 	}
 
-	void MGFManager::applyModifications(RecordReflector *loadable)
+	void MGFManager::applyModifications(RecordReflector *loadable, GameCache *gameCache)
 	{
 		for(uint32_t i = 0; i < mLoadedGameFileCount; ++i) // modifications are applied incrementally. not sure if this is the most efficient way, but it should work
 		{
@@ -190,12 +189,12 @@ namespace Stoneship
 		        continue;
 			}
 
-		    mGameFiles[i]->applyModifications(loadable);
+		    mGameFiles[i]->applyModifications(loadable, gameCache);
 		}
 
 		if(mCurrentSaveFile != nullptr && mCurrentSaveFile->getOrdinal() != loadable->getCreatedUID().ordinal)
 		{
-			mCurrentSaveFile->applyModifications(loadable);
+			mCurrentSaveFile->applyModifications(loadable, gameCache);
 		}
 	}
 

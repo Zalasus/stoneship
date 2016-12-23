@@ -30,6 +30,10 @@ namespace Stoneship
         // override RecordReflector
         virtual Record::Type getRecordType() const { return Record::TYPE_DUNGEON; };
 
+        // override Attachable
+        virtual void attachNodes(osg::Group *group, ResourceManager *resMan);
+        virtual void detachNodes(osg::Group *group); 
+        
         // override IWorld
         virtual String getWorldName() const;
         virtual const std::vector<IEntity*> &getLoadedEntities();
@@ -39,9 +43,9 @@ namespace Stoneship
         virtual void removeEntity(UID uid);
 
         // override RecordReflector
-        virtual void loadFromRecord(RecordAccessor &record);
+        virtual void loadFromRecord(RecordAccessor &record, GameCache *gameCache);
         virtual void storeToRecord(RecordBuilder &record);
-        virtual void postLoad(RecordAccessor &last, RecordAccessor &surrounding);
+        virtual void postLoad(RecordAccessor &last, RecordAccessor &surrounding, GameCache *gameCache);
         virtual void postStore(RecordBuilder &last, RecordBuilder &surrounding);
 
         void setWorldName(const String &s);
@@ -50,6 +54,8 @@ namespace Stoneship
 
         SubrecordField<String> mDungeonName;
         std::vector<IEntity*> mEntities;
+        
+        osg::ref_ptr<osg::Group> mWorldGroup;
 
     };
 

@@ -30,6 +30,30 @@ namespace Stoneship
             delete mEntities[i];
         }
     }
+    
+    void WorldDungeon::attachNodes(osg::Group *group, ResourceManager *resMan)
+    {
+        mWorldGroup = osg::ref_ptr<osg::Group>(new osg::Group());
+        
+        group->addChild(mWorldGroup);
+        
+        // attach entities
+        auto it = mEntities.begin();
+        while(it != mEntities.end())
+        {
+            EntityWorld *ent = dynamic_cast<EntityWorld*>(*it);
+            
+            if(ent != nullptr)
+            {
+                ent->attachNodes(mWorldGroup.get(), resMan);
+            }
+        }
+    }
+    
+    void WorldDungeon::detachNodes(osg::Group *group)
+    {
+        group->removeChild(mWorldGroup);
+    }
 
     String WorldDungeon::getWorldName() const
     {
@@ -99,48 +123,46 @@ namespace Stoneship
         }
     }
 
-    void WorldDungeon::loadFromRecord(RecordAccessor &rec)
+    void WorldDungeon::loadFromRecord(RecordAccessor &rec, GameCache *gameCache)
     {
-        IWorld::loadFromRecord(rec);
+        IWorld::loadFromRecord(rec, gameCache);
+        
+        //quePostLoad(rec,gameCache);
     }
 
-    void WorldDungeon::postLoad(RecordAccessor &last, RecordAccessor &surrounding)
+    void WorldDungeon::postLoad(RecordAccessor &last, RecordAccessor &surrounding, GameCache *gameCache)
     {
-        RecordAccessor subgroup = last.getNextRecord();
-
-        if(subgroup.getHeader().recordCount > 0)
+        RecordIterator it = last.toIterator().next();
+        
+        if(it->getHeader().recordCount > 0)
         {
             //entity list is not empty
 
-            RecordAccessor child = subgroup.getFirstChildRecord();
-            for(uint32_t i = 0; i < subgroup.getHeader().recordCount; ++i)
+            RecordIterator childIt = it->getChildIterator();
+            while(childIt != it->getChildEnd())
             {
-                UID entityUID = UID(child.getGameFile()->getOrdinal(), child.getHeader().id);
+                RecordAccessor childRecord = *childIt;
+                
+                UID entityUID = UID(childRecord.getGameFile()->getOrdinal(), childRecord.getHeader().id);
 
                 UID baseUID;
                 Record::Type baseType;
-                child.getReaderForSubrecord(Record::SUBTYPE_ENTITY)
+                childRecord.getReaderForSubrecord(Record::SUBTYPE_ENTITY)
                         >> baseUID
                         >> baseType
                         >> MGFDataReader::endr;
 
-                IEntityBase *base = Root::getSingleton()->getGameCache().getBase(baseUID, baseType);
-                if(base == nullptr)
+                IEntityBase *base = gameCache->getCachedElementOfType<IEntityBase>(baseUID, baseType);
+                if(base == nullptr) //FIXME: won't be returned
                 {
                     STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Base " + baseUID.toString() + " for Entity " + entityUID.toString() + " not found");
                 }
 
                 IEntity *entity = base->createEntity(entityUID);
                 mEntities.push_back(entity);
-                entity->loadFromRecord(child);
+                entity->loadFromRecord(childRecord, gameCache);
                 entity->spawn(this);
-
-                // reached end of list yet?
-                if(i < subgroup.getHeader().recordCount-1)
-                {
-                    // no, fetch next entity record
-                    child = child.getNextRecord();
-                }
+                
             }// for each entity record
         } // if entity list not emptyfinished
     }

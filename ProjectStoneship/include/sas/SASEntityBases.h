@@ -23,6 +23,8 @@ namespace Stoneship
     class IEntity;
     class RecordAccessor;
     class RecordBuilder;
+    class GameCache;
+    class EventPipeline;
 
 	class EntityBase_Static : public IEntityBaseWorld
 	{
@@ -37,7 +39,7 @@ namespace Stoneship
 
 		// override IEntityBaseWorld
 		bool canInteract() const;
-		bool onInteract(IEntity *entity, IActor *actor);
+		bool onInteract(IEntity *entity, IActor *actor, EventPipeline *pipeline);
 
 	};
 
@@ -135,14 +137,14 @@ namespace Stoneship
 
         // override RecordReflector
         Record::Type getRecordType() const {return 0x82A;}
-        virtual void loadFromRecord(RecordAccessor &record);
-        virtual void loadFromModifyRecord(RecordAccessor &record);
+        virtual void loadFromRecord(RecordAccessor &record, GameCache *gameCache);
+        virtual void loadFromModifyRecord(RecordAccessor &record, GameCache *gameCache);
         virtual void storeToRecord(RecordBuilder &record);
         virtual void storeToModifyRecord(RecordBuilder &record);
 
         // override IEntityBaseWorld
         bool canInteract() const;
-        bool onInteract(IEntity *entity, IActor *actor);
+        bool onInteract(IEntity *entity, IActor *actor, EventPipeline *pipeline);
 
         uint32_t getSlotCount() const;
         void setSlotCount(uint32_t i);

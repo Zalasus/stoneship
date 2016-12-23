@@ -11,6 +11,7 @@
 #include "Record.h"
 #include "MGFDataReader.h"
 #include "SimpleArray.h"
+#include "RecordIterator.h"
 
 namespace Stoneship
 {
@@ -21,14 +22,18 @@ namespace Stoneship
     {
     public:
 
-        RecordAccessor(const RecordHeader &header, std::istream *stream, MasterGameFile *mgf);
+        RecordAccessor(const RecordHeader &header, std::istream *stream, std::streampos dataOffset, MasterGameFile *mgf);
         RecordAccessor(const RecordAccessor &a);
         ~RecordAccessor();
 
         const RecordHeader &getHeader() const;
-        MasterGameFile *getGameFile();
-        std::streampos getDataOffset(); /** @returns Offset of record's data field */
-        std::streampos getOffset(); /** @returns Absolute offset of record */
+        MasterGameFile *getGameFile() const;
+        std::streampos getDataOffset() const; /** @returns Offset of record's data field */
+        std::streampos getOffset() const; /** @returns Absolute offset of record */
+        
+        /**
+         * @returns true if record type is GROUP and child count is > 0
+         */
         bool hasChildren() const;
 
         UID getUID() const;
@@ -80,21 +85,27 @@ namespace Stoneship
         MGFDataReader getReaderForSubrecord(Record::Subtype subtype);
 
         /**
-         * @brief Creates Accessor for the next record following this one in the stream.
-         *
-         * Once this method was called, the accessor gets unusable for subrecord access unless rollback() is called. This method can be called
-         * in any stream position as long as it isn't EOF.
+         * @brief Creates Iterator at beginning of this record.
          */
-        RecordAccessor getNextRecord();
+        RecordIterator toIterator() const;
 
+        
         /**
-         * @brief Creates Accessor for the first record in this record's data field.
+         * @brief Creates Iterator for the first record in this record's data field.
+         *
+         * If this record does not contain any child records, getChildIterator() will return an Iterator pointing to
+         * the record's end instead (same ad getChildEnd()).
          *
          * This method is insensitive to stream position and may be called everywhere in the stream. In accordance to the MGF specification,
          * this method may only be called on RecordAccessors for GROUP records. Any other type will cause this method to throw.
          */
-        RecordAccessor getFirstChildRecord();
-
+        RecordIterator getChildIterator() const;
+        
+        /**
+         * @brief Creates Iterator for next record in series (right at the end of current record).
+         */
+        RecordIterator getChildEnd() const;
+        
         /**
          * @brief Moves the stream pointer to the beginning of this records data field.
          */

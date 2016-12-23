@@ -10,6 +10,7 @@
 #include "Root.h"
 #include "RecordBuilder.h"
 #include "RecordAccessor.h"
+#include "GameCache.h"
 
 namespace Stoneship
 {
@@ -25,9 +26,9 @@ namespace Stoneship
     {
     }
 
-    void EntityContainer::loadFromRecord(RecordAccessor &rec)
+    void EntityContainer::loadFromRecord(RecordAccessor &rec, GameCache *gameCache)
     {
-        EntityWorld::loadFromRecord(rec);
+        EntityWorld::loadFromRecord(rec, gameCache);
 
         mInventory.clear(); // remove all items copied from the predefined inventory when loading
 
@@ -53,7 +54,7 @@ namespace Stoneship
 
             std::streampos pos = rec.getReader().tell(); // store position. cache lookup may change stream pointer
 
-            IEntityBase *base = Root::getSingleton()->getGameCache().getBase(baseUID);
+            IEntityBase *base = gameCache->getCachedElement<IEntityBase>(baseUID);
             if(base == nullptr) //TODO: will this ever be returned?
             {
                 STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Contained item refers to non-existing base " + baseUID.toString());
@@ -65,7 +66,7 @@ namespace Stoneship
         }
     }
 
-    void EntityContainer::loadFromModifyRecord(RecordAccessor &rec)
+    void EntityContainer::loadFromModifyRecord(RecordAccessor &rec, GameCache *gameCache)
     {
 
     }

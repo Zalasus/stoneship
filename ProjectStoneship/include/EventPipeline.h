@@ -47,21 +47,29 @@ namespace Stoneship
         bool mCanceled;
     };
 
-    class EventListener
+    class IEventListener
     {
     public:
 
-        virtual ~EventListener();
+        virtual ~IEventListener();
 
         virtual void onEvent(Event *event) = 0;
 
     };
-
+    
+    class LambdaListener : public IEventListener
+    {
+    public:
+    
+        void setCallback();
+    
+    };
+    
     class EventPipeline
     {
     public:
 
-        void addListener(EventListener *listener);
+        void addListener(IEventListener *listener);
 
         /**
          * @returns true if Event was dispatched to all handlers. false means Event was canceled somewhere
@@ -71,7 +79,7 @@ namespace Stoneship
 
     private:
 
-        std::vector<EventListener*> mListeners;
+        std::vector<IEventListener*> mListeners;
 
     };
 

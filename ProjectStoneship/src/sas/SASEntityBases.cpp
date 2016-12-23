@@ -16,6 +16,7 @@
 #include "Root.h"
 #include "GameCache.h"
 #include "Logger.h"
+#include "EventPipeline.h"
 
 namespace Stoneship
 {
@@ -31,7 +32,7 @@ namespace Stoneship
 	    return false;
 	}
 
-	bool EntityBase_Static::onInteract(IEntity *entity, IActor *actor)
+	bool EntityBase_Static::onInteract(IEntity *entity, IActor *actor, EventPipeline *pipeline)
 	{
 		return false;
 	}
@@ -120,9 +121,9 @@ namespace Stoneship
 	{
 	}
 
-    void EntityBase_Container::loadFromRecord(RecordAccessor &record)
+    void EntityBase_Container::loadFromRecord(RecordAccessor &record, GameCache *gameCache)
     {
-        IEntityBaseWorld::loadFromRecord(record);
+        IEntityBaseWorld::loadFromRecord(record, gameCache);
 
         /*uint32_t slotCount;
         uint32_t storedItemCount;
@@ -148,9 +149,9 @@ namespace Stoneship
         }*/
     }
 
-    void EntityBase_Container::loadFromModifyRecord(RecordAccessor &record)
+    void EntityBase_Container::loadFromModifyRecord(RecordAccessor &record, GameCache *gameCache)
     {
-        IEntityBaseWorld::loadFromModifyRecord(record);
+        IEntityBaseWorld::loadFromModifyRecord(record, gameCache);
 
         // adding item records
         /*uint32_t itemCount = record.getSubrecordCountForType(Record::SUBTYPE_CONTAINED_ITEM);
@@ -193,7 +194,7 @@ namespace Stoneship
         return true;
     }
 
-    bool EntityBase_Container::onInteract(IEntity *entity, IActor *actor)
+    bool EntityBase_Container::onInteract(IEntity *entity, IActor *actor, EventPipeline *pipeline)
     {
         return true;
     }

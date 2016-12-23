@@ -297,11 +297,11 @@ data structure avoids loading times and bloating of MGFs.
 
 The record structure of Outdoor worlds is as follows:
 Outdoors are defined in the Outdoor top group. An [Outdoor] record defines the world's metadata (dimensions, name etc.).
-The [Outdoor] record is followed by a [Chunk Group] record (without UID) which in turn contains a set of nested
-[Chunk Group]s. The nested layer represents rows (x-constant) of chunks. The rows are not neccesarily continuous, as
+The [Outdoor] record is followed by a [Group] record with group type [Group] which in turn contains a set of nested
+[Group]s of group type [Chunk]. The nested layer represents rows (x-constant) of chunks. The rows are not neccesarily continuous, as
 a world may arbitrarily define chunks anywhere in the grid, and thus rows may contain no chunk at all in which case the
-row group is omitted. In order to identify the x coordinate to which a row group belongs, a subrecord is inserted in front
-of the groups child records.
+row group is omitted. In order to identify the x coordinate to which a row group belongs, a dummy [Chunk] is inserted in front
+of the groups child records, which's [grid position] subrecord contains the row's common x coordinate. The y coordinate is unused.
 
 The record structure of Dungeon worlds is as follows:
 Dungeons are defined in the Dungeon top group. A [Dungeon] record defines the world's metadata as well as all subrecords that
@@ -322,7 +322,6 @@ Subrecords marked with [#] may appear arbitrarily often, but at least once.
 
 0A: Option
 	100: Option data
-		
 	FFF0: editor data
 		string: editor name
 		
@@ -350,33 +349,49 @@ B1: ScalesGlobal
 		string: namespace
 		string: name
 		ubyte: data type (as in Scales specification. Subrecord with this ID is required)
-		
+
+BF: Keyword
+    7: description
+    100: Keyword data
+        string: keyword name
 
 
 C0: Outdoor World
 	6: world display name
-	(record is followed by 
+	100: world data
+	    uint: flags (1 = HAS_SKY, 4 = CURVED_WORLD)
+	    uint: x chunk resolution
+	    uint: y chunk resolution
+	    uint: radius (world curvature data)
+	    
+	
 	
 C1: Chunk group
 	100: chunk group data
 		vector2i: origin coordinates (for row groups y field is ignored)
 	
 C2: Chunk
+    6: display name
+    F: grid position
 	100: chunk data
 		ubyte: chunk flags ( 1 = IS_END_CHUNK )
-		vector2i: chunk coordinates
-		string: chunk name
 		
 C5: Dungeon
 	6: dungeon display name
-	7:
 
 D0: Entity
-	10: position data
+	10: 3D posrot data
 	11: scale data
+	30: variable [*]
 	F0: entity base data
 	F2: count data
 	
+D1: Brush Entity
+    10: 3D posrot data
+    100: brush data
+        ubyte: primitive (0 = cube)
+        vector3d: low
+        vector3d: high
 	
 FFF0: Modify
 	FFF9: modification data
@@ -391,16 +406,16 @@ The following types are specific for SAS and may not be valid in every game usin
 
 (Entity base records)
 
-800: EntStatic
+800: BaseStatic
 	5: world model information
 
-801: EntPlant
+801: BasePlant
 	100: TreeGecko data
 		bstring: TreeGecko generator resource name
 		int: TreeGecko generator seed (ignored if not fixed)
 		
 	
-810: EntWeapon
+810: BaseWeapon
 	(common item data)
 	5: world model information
 	6: display name
@@ -416,7 +431,7 @@ The following types are specific for SAS and may not be valid in every game usin
 		uint: weapon durability
 		uint: weapon reach
 		
-811: EntArmor
+811: BaseArmor
 	(common item data)
 	5: world model information
 	6: display name
@@ -430,7 +445,7 @@ The following types are specific for SAS and may not be valid in every game usin
 		int: armor rating
 		int: armor durability
 		
-820: EntBook
+820: BaseBook
 	(common item data)
 	5: world model information
 	6: display name
@@ -442,7 +457,7 @@ The following types are specific for SAS and may not be valid in every game usin
 	
 	105: book text
 		
-821: EntStuff
+821: BaseStuff
 	(common item data)
 	5: world model information
 	6: display name
@@ -452,7 +467,7 @@ The following types are specific for SAS and may not be valid in every game usin
 	A: icon data
 	B: identification data
 	
-822: EntFood
+822: BaseFood
 	(common item data)
 	5: world model information
 	6: display name
@@ -465,7 +480,7 @@ The following types are specific for SAS and may not be valid in every game usin
 	100: food data
 		float: nutrition value
 
-82A: EntContainer
+82A: BaseContainer
 	5: world model data
 	6: display name
 	10E: container data
@@ -520,16 +535,22 @@ F: grid position data
 	int: x
 	int: y
 
-10: 3D position data
+10: 3D posrot data
 	vector3f: position
 	vector3f: rotation
 	
 11: scale data
 	float: scale
 	
+30: variable data
+    string: variable name
+    ubyte: variable TYPE_PICKUP
+    byte[*]: data
+	
 F0: entity base data
 	uid: base uid
 	ushort: base type id
+    ushort: base index
 	
 100: specific data
 	

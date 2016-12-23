@@ -21,8 +21,8 @@
 namespace Stoneship
 {
 
-    GameCache::GameCache(Root *root)
-    : mRoot(root)
+    GameCache::GameCache(MGFManager *mgfManager)
+    : mMGFManager(mgfManager)
     , mPolicy(POLICY_KEEP_NEEDED)
     , mLRULimit(3)
     {
@@ -30,9 +30,9 @@ namespace Stoneship
 
     GameCache::~GameCache()
     {
-        for(uint32_t i = 0; i < mBaseCache.size(); ++i)
+        for(uint32_t i = 0; i < mCache.size(); ++i)
         {
-            delete mBaseCache[i];
+            delete mCache[i];
         }
     }
 
@@ -48,43 +48,21 @@ namespace Stoneship
 
     UID GameCache::editorNameToUID(const String &name)
     {
-        // FIXME: This combined cache breaks with our no-redundant-storage philosophy. also, building it takes a heck lot of time and is not very elegant. find better solution
-        std::vector<RecordReflector*> combinedCache;
-
-        // build combined cache of all elements that need to be stored (were newly created)
-        for(uint32_t i = 0; i < mBaseCache.size(); ++i)
+        
+        for(uint32_t i = 0; i < mCache.size(); ++i)
         {
-            // only transfer newly created bases
-            if(mBaseCache[i]->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL)
+            if(mCache[i]->getEditorName() == name)
             {
-                combinedCache.push_back(mBaseCache[i]);
-            }
-        }
-
-        for(uint32_t i = 0; i < mWorldCache.size(); ++i)
-        {
-            // only transfer newly created worlds
-            if(mWorldCache[i]->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL)
-            {
-                combinedCache.push_back(mWorldCache[i]);
+                return mCache[i]->getCreatedUID();
             }
         }
 
 
-        for(uint32_t i = 0; i < combinedCache.size(); ++i)
-        {
-            if(combinedCache[i]->getEditorName() == name)
-            {
-                return combinedCache[i]->getCreatedUID();
-            }
-        }
-
-
-        for(uint32_t i = 0; i < mRoot->getMGFManager().getLoadedMGFCount(); ++i)
+        for(uint32_t i = 0; i < mMGFManager->getLoadedMGFCount(); ++i)
         {
             try
             {
-                RecordAccessor record = mRoot->getMGFManager().getLoadedMGFByIndex(i)->getRecordByEditorName(name);
+                RecordAccessor record = mMGFManager->getLoadedMGFByIndex(i)->getRecordByEditorName(name);
 
                 return record.getUID();
 
@@ -100,14 +78,8 @@ namespace Stoneship
         STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Could not resolve editor name '" + name + "'");
     }
 
-    IEntityBase *GameCache::getBase(const UID &uid, Record::Type type)
+    /*IEntityBase *GameCache::getBase(const UID &uid, Record::Type type)
     {
-        /*auto search = mBaseCache.find(uid.toUInt64());
-        if(search != mBaseCache.end())
-        {
-            return search->second;
-        }*/
-
         // TODO: linear search complexity. Dunno if this could be more efficient. Maybe if we move found elements to front so often used elements are found more quickly?
         for(uint32_t i = 0; i < mBaseCache.size(); ++i)
         {
@@ -120,7 +92,7 @@ namespace Stoneship
 
         // base object is not yet cached. aquire it.
 
-        RecordAccessor rec = mRoot->getMGFManager().getRecordByTypeID(uid, type);
+        RecordAccessor rec = mMGFManager->getRecordByTypeID(uid, type);
 
         EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(rec.getHeader().type);
         if(factory == nullptr)
@@ -132,9 +104,9 @@ namespace Stoneship
 
         try
         {
-            base->loadFromRecord(rec);
+            base->loadFromRecord(rec, this);
             rec.skip();
-            base->postLoad(rec, rec); // FIXME: second parameter should be the surrounding record. it's not used ATM, so this should be fine, but someday this will produce a hell lot of bugs
+            base->postLoad(rec, rec, this); // FIXME: second parameter should be the surrounding record. it's not used ATM, so this should be fine, but someday this will produce a hell lot of bugs
 
         }catch(StoneshipException &e)
         {
@@ -151,7 +123,7 @@ namespace Stoneship
         {
             try
             {
-                mRoot->getMGFManager().applyModifications(base);
+                mMGFManager->applyModifications(base, this);
 
             }catch(StoneshipException &e)
             {
@@ -184,93 +156,74 @@ namespace Stoneship
     void GameCache::manageWorld(IWorld *world)
     {
         mWorldCache.push_back(world);
-    }
+    }*/
 
-    uint32_t GameCache::getBaseCacheSize()
+    uint32_t GameCache::getCacheSize()
     {
-        return mBaseCache.size();
+        return mCache.size();
     }
 
     void GameCache::collectGarbage()
     {
-        auto it = mBaseCache.begin();
-        while(it != mBaseCache.end())
+        auto it = mCache.begin();
+        while(it != mCache.end())
         {
-            IEntityBase *base = (*it);
-
-            // should we delete this base?
-            bool del;
-            switch(mPolicy)
+            IEntityBase *base = dynamic_cast<IEntityBase*>(*it);
+            if(base != nullptr)
             {
-            case POLICY_KEEP_NEEDED:
-                // don't delete a base that's still used, is dirty or was created ingame
-                del = ((base->getUserCount() == 0) && !base->isDirty() && (base->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL));
-                break;
+                // should we delete this base?
+                bool del;
+                switch(mPolicy)
+                {
+                case POLICY_KEEP_NEEDED:
+                    // don't delete a base that's still used, is dirty or was created ingame
+                    del = ((base->getUserCount() == 0) && 
+                           !base->isDirty() && 
+                           (base->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL));
+                    break;
 
-            // TODO: Implement this policy. Just do the same as for the default one for now
-            case POLICY_KEEP_RECENTLY_USED:
-                del = ((base->getUserCount() == 0) && !base->isDirty() && (base->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL));
-                break;
+                // TODO: Implement this policy. Just do the same as for the default one for now
+                case POLICY_KEEP_RECENTLY_USED:
+                    del = ((base->getUserCount() == 0) && !base->isDirty() && (base->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL));
+                    break;
 
-            case POLICY_PRELOAD_ALL:
-            case POLICY_KEEP_ALL:
-            default:
-                del = false;
-                break;
+                case POLICY_PRELOAD_ALL:
+                case POLICY_KEEP_ALL:
+                default:
+                    del = false;
+                    break;
+                }
+
+                if(del)
+                {
+                    delete base;
+
+                    it = mCache.erase(it);
+                    continue;
+                }
             }
-
-            if(del)
-            {
-                delete base;
-
-                it = mBaseCache.erase(it);
-
-            }else
-            {
-                ++it;
-            }
+            
+            // keep all other cached elements for now
+            
+            ++it;
         }
     }
 
-    uint32_t GameCache::storeCache(MGFDataWriter &writer)
+    uint32_t GameCache::storeCache(MGFDataWriter &writer, bool cleanAfterStore)
     {
-        // FIXME: This combined cache breaks with our no-redundant-storage philosophy. also, building it takes a heck lot of time and is not very elegant. find better solution
-        std::vector<RecordReflector*> combinedCache;
-
-        // build combined cache of all elements that need to be stored (were newly created)
-        for(uint32_t i = 0; i < mBaseCache.size(); ++i)
-        {
-            // only transfer newly created bases
-            if(mBaseCache[i]->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL)
-            {
-                combinedCache.push_back(mBaseCache[i]);
-            }
-        }
-
-        for(uint32_t i = 0; i < mWorldCache.size(); ++i)
-        {
-            // only transfer newly created worlds
-            if(mWorldCache[i]->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL)
-            {
-                combinedCache.push_back(mWorldCache[i]);
-            }
-        }
-
-
-        if(combinedCache.size() == 0)
+        if(mCache.size() == 0)
         {
             // nothing to store. skip!
 
             return 0;
         }
 
-
         // first, we sort the cache so we can archive proper grouping in the MGF
 
         // lambda for comparing record type of two Base objects
         auto compare = [](RecordReflector *a, RecordReflector *b) -> bool { return a->getRecordType() < b->getRecordType();};
 
-        std::sort(combinedCache.begin(), combinedCache.end(), compare);
+        std::sort(mCache.begin(), mCache.end(), compare);
 
 
         // next, iterate over records and store them
@@ -278,10 +231,16 @@ namespace Stoneship
         uint32_t groupCount = 0;
         RecordBuilder groupBuilder(writer);
 
-        for(uint32_t i = 0; i < combinedCache.size(); ++i)
+        for(uint32_t i = 0; i < mCache.size(); ++i)
         {
-            RecordReflector *reflector = combinedCache[i];
+            RecordReflector *reflector = mCache[i];
 
+            if(reflector->getCreatedUID().ordinal != UID::SELF_REF_ORDINAL)
+            {
+                // this element was loaded from an MGF. no need to store it
+                continue;
+            }
+            
             // this reflected was created during runtime or loaded from savegame (which is volatile). no MODIFY needed, regardless of dirty state
             // just store it as-is
 
@@ -312,6 +271,13 @@ namespace Stoneship
             reflector->storeToRecord(childBuilder);
             childBuilder.endRecord();
             reflector->postStore(childBuilder, groupBuilder);
+            
+            /*if(cleanAfterStore)
+            {
+                // now that we stored the element
+                
+                reflector->clean();
+            }*/
         }
 
         // have we written any groups?
@@ -327,53 +293,38 @@ namespace Stoneship
 
     uint32_t GameCache::storeCacheMods(MGFDataWriter &writer)
     {
-        // FIXME: Same as in storeCache(). Combined cache is crap. Make method better
-        std::vector<RecordReflector*> combinedCache;
-
-        // build combined cache with all elements that need a MODIFY record
-        for(uint32_t i = 0; i < mBaseCache.size(); ++i)
-        {
-            // we only need to store a MODIFY for a reflected that was not created at runtime and is dirty
-            if(mBaseCache[i]->getCreatedUID().ordinal != UID::SELF_REF_ORDINAL && mBaseCache[i]->isDirty())
-            {
-                combinedCache.push_back(mBaseCache[i]);
-            }
-        }
-
-        for(uint32_t i = 0; i < mWorldCache.size(); ++i)
-        {
-            // we only need to store a MODIFY for a reflected that was not created at runtime and is dirty
-            if(mWorldCache[i]->getCreatedUID().ordinal != UID::SELF_REF_ORDINAL && mWorldCache[i]->isDirty())
-            {
-                combinedCache.push_back(mWorldCache[i]);
-            }
-        }
-
-
-        if(combinedCache.size() == 0)
+        if(mCache.size() == 0)
         {
             // nothing to store. skip!
 
             return 0;
         }
 
-
         // first, we sort the cache so we can archive proper grouping in the MGF
 
         // lambda for comparing record type of two Base objects
         auto compare = [](RecordReflector *a, RecordReflector *b) -> bool { return a->getRecordType() < b->getRecordType();};
 
-        std::sort(combinedCache.begin(), combinedCache.end(), compare);
+        std::sort(mCache.begin(), mCache.end(), compare);
 
 
         // next, iterate over records and store MODIFYs
         RecordBuilder groupBuilder(writer);
         bool writtenStuff = false;
 
-        for(uint32_t i = 0; i < combinedCache.size(); ++i)
+        for(uint32_t i = 0; i < mCache.size(); ++i)
         {
-            RecordReflector *reflector = combinedCache[i];
+            RecordReflector *reflector = mCache[i];
 
+            
+            if(reflector->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL || reflector->isDirty())
+            {
+                // if element was created or loaded from savegame or simply is not dirty, no MODIFY is needed
+                
+                continue;
+            }
+            
+            
             if(!writtenStuff)
             {
                 writtenStuff = true;

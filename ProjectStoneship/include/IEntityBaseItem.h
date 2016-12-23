@@ -18,6 +18,7 @@ namespace Stoneship
 {
 	class ItemStack;
 	class IActor;
+	class EventPipeline;
 	class IEntity;
 
 	class IEntityBaseItem : public IEntityBaseWorld
@@ -60,7 +61,7 @@ namespace Stoneship
 
 		// override IEntityBaseWorld
         virtual bool canInteract() const; // true by default
-        virtual bool onInteract(IEntity *entity, IActor *actor); // if not overridden, this creates a pickup event by default
+        virtual bool onInteract(IEntity *entity, IActor *actor, EventPipeline *pipeline); // if not overridden, this creates a pickup event by default
 
         // override RecordReflector
         virtual bool mustStore(SubrecordFieldS *field);
@@ -100,7 +101,7 @@ namespace Stoneship
 
 	protected:
 
-		bool _pickupOnInteract(IEntity *entity, IActor *actor);
+		bool _pickupOnInteract(IEntity *entity, IActor *actor, EventPipeline *pipeline);
 
 
 	private:

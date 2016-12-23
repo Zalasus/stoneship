@@ -19,6 +19,7 @@ namespace Stoneship
 
     class IEntity;
     class IActor;
+    class EventPipeline;
 
 	class IEntityBaseWorld : public IEntityBase
 	{
@@ -32,7 +33,7 @@ namespace Stoneship
 
 		// interface
 		virtual bool canInteract() const = 0;
-		virtual bool onInteract(IEntity *entity, IActor *actor) = 0;
+		virtual bool onInteract(IEntity *entity, IActor *actorr, EventPipeline *pipeline) = 0;
 
 		String getModelName() const;
 		void setModelName(const String &s);

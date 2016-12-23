@@ -15,6 +15,7 @@
 
 
 
+#include "Chunk.h"
 #include "EventPipeline.h"
 #include "Exception.h"
 #include "GameCache.h"
@@ -37,8 +38,12 @@
 #include "RecordReflector.h"
 #include "ResourceManager.h"
 #include "Root.h"
+#include "SimpleArray.h"
+#include "Screen.h"
+#include "Subscreen.h"
 #include "SaveGameFile.h"
 #include "StoneshipDefines.h"
+#include "Stringify.h"
 #include "SubrecordField.h"
 #include "String.h"
 #include "Types.h"

@@ -138,16 +138,16 @@ namespace Stoneship
 	    return true;
 	}
 
-	bool IEntityBaseItem::onInteract(IEntity *entity, IActor *actor)
+	bool IEntityBaseItem::onInteract(IEntity *entity, IActor *actor, EventPipeline *pipeline)
     {
-        return _pickupOnInteract(entity, actor);
+        return _pickupOnInteract(entity, actor, pipeline);
     }
 
-	bool IEntityBaseItem::_pickupOnInteract(IEntity *entity, IActor *actor)
+	bool IEntityBaseItem::_pickupOnInteract(IEntity *entity, IActor *actor, EventPipeline *pipeline)
 	{
 	    if(typeid(*entity) == typeid(EntityItem))  // TODO: buähhh
 	    {
-	        if(Root::getSingleton()->getEventPipeline().dispatch(Event(Event::TYPE_PICKUP, entity, actor)))
+	        if(pipeline->dispatch(Event(Event::TYPE_PICKUP, entity, actor)))
 	        {
                 EntityItem *itemEntity = static_cast<EntityItem*>(entity);
 

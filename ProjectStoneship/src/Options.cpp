@@ -17,6 +17,11 @@ namespace Stoneship
 	Options::Options()
 	{
 	}
+	
+	std::vector<String> &Options::getMGFList()
+	{
+	    return mMGFList;
+	}
 }
 
 

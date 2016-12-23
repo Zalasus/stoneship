@@ -19,16 +19,19 @@
 namespace Stoneship
 {
 
-    class Root;
+    class ResourceManager;
     class IEntityBase;
     class MasterGameFile;
     class RecordReflector;
-
+    class GameCache;
+    
 	class MGFManager
 	{
 	public:
 
-		MGFManager(Root *root);
+	    friend class MasterGameFile;
+	
+		MGFManager(ResourceManager *resourceManager);
 		~MGFManager();
 
 		void loadMGF(const String &filename);
@@ -38,7 +41,7 @@ namespace Stoneship
 		MasterGameFile *getLoadedMGF(const String &filename);
 
 		void loadSGF(const String &filename);
-		void storeSGF(const String &filename);
+		void storeSGF(const String &filename, GameCache *gameCache);
 
 		UID getNewUID(UID::Ordinal ordinal = UID::SELF_REF_ORDINAL);
 
@@ -59,11 +62,11 @@ namespace Stoneship
 		 */
 		RecordAccessor getRecordByEditorName(const String &name);
 
-		void applyModifications(RecordReflector *reflector);
+		void applyModifications(RecordReflector *reflector, GameCache *gameCache);
 
 	private:
 
-		Root *mRoot;
+		ResourceManager *mResourceManager;
 		std::vector<MasterGameFile*> mGameFiles;
 		MasterGameFile *mCurrentSaveFile;
 

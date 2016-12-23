@@ -14,23 +14,23 @@
 namespace Stoneship
 {
 
-    RecordAccessor::RecordAccessor(const RecordHeader &header, std::istream *stream, MasterGameFile *mgf)
-    : mHeader(header),
-      mStream(stream),
-      mGameFile(mgf),
-      mInternalReader(mStream, mgf, mHeader.dataSize),
-      mDataOffset(mStream->tellg()), //FIXME: That's an IO operation in the constructor just here
-      mSubrecordHeaders()
+    RecordAccessor::RecordAccessor(const RecordHeader &header, std::istream *stream, std::streampos dataOffset, MasterGameFile *mgf)
+    : mHeader(header)
+    , mStream(stream)
+    , mGameFile(mgf)
+    , mInternalReader(mStream, mgf, mHeader.dataSize)
+    , mDataOffset(dataOffset)
+    , mSubrecordHeaders()
     {
     }
 
     RecordAccessor::RecordAccessor(const RecordAccessor &a)
-    : mHeader(a.mHeader),
-      mStream(a.mStream),
-      mGameFile(a.mGameFile),
-      mInternalReader(mStream, mGameFile, mHeader.dataSize),
-      mDataOffset(a.mDataOffset),
-      mSubrecordHeaders(a.mSubrecordHeaders)
+    : mHeader(a.mHeader)
+    , mStream(a.mStream)
+    , mGameFile(a.mGameFile)
+    , mInternalReader(mStream, mGameFile, mHeader.dataSize)
+    , mDataOffset(a.mDataOffset)
+    , mSubrecordHeaders(a.mSubrecordHeaders)
     {
     }
 
@@ -137,48 +137,55 @@ namespace Stoneship
         STONESHIP_EXCEPT(StoneshipException::SUBRECORD_NOT_FOUND, String("Subrecord ") + subtype + " not found in record (UID: " + getUID().toString() + ", Type: " + mHeader.type + ")");
     }
 
-    MasterGameFile *RecordAccessor::getGameFile()
+    MasterGameFile *RecordAccessor::getGameFile() const
     {
         return mGameFile;
     }
 
-    std::streampos RecordAccessor::getDataOffset()
+    std::streampos RecordAccessor::getDataOffset() const
     {
         return mDataOffset;
     }
 
-    std::streampos RecordAccessor::getOffset()
+    std::streampos RecordAccessor::getOffset() const
     {
         return static_cast<uint32_t>(mDataOffset) - mHeader.sizeInFile(); // cast is neccassary to make compiler stop complaining
     }
 
-    RecordAccessor RecordAccessor::getNextRecord()
+    RecordIterator RecordAccessor::toIterator() const
     {
-        mStream->seekg(static_cast<uint32_t>(mDataOffset) + mHeader.dataSize);
-        MGFDataReader ds(mStream, mGameFile);
-
-        RecordHeader header;
-        ds >> header;
-
-        return RecordAccessor(header, mStream, mGameFile);
+        return RecordIterator(getOffset(), mStream, mGameFile);
     }
 
-    RecordAccessor RecordAccessor::getFirstChildRecord()
+    RecordIterator RecordAccessor::getChildIterator() const
     {
         // no other record type than GROUP may contain child records; catch any invalid calls here
         if(mHeader.type != Record::TYPE_GROUP)
         {
             STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Tried to access child records of non-GROUP record (UID: " + getUID().toString() + ", Type: " + mHeader.type + ")");
         }
-
-        rollback();
-
-        RecordHeader header;
-        mInternalReader >> header;
-
-        return RecordAccessor(header, mStream, mGameFile);
+        
+        if(mHeader.recordCount == 0)
+        {
+            return getChildEnd();
+        }
+        
+        return RecordIterator(mDataOffset, mStream, mGameFile);
     }
-
+    
+    RecordIterator RecordAccessor::getChildEnd() const
+    {
+        // no other record type than GROUP may contain child records; catch any invalid calls here
+        if(mHeader.type != Record::TYPE_GROUP)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Tried to access child records of non-GROUP record (UID: " + getUID().toString() + ", Type: " + mHeader.type + ")");
+        }
+        
+        std::streampos pos = static_cast<uint32_t>(mDataOffset) + mHeader.dataSize;
+        
+        return RecordIterator(pos, mStream, mGameFile);
+    }
+    
     void RecordAccessor::rollback()
     {
         mInternalReader.seek(mDataOffset);

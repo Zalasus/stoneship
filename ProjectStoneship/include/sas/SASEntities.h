@@ -15,6 +15,8 @@
 
 namespace Stoneship
 {
+    
+    class GameCache;
 
     class EntityContainer : public EntityWorld
     {
@@ -27,8 +29,8 @@ namespace Stoneship
         // overrides EntityWorld
 
         // overrides IRecordReflector
-        virtual void loadFromRecord(RecordAccessor &record);
-        virtual void loadFromModifyRecord(RecordAccessor &record);
+        virtual void loadFromRecord(RecordAccessor &record, GameCache *gameCache);
+        virtual void loadFromModifyRecord(RecordAccessor &record, GameCache *gameCache);
         virtual void storeToRecord(RecordBuilder &record);
         virtual void storeToModifyRecord(RecordBuilder &record);
 

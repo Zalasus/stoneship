@@ -19,6 +19,13 @@ namespace Stoneship
 	public:
 
 		Options();
+		
+		std::vector<String> &getMGFList();
+		
+		
+    private:
+    
+        std::vector<String> mMGFList;    
 
 	};
 

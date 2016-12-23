@@ -8,6 +8,9 @@
 #include "Logger.h"
 
 #include <ctime>
+#include <algorithm>
+
+#include "Exception.h"
 
 namespace Stoneship
 {
@@ -55,24 +58,12 @@ namespace Stoneship
 	        *mStream << "[" << getTimestamp() << "]";
 	    }
 
-		switch(level)
-		{
-		case LOGLEVEL_SEVERE:
-		    *mStream << "[SEVE] " << msg << std::endl;
-			break;
-
-		case LOGLEVEL_WARNING:
-		    *mStream << "[WARN] " << msg << std::endl;
-			break;
-
-		case LOGLEVEL_DEBUG:
-		    *mStream << "[DBUG] " << msg << std::endl;
-		    break;
-
-		case LOGLEVEL_INFO:
-		default:
-		    *mStream << "[INFO] " << msg << std::endl;
-		}
+        *mStream << "[" << getLabelForLevel(level) << "] " << msg << std::endl;
+        
+        for(uint32_t i = 0; i < mListeners.size(); ++i)
+        {
+            mListeners[i]->onLog(msg, level);
+        }
 	}
 
 	String Logger::getLoggerName()
@@ -99,7 +90,46 @@ namespace Stoneship
     {
         mChildLogger = l;
     }
+    
+    String Logger::getLabelForLevel(LogLevel level)
+    {
+        switch(level)
+		{
+		case LOGLEVEL_SEVERE:
+		    return "SEVE";
 
+		case LOGLEVEL_WARNING:
+		    return "WARN";
+
+		case LOGLEVEL_DEBUG:
+		    return "DBUG";
+
+		case LOGLEVEL_INFO:
+		    return "INFO";
+		    
+		default:
+		    return "????";
+		}
+    }
+
+    void Logger::addListener(ILoggerListener *listener)
+    {
+        ASSERT_ARG(listener != nullptr);
+        
+        mListeners.push_back(listener);
+    }
+    
+    void Logger::removeListener(ILoggerListener *listener)
+    {
+        ASSERT_ARG(listener != nullptr);
+        
+        std::vector<ILoggerListener*>::iterator it = std::find(mListeners.begin(), mListeners.end(), listener);
+        
+        if(it != mListeners.end())
+        {
+            mListeners.erase(it);
+        }
+    }
 
     Logger Logger::smDefaultLogger("Default");
 

@@ -13,8 +13,7 @@
 namespace Stoneship
 {
 
-	ResourceManager::ResourceManager(Root *root)
-	: mRoot(root)
+	ResourceManager::ResourceManager()
 	{
 	}
 

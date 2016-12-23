@@ -23,18 +23,19 @@
 namespace Stoneship
 {
 
-	MasterGameFile::MasterGameFile(const String &filename, UID::Ordinal ordinal)
-	: mFilename(filename),
-	  mOrdinal(ordinal),
-	  mLoaded(false),
-	  mFlags(0),
-	  mAuthor("Zalasus"),
-	  mDescription("Just a test MGF"),
-	  mDependencies(),
-	  mResources(),
-	  mHints(),
-	  mCachedHint(nullptr),
-	  mRecordGroupCount(0)
+	MasterGameFile::MasterGameFile(const String &filename, UID::Ordinal ordinal, MGFManager *mgfManager)
+	: mFilename(filename)
+    , mOrdinal(ordinal)
+    , mMGFManager(mgfManager)
+    , mLoaded(false)
+    , mFlags(0)
+    , mAuthor("Zalasus")
+    , mDescription("Just a test MGF")
+    , mDependencies()
+    , mResources()
+    , mHints()
+    , mCachedHint(nullptr)
+    , mRecordGroupCount(0)
 	{
 	}
 
@@ -46,7 +47,7 @@ namespace Stoneship
 	    }
 	}
 
-	void MasterGameFile::load(bool ignoreDependencies, bool createIndex)
+	void MasterGameFile::load(bool ignoreDependencies)
 	{
 	    if(mLoaded)
 	    {
@@ -100,7 +101,7 @@ namespace Stoneship
 			{
 				String filename;
 				ds >> filename;
-				if(Root::getSingleton()->getMGFManager().getLoadedMGF(filename) == nullptr && !ignoreDependencies)
+				if(mMGFManager->getLoadedMGF(filename) == nullptr && !ignoreDependencies)
 				{
 					STONESHIP_EXCEPT(StoneshipException::DEPENDENCY_NOT_MET, "Dependency '" + filename + "' was not loaded before depending MGF");
 				}
@@ -131,17 +132,17 @@ namespace Stoneship
 			{
 			case RES_TYPE_FS:
 			    mResources[i].type = ResourceManager::PATH_FILESYSTEM;
-				Root::getSingleton()->getResourceManager().addResourcePath(resPath, ResourceManager::PATH_FILESYSTEM, mOrdinal);
+				mMGFManager->mResourceManager->addResourcePath(resPath, ResourceManager::PATH_FILESYSTEM, mOrdinal);
 				break;
 
 			case RES_TYPE_ZIP:
 			    mResources[i].type = ResourceManager::PATH_ZIP_FILE;
-				Root::getSingleton()->getResourceManager().addResourcePath(resPath, ResourceManager::PATH_ZIP_FILE, mOrdinal);
+				mMGFManager->mResourceManager->addResourcePath(resPath, ResourceManager::PATH_ZIP_FILE, mOrdinal);
 				break;
 
 			case RES_TYPE_GZIP:
 			    mResources[i].type = ResourceManager::PATH_GZIP_FILE;
-				Root::getSingleton()->getResourceManager().addResourcePath(resPath, ResourceManager::PATH_GZIP_FILE, mOrdinal);
+				mMGFManager->mResourceManager->addResourcePath(resPath, ResourceManager::PATH_GZIP_FILE, mOrdinal);
 				break;
 
 			case RES_TYPE_SINGLE:
@@ -156,66 +157,65 @@ namespace Stoneship
 
 		mHeaderEndOfffset = ds.tell(); //store this so we may navigate quickly to start of records
 
-		if(createIndex)
-		{
-            //skip through the file and index every top record group
-            mHints.allocate(mRecordGroupCount);
-            for(uint32_t i = 0; i < mRecordGroupCount; i++)
+        //skip through the file and index every top record group
+        mHints.allocate(mRecordGroupCount);
+        for(uint32_t i = 0; i < mRecordGroupCount; i++)
+        {
+            std::streampos offset = ds.tell();
+
+            RecordHeader groupHeader;
+            try
             {
-                std::streampos offset = ds.tell();
+                ds >> groupHeader;
 
-                RecordHeader groupHeader;
-                try
+            }catch(StoneshipException &e)
+            {
+                if(e.getType() == StoneshipException::IO_ERROR)
                 {
-                    ds >> groupHeader;
-
-                }catch(StoneshipException &e)
-                {
-                    if(e.getType() == StoneshipException::IO_ERROR)
-                    {
-                        STONESHIP_EXCEPT(StoneshipException::IO_ERROR, "Error while scanning top groups. IO error while loading next group header."
-                                "This is most likely caused by an invalid group count field in the MGF header. Original error: "
-                                + e.getMessage());
-                    }
-
-                    throw;
+                    STONESHIP_EXCEPT(StoneshipException::IO_ERROR, "Error while scanning top groups. IO error while loading next group header."
+                            "This is most likely caused by an invalid group count field in the MGF header. Original error: "
+                            + e.getMessage());
                 }
 
-                if(groupHeader.type != Record::TYPE_GROUP)
-                {
-                    STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, String("Corrupted MGF found during scanning (expected Group record, found ") + groupHeader.type);
-                }
-
-                if(!(groupHeader.flags & RecordHeader::FLAG_TOP_GROUP))
-                {
-                    STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF found during scanning (scanned Group was not a top group)");
-                }
-
-                Logger::debug(String("Found group ") + groupHeader.groupType + " at " + uint32_t(offset) + " containing " + groupHeader.recordCount + " records");
-
-                mHints[i].offset = offset;
-                mHints[i].type = groupHeader.groupType;
-                mHints[i].recordCount = groupHeader.recordCount;
-
-                //there are some records which we want to index one by one like Modify or load right at startup. check if we have on of those on our hands
-                EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(groupHeader.type);
-                if((factory != nullptr && factory->isPreloaded()))
-                {
-                    // this is an entity base group which must be preloaded
-                    STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "Preloaded entities unsupported ATM");
-
-                }else if(mHints[i].type == Record::TYPE_MODIFY)
-                {
-
-                    _indexModifies(mHints[i].recordCount);
-
-                }else
-                {
-                    //no special group here. just skip to the next one
-                    ds.skip(groupHeader.dataSize);
-                }
+                throw;
             }
-	    }
+
+            if(groupHeader.type != Record::TYPE_GROUP)
+            {
+                STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, String("Corrupted MGF found during scanning (expected Group record, found ") + groupHeader.type);
+            }
+
+            if(!(groupHeader.flags & RecordHeader::FLAG_TOP_GROUP))
+            {
+                STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF found during scanning (scanned Group was not a top group)");
+            }
+
+            Logger::debug(String("Found group ") + groupHeader.groupType + " at " + uint32_t(offset) + " containing " + groupHeader.recordCount + " records");
+
+            mHints[i].offset = offset;
+            mHints[i].type = groupHeader.groupType;
+            mHints[i].recordCount = groupHeader.recordCount;
+
+            //there are some records which we want to index one by one like Modify or load right at startup. check if we have on of those on our hands
+            EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(groupHeader.type);
+            if((factory != nullptr && factory->isPreloaded()))
+            {
+                // this is an entity base group which must be preloaded
+                STONESHIP_EXCEPT(StoneshipException::UNSUPPSORTED, "Preloaded bases unsupported ATM");
+
+            }else if(mHints[i].type == Record::TYPE_MODIFY)
+            {
+
+                _indexModifies(mHints[i].recordCount);
+
+            }else
+            {
+                //no special group here. just skip to the next one
+                ds.skip(groupHeader.dataSize);
+            }
+        }
+        
+        mEndMarkerOffset = mInputStream.tellg();
 
 		mLoaded = true;
 
@@ -227,7 +227,7 @@ namespace Stoneship
 		}
 	}
 
-	void MasterGameFile::store()
+	void MasterGameFile::store(GameCache *gameCache)
 	{
 	    // ATTENTION! This is only a reference implementation. The actual implementation should consider one read only and one write only class
 
@@ -298,8 +298,8 @@ namespace Stoneship
 
 	    // done writing header. now we need to write the top groups
 	    mRecordGroupCount = 0;
-	    mRecordGroupCount += Root::getSingleton()->getGameCache().storeCache(writer); // GameCache gets to store everything it has cached
-	    mRecordGroupCount += Root::getSingleton()->getGameCache().storeCacheMods(writer); // append MODIFY top group
+	    mRecordGroupCount += gameCache->storeCache(writer, true); // GameCache gets to store everything it has cached
+	    mRecordGroupCount += gameCache->storeCacheMods(writer); // append MODIFY top group
 
 	    std::streampos prev = writer.tell();
 	    writer.seek(topGroupCountOff);
@@ -320,21 +320,18 @@ namespace Stoneship
 	        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Tried to init loaded SGF, MGF or reinitialized SGF");
         }
 
-
-        MGFManager &mgfm = Root::getSingleton()->getMGFManager();
-
-        mDependencies.allocate(mgfm.getLoadedMGFCount());
+        mDependencies.allocate(mMGFManager->getLoadedMGFCount());
 
         for(uint32_t i = 0; i < mDependencies.size(); ++i)
         {
-            if(mgfm.getLoadedMGFByIndex(i)->getOrdinal() == getOrdinal())
+            if(mMGFManager->getLoadedMGFByIndex(i)->getOrdinal() == getOrdinal())
             {
                 // no self dependence please
                 //continue; This would lead to uninitialized deps. since MGF access methods of MGFManager exclude SGFs ATM, we can consider this not needed for now
             }
 
-            mDependencies[i].ordinal = mgfm.getLoadedMGFByIndex(i)->getOrdinal();
-            mDependencies[i].filename = mgfm.getLoadedMGFByIndex(i)->getFilename();
+            mDependencies[i].ordinal = mMGFManager->getLoadedMGFByIndex(i)->getOrdinal();
+            mDependencies[i].filename = mMGFManager->getLoadedMGFByIndex(i)->getFilename();
         }
 
         // initialize timestamp with current time
@@ -406,7 +403,7 @@ namespace Stoneship
 		{
 			if(mDependencies[i].ordinal == local)
 			{
-				MasterGameFile *refMgf = Root::getSingleton()->getMGFManager().getLoadedMGF(mDependencies[i].filename);
+				MasterGameFile *refMgf = mMGFManager->getLoadedMGF(mDependencies[i].filename);
 				if(refMgf == nullptr)
 				{
 					STONESHIP_EXCEPT(StoneshipException::MGF_NOT_FOUND, "Supposedly loaded dependency was not loaded. This probably is a bug.");
@@ -453,7 +450,7 @@ namespace Stoneship
 				if(recordHeader.id == id) // found it!
 				{
 					//leave stream pointer at data field; that's none of our business
-					return RecordAccessor(recordHeader, &mInputStream, this);
+					return RecordAccessor(recordHeader, &mInputStream, mInputStream.tellg(), this);
 
 				}else //this is not the record you are looking for
 				{
@@ -504,7 +501,7 @@ namespace Stoneship
 			if(recordHeader.id == id && recordHeader.type == type) // found it!
 			{
 				// leave stream pointer at data field; that's none of our business
-				return RecordAccessor(recordHeader, &mInputStream, this);
+				return RecordAccessor(recordHeader, &mInputStream, mInputStream.tellg(), this);
 
 			}else // this is not the record you are looking for
 			{
@@ -544,7 +541,7 @@ namespace Stoneship
 				RecordHeader recordHeader;
 				ds >> recordHeader;
 
-				RecordAccessor record(recordHeader, &mInputStream, this);
+				RecordAccessor record(recordHeader, &mInputStream, mInputStream.tellg(), this);
 				try
 				{
 					String editorName;
@@ -572,19 +569,29 @@ namespace Stoneship
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
 	}
 
-	RecordAccessor MasterGameFile::getFirstRecord()
+	RecordIterator MasterGameFile::getRecordIterator()
 	{
-	    MGFDataReader ds(&mInputStream, this);
-
-	    ds.seek(mHeaderEndOfffset);
-
-        RecordHeader firstHeader;
-        ds >> firstHeader;
-
-        return RecordAccessor(firstHeader, &mInputStream, this);
+        return RecordIterator(mHeaderEndOfffset, &mInputStream, this);
 	}
 
-	RecordAccessor MasterGameFile::getFirstRecordOfType(Record::Type type)
+	RecordIterator MasterGameFile::getRecordIteratorForType(Record::Type type)
+	{
+	    OffsetHint *hint = _getHint(type);
+		if(hint == nullptr)
+		{
+			// no offset hint for that type -> this file does not contain that type of record
+			STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, String("Record type ") + type + " not found in MGF (missing hint)");
+		}
+		
+		return RecordIterator(hint->offset, &mInputStream, this);
+	}
+	
+	RecordIterator MasterGameFile::getRecordEnd()
+	{
+	    return RecordIterator(mEndMarkerOffset, nullptr, this);
+	}
+	
+	/*RecordAccessor MasterGameFile::getFirstRecordOfType(Record::Type type)
 	{
 		OffsetHint *hint = _getHint(type);
 		if(hint == nullptr)
@@ -623,9 +630,9 @@ namespace Stoneship
 		}
 
 		STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Record not found in MGF");
-	}
+	}*/
 
-	void MasterGameFile::applyModifications(RecordReflector *reflector)
+	void MasterGameFile::applyModifications(RecordReflector *reflector, GameCache *gameCache)
 	{
 		for(uint32_t i = 0; i < mMods.size(); ++i)
 		{
@@ -637,9 +644,9 @@ namespace Stoneship
 				RecordHeader header;
 				ds >> header;
 
-				RecordAccessor record(header, &mInputStream, this);
+				RecordAccessor record(header, &mInputStream, mInputStream.tellg(), this);
 
-				reflector->loadFromModifyRecord(record);
+				reflector->loadFromModifyRecord(record, gameCache);
 
 				return; // only one Mod record per UID per MGF may be specified, so we are done here
 			}
@@ -672,31 +679,21 @@ namespace Stoneship
 
 	void MasterGameFile::_indexModifies(uint32_t recordCount)
 	{
-	    MGFDataReader ds(&mInputStream, this);
-
-	    RecordHeader header;
-	    ds >> header;
-
-	    RecordAccessor record(header, &mInputStream, this);
-
-		for(uint32_t i = 0; i < recordCount; ++i)
-		{
-			ModHint mod;
-			mod.offset = record.getOffset();
-			record.getReaderForSubrecord(Record::SUBTYPE_MODIFY_METADATA)
+	    RecordIterator it(mInputStream.tellg(), &mInputStream, this);
+	    
+	    for(uint32_t i = 0; i < recordCount; ++i)
+        {
+            ModHint mod;
+			mod.offset = it->getOffset();
+			it->getReaderForSubrecord(Record::SUBTYPE_MODIFY_METADATA)
 					>> mod.uid
 					>> mod.type
 					>> mod.modType;
 
 			mMods.push_back(mod);
-
-			if(i < recordCount-1) // reached last record yet?
-			{
-				// no -> fetch next one
-
-				record = record.getNextRecord();
-			}
-		}
+            
+            ++it;
+        }
 	}
 
 }

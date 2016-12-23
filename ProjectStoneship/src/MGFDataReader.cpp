@@ -17,7 +17,7 @@ namespace Stoneship
 	MGFDataReader::MGFDataReader(std::istream *stream, MasterGameFile *mgf, uint32_t unitSize)
 	: mStream(stream),
 	  mGameFile(mgf),
-	  mUnitStart(mStream->tellg()),
+	  mUnitStart(mStream->tellg()), //FIXME: IO Operation in constructor is a no no!!!
 	  mUnitEnd(mUnitStart + static_cast<std::streamoff>(unitSize)),
 	  mFinite(unitSize)
 	{
@@ -42,127 +42,31 @@ namespace Stoneship
 
 		mStream->seekg(pos);
 
-		SEEKS++;
-
+		#ifdef _DEBUG
+		SEEKS++; // count total seek operations for debug statistics
+        #endif  // _DEBUG
+        
 		return *this;
 	}
 
 	std::streampos MGFDataReader::tell()
 	{
-	    TELLS++;
+	    #ifdef _DEBUG
+	    TELLS++; // count total tell operations for debug statistics
+	    #endif // _DEBUG
+        
 		return mStream->tellg();
 	}
 
+	/**
+	 * Specialization enabling users to conveniently end a subrecord reading statement with [...] >> MGFDataReader::endr;
+	 * (similar to std::endl)
+	 */ 
 	MGFDataReader &MGFDataReader::operator >> (endr_t)
 	{
 	    skipToEnd();
 
 	    return *this;
-	}
-
-	template <>
-	MGFDataReader &MGFDataReader::operator >> <uint64_t>(uint64_t &l)
-	{
-		_stupidlyReadIntegral<uint64_t>(l);
-
-		return *this;
-	}
-
-    template <>
-	MGFDataReader &MGFDataReader::operator >> <uint32_t>(uint32_t &i)
-	{
-		_stupidlyReadIntegral<uint32_t>(i);
-
-		return *this;
-	}
-
-    template <>
-    MGFDataReader &MGFDataReader::operator >> <uint16_t>(uint16_t &s)
-	{
-		_stupidlyReadIntegral<uint16_t>(s);
-
-		return *this;
-	}
-
-    template <>
-	MGFDataReader &MGFDataReader::operator >> <uint8_t>(uint8_t &b)
-	{
-		b = _getNext();
-
-		return *this;
-	}
-
-	//FIXME: Portability issue. This could fail if target platform uses different floating point format than the advised IEEE 754
-    template <>
-	MGFDataReader &MGFDataReader::operator >> <float>(float &f)
-	{
-		union
-		{
-			float v;
-			char data[sizeof(v)];
-		};
-
-		for(uint8_t i = 0; i < sizeof(v); ++i)
-		{
-			data[i] = _getNext();
-		}
-
-		f = v;
-
-		return *this;
-	}
-
-	//FIXME: Portability issue. This could fail if target platform uses different floating point format than the advised IEEE 754
-    template <>
-	MGFDataReader &MGFDataReader::operator >> <double>(double &d)
-	{
-		union
-		{
-			double v;
-			char data[sizeof(v)];
-		};
-
-		for(uint8_t i = 0; i < sizeof(v); ++i)
-		{
-			data[i] = _getNext();
-		}
-
-		d = v;
-
-		return *this;
-	}
-
-    template <>
-	MGFDataReader &MGFDataReader::operator >> <String>(String &s)
-	{
-		uint32_t len;
-		*this >> len;
-		char *buf = new char[len];
-
-		for(uint32_t i = 0; i < len; ++i)
-		{
-		    uint8_t c = _getNext();
-
-		    if(c == 0)
-		    {
-		        Logger::warn("Premature termination of string. This indicates an invalid lnegth field or malformed MGF");
-		    }
-
-			buf[i] = c;
-		}
-
-		if(_getNext() != 0)
-		{
-		    Logger::warn("Missing termination of string. This indicates an invalid lnegth field or malformed MGF");
-
-		    mStream->unget();
-		}
-
-		s = String(buf, len);
-
-		delete[] buf;
-
-		return *this;
 	}
 
 	void MGFDataReader::skip(uint32_t amount)
@@ -234,7 +138,10 @@ namespace Stoneship
 			_except(StoneshipException::IO_ERROR, String("Out of readable stream data (current: ") + (uint32_t)tell() + ", unit end: " + (uint32_t)mUnitEnd + ")");
 		}
 
-		GETCS++;
+		#ifdef _DEBUG
+		GETCS++; // count total read operations for debug statistics
+		#endif // _DEBUG
+		
 		return mStream->get();
 	}
 

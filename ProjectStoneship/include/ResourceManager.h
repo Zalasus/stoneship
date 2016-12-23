@@ -15,8 +15,6 @@
 namespace Stoneship
 {
 
-    class Root;
-
 	class ResourceManager
 	{
 	public:
@@ -46,7 +44,7 @@ namespace Stoneship
 		    String path;
 		};
 
-		ResourceManager(Root *root);
+		ResourceManager();
 
 		void addResourcePath(const String &path, ResourcePathType type, UID::Ordinal ordinal = UID::SELF_REF_ORDINAL);
 
@@ -58,10 +56,12 @@ namespace Stoneship
 		 * use the manager to access resources!!!
 		 */
 		void initializeResources();
+		
+		
 
 	private:
 
-		Root *mRoot;
+	
 	};
 
 }

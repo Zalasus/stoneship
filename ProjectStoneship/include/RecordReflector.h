@@ -15,6 +15,7 @@
 namespace Stoneship
 {
 
+    class GameCache;
     class SubrecordFieldS;
     class RecordAccessor;
     class RecordBuilder;
@@ -34,14 +35,14 @@ namespace Stoneship
          */
         virtual UID getCreatedUID() const = 0;
         virtual Record::Type getRecordType() const = 0;
-        virtual void loadFromRecord(RecordAccessor &record); // Loads everything. Throws if subrecord is missing
-        virtual void loadFromModifyRecord(RecordAccessor &record); // Just loads fields that have a subrecord
+        virtual void loadFromRecord(RecordAccessor &record, GameCache *gameCache); // Loads everything. Throws if subrecord is missing
+        virtual void loadFromModifyRecord(RecordAccessor &record, GameCache *gameCache); // Just loads fields that have a subrecord
         virtual void storeToRecord(RecordBuilder &b); // Stores everything
         virtual void storeToModifyRecord(RecordBuilder &b); // Just stores dirty fields
         virtual bool mustStore(SubrecordFieldS *field); // true for all fields by default
         virtual bool mustLoad(SubrecordFieldS *field); // true for all fields by default
         virtual void postStore(RecordBuilder &last, RecordBuilder &surrounding); // called after storeToRecord returns and footers are written
-        virtual void postLoad(RecordAccessor &last, RecordAccessor &surrounding);
+        virtual void postLoad(RecordAccessor &last, RecordAccessor &surrounding, GameCache *gameCache);
 
         bool isDirty() const;
         /**

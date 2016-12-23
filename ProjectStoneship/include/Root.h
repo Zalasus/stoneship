@@ -14,10 +14,12 @@
 #include "ResourceManager.h"
 #include "GameCache.h"
 #include "EventPipeline.h"
+#include "GUIManager.h"
 
 namespace Stoneship
 {
 
+    //TODO: A god class like this one should be optional
 	class Root
 	{
 	public:
@@ -42,19 +44,15 @@ namespace Stoneship
 		IWorld *getActiveWorld();
 
 
-		static Root *getSingleton();
-
-
 	private:
 
 		Options &mOptions;
-
-		MGFManager mMGFManager;
+		
 		ResourceManager mResourceManager;
+		MGFManager mMGFManager;
 		GameCache mGameCache;
 		EventPipeline mEventPipeline;
-
-		static Root *smSingleton;
+		GUIManager mGuiManager;
 	};
 
 }

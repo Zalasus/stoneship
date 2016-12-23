@@ -46,13 +46,13 @@ namespace Stoneship
 
 
 
-    EventListener::~EventListener()
+    IEventListener::~IEventListener()
     {
     }
 
 
 
-    void EventPipeline::addListener(EventListener *listener)
+    void EventPipeline::addListener(IEventListener *listener)
     {
         mListeners.push_back(listener);
     }

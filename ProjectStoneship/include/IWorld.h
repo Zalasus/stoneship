@@ -8,7 +8,8 @@
 #ifndef INCLUDE_IWORLD_H_
 #define INCLUDE_IWORLD_H_
 
-#include <RecordReflector.h>
+#include "RecordReflector.h"
+#include "Attachable.h"
 #include "Types.h"
 #include "Record.h"
 #include "String.h"
@@ -18,7 +19,7 @@ namespace Stoneship
 
     class IEntity;
 
-	class IWorld : public RecordReflector
+	class IWorld : public RecordReflector, public Attachable
 	{
 	public:
 

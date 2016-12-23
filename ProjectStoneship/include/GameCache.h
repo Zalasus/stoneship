@@ -11,6 +11,8 @@
 #include <vector>
 
 #include "Record.h"
+#include "RecordReflector.h"
+#include "Exception.h"
 
 namespace Stoneship
 {
@@ -18,6 +20,7 @@ namespace Stoneship
     class Root;
     class IEntityBase;
     class MGFDataWriter;
+    class MGFManager;
     class IWorld;
 
     class GameCache
@@ -32,7 +35,7 @@ namespace Stoneship
             POLICY_KEEP_RECENTLY_USED     // data is loaded as needed and is deallocated after it hasn't been used for some time
         };
 
-        GameCache(Root *root);
+        GameCache(MGFManager *mgfManager);
         ~GameCache();
 
         /**
@@ -73,7 +76,7 @@ namespace Stoneship
          * @returns The cached entity base with given UID.
          * @throws StoneshipException If non-cached bases can not be found in the MGF, IO errors occur while loading base from MGF etc.
          */
-        IEntityBase *getBase(const UID &uid, Record::Type type = Record::TYPE_LOOKUP_ALL);
+        //IEntityBase *getBase(const UID &uid, Record::Type type = Record::TYPE_LOOKUP_ALL);
 
         /**
          * Takes ownership of base and caches it. Subsequent calls to getBase() will be able to yield this object
@@ -82,13 +85,58 @@ namespace Stoneship
          *
          * @param[in] base The base to be cached.
          */
-        void manageBase(IEntityBase *base);
+        //void manageBase(IEntityBase *base);
 
         /**
-         * @returns The amount of entity bases currently cached.
+         * @returns The amount of elements currently cached.
          */
-        uint32_t getBaseCacheSize();
+        uint32_t getCacheSize();
 
+        template <typename T>
+        T *getCachedElementOfType(const UID &uid, Record::Type type)
+        {
+            return getCachedElement<T>(uid);
+        }
+        
+        template <typename T>
+        T *getCachedElement(const UID &uid)
+        {
+            static_assert(std::is_base_of<RecordReflector, T>::value, "Elements to be cached need to derive from RecordReflector");
+            
+            for(uint32_t i = 0; i < mCache.size(); ++i)
+            {
+                if(mCache[i]->getCreatedUID() == uid)
+                {
+                    T *element = dynamic_cast<T*>(mCache[i]);
+                    
+                    if(element == nullptr)
+                    {
+                        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Requested cache element with UID " + uid.toString() + " was not of requested type.");
+                    }
+                    
+                    return element;
+                }
+            }
+            
+            // base object is not yet cached. aquire it.
+            
+            // TODO: continue here
+                        
+            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Requested cache element with UID " + uid.toString() + " was neither cached nor found in respective MGF");
+        }
+        
+        template <typename T>
+        T *manageElement(T *element)
+        {
+            static_assert(std::is_base_of<RecordReflector, T>::value, "Elements to be cached need to derive from RecordReflector");
+            
+            RecordReflector *r = static_cast<RecordReflector*>(element);
+            
+            mCache.push_back(r);
+            
+            return element;
+        }
+        
         /**
          * Searches the cache for a world with given UID. If the requested world is not yet cached,
          * it is searched in the corresponding MGF and subsequently allocated, cached and returned. If a non-cached
@@ -100,7 +148,7 @@ namespace Stoneship
          * @returns The cached world with given UID.
          * @throws StoneshipException If non-cached worlds can not be found in the MGF, IO errors occur while loading world from MGF etc.
          */
-        IWorld *getWorld(UID uid);
+        //IWorld *getWorld(UID uid);
 
         /**
          * Takes ownership of world and caches it. Subsequent calls to getWorld() will be able to yield this object
@@ -109,23 +157,24 @@ namespace Stoneship
          *
          * @param[in] world The base to be cached.
          */
-        void manageWorld(IWorld *world);
+        //void manageWorld(IWorld *world);
 
         /**
          * Stores all cached elements to MGF that need to be stored.
          * Elements only need to be stored if they were newly created or created by a (volatile) SGF (have an ordinal of UID::SELF_REF_ORDINAL).
          * Any modifications made to existing elements need to be stored as MODIFY records, which is done in a
          * second pass performed by the storeCacheMods() method. This method creates all needed record groups
-         * by itself. The passes writer object should be in an inter-record state (preferably right after MGF header) prior
+         * by itself. The passed writer object should be in an inter-record state (preferably right after MGF header) prior
          * to calling this method.
          * This method returns the amount of record groups it has written. This should be accumulated by whatever builds the
          * MGF to set the right amount of record groups in the header field.
          *
          * @param writer The writer that all record data is written to.
+         * @param cleanAfterStore Whether to reset dirty states after storing elements
          * @returns The amount of record groups written by this method.
          * @throws StoneshipException In case of any IO errors
          */
-        uint32_t storeCache(MGFDataWriter &writer);
+        uint32_t storeCache(MGFDataWriter &writer, bool cleanAfterStore);
 
         /**
          * Stores all modifications that were made to already existing elements as corresponding MODIFY records.
@@ -151,13 +200,15 @@ namespace Stoneship
 
     private:
 
-        Root *mRoot;
+        MGFManager *mMGFManager;
 
         GameCachePolicy mPolicy;
         uint32_t mLRULimit;
 
-        std::vector<IWorld*> mWorldCache;
-        std::vector<IEntityBase*> mBaseCache;
+        //std::vector<IWorld*> mWorldCache;
+        //std::vector<IEntityBase*> mBaseCache;
+        
+        std::vector<RecordReflector*> mCache;
     };
 
 }
