@@ -23,7 +23,7 @@ namespace Stoneship
         virtual ~Screen();
         
         //override Attachable
-        virtual void attachNodes(osg::Group *screenNode);
+        virtual void attachNodes(osg::Group *screenNode, ResourceManager *resMan);
         virtual void detachNodes(osg::Group *screenNode);
         
         /**

@@ -10,6 +10,8 @@
 #include "MGFDataReader.h"
 
 #include <osg/Vec2i>
+#include <osg/Vec3d>
+#include <osg/Quat>
 
 namespace Stoneship
 {
@@ -35,4 +37,52 @@ namespace Stoneship
 		return *this;
 	}
     
+
+    template <>
+    MGFDataWriter &MGFDataWriter::operator << <osg::Vec3d>(const osg::Vec3d &v)
+    {
+        *this << v.x() << v.y() << v.z();
+
+        return *this;
+    }
+
+    template <>
+    MGFDataReader &MGFDataReader::operator >> <osg::Vec3d>(osg::Vec3d &v)
+    {
+        double x;
+        double y;
+        double z;
+
+        *this >> x >> y >> z;
+
+        v.set(x, y, z);
+
+        return *this;
+    }
+
+
+
+    template <>
+    MGFDataWriter &MGFDataWriter::operator << <osg::Quat>(const osg::Quat &v)
+    {
+        *this << v.x() << v.y() << v.z() << v.w();
+
+        return *this;
+    }
+
+    template <>
+    MGFDataReader &MGFDataReader::operator >> <osg::Quat>(osg::Quat &v)
+    {
+        double x;
+        double y;
+        double z;
+        double w;
+
+        *this >> x >> y >> z >> w;
+
+        v.set(x, y, z, w);
+
+        return *this;
+    }
+
 }

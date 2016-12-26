@@ -42,9 +42,9 @@ namespace Stoneship
 
         // override IRecordReflector
         virtual void loadFromRecord(RecordAccessor &record, GameCache *gameCache);
-        virtual void postLoad(RecordAccessor &last, RecordAccessor &surrounding, GameCache *gameCache);
+        virtual void loadAttachment(RecordAccessor &attachment, GameCache *gameCache);
         virtual void storeToRecord(RecordBuilder &record);
-        virtual void postStore(RecordBuilder &last, RecordBuilder &surrounding);
+        virtual void storeAttachment(RecordBuilder &surrounding);
 
         void setWorldName(const String &s);
         /**

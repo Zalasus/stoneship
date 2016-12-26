@@ -134,11 +134,19 @@ namespace Stoneship
         return true;
     }
 
-    void RecordReflector::postStore(RecordBuilder &last, RecordBuilder &surrounding)
+    /*void RecordReflector::postStore(RecordBuilder &last, RecordBuilder &surrounding)
     {
     }
 
     void RecordReflector::postLoad(RecordAccessor &last, RecordAccessor &surrounding, GameCache *gameCache)
+    {
+    }*/
+
+    void RecordReflector::loadAttachment(RecordAccessor &attachment, GameCache *gameCache)
+    {
+    }
+
+    void RecordReflector::storeAttachment(RecordBuilder &attachmentBuilder)
     {
     }
 

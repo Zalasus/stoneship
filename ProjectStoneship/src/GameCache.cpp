@@ -269,8 +269,12 @@ namespace Stoneship
             RecordBuilder childBuilder = groupBuilder.createChildBuilder();
             childBuilder.beginRecord(reflector->getRecordType(), 0, reflector->getCreatedUID().id);
             reflector->storeToRecord(childBuilder);
+            bool needsAttachment = childBuilder.getFlags() & RecordHeader::FLAG_ATTACHMENT;
             childBuilder.endRecord();
-            reflector->postStore(childBuilder, groupBuilder);
+            if(needsAttachment)
+            {
+                reflector->storeAttachment(groupBuilder);
+            }
             
             /*if(cleanAfterStore)
             {
@@ -356,6 +360,59 @@ namespace Stoneship
         }
 
         return 0;
+    }
+
+    IEntityBase *GameCache::_aquireBase(const UID &uid)
+    {
+        RecordAccessor rec = mMGFManager->getRecordByID(uid);
+
+        EntityBaseFactory *factory = EntityBaseFactory::getFactoryForRecordType(rec.getHeader().type);
+        if(factory == nullptr)
+        {
+            STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, String("Record type ") + rec.getHeader().type + " does not match any registered Entity Base types.");
+        }
+
+        IEntityBase *base = factory->createEntityBase(uid);
+
+        try
+        {
+            base->loadFromRecord(rec, this);
+            bool needsAttachment = rec.getHeader().flags & RecordHeader::FLAG_ATTACHMENT;
+            rec.skip();
+            if(needsAttachment)
+            {
+                base->loadAttachment(rec, this);
+            }
+
+        }catch(StoneshipException &e)
+        {
+            if(e.getType() == StoneshipException::IO_ERROR)
+            {
+                STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Malformed record or IO error. Could not load entity base.");
+            }
+
+            throw;
+        }
+
+        // apply modifications. do this only for records that were loaded from MGFs, as SGFs will never modify their own records and MGFs don't see SGF's records
+        if(base->getCreatedUID().id != UID::SELF_REF_ORDINAL)
+        {
+            try
+            {
+                mMGFManager->applyModifications(base, this);
+
+            }catch(StoneshipException &e)
+            {
+                if(e.getType() == StoneshipException::IO_ERROR)
+                {
+                    STONESHIP_EXCEPT(StoneshipException::ENTITY_ERROR, "Malformed modify record or IO error. Could not apply modifications to base.");
+                }
+
+                throw;
+            }
+        }
+
+        return base;
     }
 
 }

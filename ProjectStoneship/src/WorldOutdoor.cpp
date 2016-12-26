@@ -77,6 +77,14 @@ namespace Stoneship
         IWorld::loadFromRecord(rec, gameCache);
     }
 
+    void WorldOutdoor::loadAttachment(RecordAccessor &attachment, GameCache *gameCache)
+    {
+        if(attachment.getHeader().type == Record::TYPE_GROUP && attachment.getHeader().recordCount > 0) //TODO: should it be an error if not followed by GROUP? Maybe check ATTACH flag
+        {
+            // chunk list is not empty
+        }
+    }
+
     std::vector<Chunk*> &WorldOutdoor::getLoadedChunks()
     {
         return mLoadedChunks;
@@ -92,7 +100,7 @@ namespace Stoneship
         record.endSubrecord();
     }
     
-    void WorldOutdoor::postStore(RecordBuilder &last, RecordBuilder &surrounding)
+    void WorldOutdoor::storeAttachment(RecordBuilder &surrounding)
     {
         RecordBuilder chunkGroupBuilder = surrounding.createChildBuilder();
         chunkGroupBuilder.beginGroupRecord(Record::TYPE_GROUP, 0);

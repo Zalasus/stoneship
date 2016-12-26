@@ -4,8 +4,9 @@
 namespace Stoneship
 {
     
-    GUIManager::GUIManager()
-    : mRootNode(nullptr)
+    GUIManager::GUIManager(ResourceManager *resMan)
+    : mResMan(resMan)
+    , mRootNode(nullptr)
     , mCurrentScreen(nullptr)
     {
     }
@@ -36,7 +37,7 @@ namespace Stoneship
         
         if(screen != nullptr)
         {
-            screen->attachNodes(mRootNode);
+            screen->attachNodes(mRootNode, mResMan);
         }
     }
     

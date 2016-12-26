@@ -39,6 +39,7 @@ namespace Stoneship
 	, mMGFManager(&mResourceManager)
 	, mGameCache(&mMGFManager)
 	, mEventPipeline()
+	, mGuiManager(&mResourceManager)
 	{
 	}
 

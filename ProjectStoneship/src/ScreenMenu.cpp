@@ -18,7 +18,7 @@ namespace Stoneship
     
     void ScreenMenu::attachNodes(osg::Group *screenNode, ResourceManager *resMan)
     {
-        Screen::attachNodes(screenNode);
+        Screen::attachNodes(screenNode, resMan);
         
         
         mMenuBGGeom = new osg::Geometry();

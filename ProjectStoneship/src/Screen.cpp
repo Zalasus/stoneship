@@ -21,7 +21,7 @@ namespace Stoneship
         }
     }
     
-    void Screen::attachNodes(osg::Group *rootNode)
+    void Screen::attachNodes(osg::Group *rootNode, ResourceManager *resMan)
     {
         uint32_t screenWidth  = 1920; //TODO: Need to get these from some class that knows correct values
 	    uint32_t screenHeight = 1080;

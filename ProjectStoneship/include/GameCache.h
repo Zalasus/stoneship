@@ -93,49 +93,13 @@ namespace Stoneship
         uint32_t getCacheSize();
 
         template <typename T>
-        T *getCachedElementOfType(const UID &uid, Record::Type type)
-        {
-            return getCachedElement<T>(uid);
-        }
+        T *getCachedElementOfType(const UID &uid, Record::Type type);
         
         template <typename T>
-        T *getCachedElement(const UID &uid)
-        {
-            static_assert(std::is_base_of<RecordReflector, T>::value, "Elements to be cached need to derive from RecordReflector");
-            
-            for(uint32_t i = 0; i < mCache.size(); ++i)
-            {
-                if(mCache[i]->getCreatedUID() == uid)
-                {
-                    T *element = dynamic_cast<T*>(mCache[i]);
-                    
-                    if(element == nullptr)
-                    {
-                        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Requested cache element with UID " + uid.toString() + " was not of requested type.");
-                    }
-                    
-                    return element;
-                }
-            }
-            
-            // base object is not yet cached. aquire it.
-            
-            // TODO: continue here
-                        
-            STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Requested cache element with UID " + uid.toString() + " was neither cached nor found in respective MGF");
-        }
+        T *getCachedElement(const UID &uid);
         
         template <typename T>
-        T *manageElement(T *element)
-        {
-            static_assert(std::is_base_of<RecordReflector, T>::value, "Elements to be cached need to derive from RecordReflector");
-            
-            RecordReflector *r = static_cast<RecordReflector*>(element);
-            
-            mCache.push_back(r);
-            
-            return element;
-        }
+        T *manageElement(T *element);
         
         /**
          * Searches the cache for a world with given UID. If the requested world is not yet cached,
@@ -200,6 +164,10 @@ namespace Stoneship
 
     private:
 
+        IEntityBase *_aquireBase(const UID &uid);
+
+
+
         MGFManager *mMGFManager;
 
         GameCachePolicy mPolicy;
@@ -210,6 +178,64 @@ namespace Stoneship
         
         std::vector<RecordReflector*> mCache;
     };
+
+
+    template <typename T>
+    T *GameCache::getCachedElementOfType(const UID &uid, Record::Type type)
+    {
+        return getCachedElement<T>(uid);
+    }
+
+    template <typename T>
+    T *GameCache::getCachedElement(const UID &uid)
+    {
+        static_assert(std::is_base_of<RecordReflector, T>::value, "Elements to be cached need to derive from RecordReflector");
+
+        for(uint32_t i = 0; i < mCache.size(); ++i)
+        {
+            if(mCache[i]->getCreatedUID() == uid)
+            {
+                T *element = dynamic_cast<T*>(mCache[i]);
+
+                if(element == nullptr)
+                {
+                    STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Requested cache element with UID " + uid.toString() + " was not of requested type.");
+                }
+
+                return element;
+            }
+        }
+
+        // requested element is not yet cached. aquire it.
+
+        if(std::is_base_of<IEntityBase, T>::value) // compiler should remove all if cases that evaluate to false when optimizing
+        {
+            IEntityBase *base = _aquireBase(uid);
+
+            manageElement(base);
+
+            return static_cast<T*>(base); // we can use static_cast since we know T extends IEntityBase. Saves us a few cycles
+        }
+
+        if(std::is_base_of<IWorld, T>::value)
+        {
+            return nullptr; //TODO: Implement me!
+        }
+
+        STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Requested cache element with UID " + uid.toString() + " was neither cached nor found in respective MGF");
+    }
+
+    template <typename T>
+    T *GameCache::manageElement(T *element)
+    {
+        static_assert(std::is_base_of<RecordReflector, T>::value, "Elements to be cached need to derive from RecordReflector");
+
+        RecordReflector *r = static_cast<RecordReflector*>(element);
+
+        mCache.push_back(r);
+
+        return element;
+    }
 
 }
 

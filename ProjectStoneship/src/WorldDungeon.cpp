@@ -130,16 +130,14 @@ namespace Stoneship
         //quePostLoad(rec,gameCache);
     }
 
-    void WorldDungeon::postLoad(RecordAccessor &last, RecordAccessor &surrounding, GameCache *gameCache)
+    void WorldDungeon::loadAttachment(RecordAccessor &accessor, GameCache *gameCache)
     {
-        RecordIterator it = last.toIterator().next();
-        
-        if(it->getHeader().recordCount > 0)
+        if(accessor.getHeader().type == Record::TYPE_GROUP && accessor.getHeader().recordCount > 0) //TODO: should it be an error if not followed by GROUP? Maybe check ATTACH flag
         {
             //entity list is not empty
 
-            RecordIterator childIt = it->getChildIterator();
-            while(childIt != it->getChildEnd())
+            RecordIterator childIt = accessor.getChildIterator();
+            while(childIt != accessor.getChildEnd())
             {
                 RecordAccessor childRecord = *childIt;
                 
@@ -177,10 +175,8 @@ namespace Stoneship
         }
     }
 
-    void WorldDungeon::postStore(RecordBuilder &last, RecordBuilder &surrounding)
+    void WorldDungeon::storeAttachment(RecordBuilder &surrounding)
     {
-        IWorld::postStore(last, surrounding);
-
         RecordBuilder entityGroup = surrounding.createChildBuilder();
         entityGroup.beginGroupRecord(Record::TYPE_ENTITY, 0);
 
@@ -189,7 +185,7 @@ namespace Stoneship
                 IEntity *entity = mEntities[i];
 
                 // skip this entity if it was not created by the same MGF as the dungeon
-                // FIXME: What should we do with it, then? New entities are discarded this way
+                //FIXME: What should we do with it, then? New entities are discarded this way
                 if(entity->getCreatedUID().ordinal != getCreatedUID().ordinal)
                 {
                     continue;
@@ -198,8 +194,12 @@ namespace Stoneship
                 RecordBuilder entityBuilder = entityGroup.createChildBuilder();
                 entityBuilder.beginRecord(entity->getRecordType(), 0, entity->getUID().id);
                 entity->storeToRecord(entityBuilder);
+                bool needsAttachment = entityBuilder.getFlags() & RecordHeader::FLAG_ATTACHMENT;
                 entityBuilder.endRecord();
-                entity->postStore(entityBuilder, entityGroup); // FIXME: every storeToRecord needs a postStore, but the latter is easily omitted. check if we can combine the two so only one call is needed
+                if(needsAttachment) //TODO: Check if Entities really need to store attachments
+                {
+                    entity->storeAttachment(entityBuilder);
+                }
             }
 
         entityGroup.endRecord();

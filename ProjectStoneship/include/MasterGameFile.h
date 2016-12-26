@@ -17,7 +17,7 @@
 #include "Record.h"
 #include "ResourceManager.h"
 #include "RecordAccessor.h"
-#include "SimpleArray.h"
+#include "cont/SimpleArray.h"
 
 namespace Stoneship
 {

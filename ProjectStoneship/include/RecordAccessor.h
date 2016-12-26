@@ -10,7 +10,7 @@
 
 #include "Record.h"
 #include "MGFDataReader.h"
-#include "SimpleArray.h"
+#include "cont/SimpleArray.h"
 #include "RecordIterator.h"
 
 namespace Stoneship

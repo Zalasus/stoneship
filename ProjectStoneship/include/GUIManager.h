@@ -12,7 +12,7 @@ namespace Stoneship
     class GUIManager
     {
     public:
-        GUIManager();
+        GUIManager(ResourceManager *resMan);
         ~GUIManager();
         
         void setRootNode(osg::Group *node);
@@ -30,6 +30,7 @@ namespace Stoneship
 
     private:
         
+        ResourceManager *mResMan;
         osg::ref_ptr<osg::Group> mRootNode;
         Screen *mCurrentScreen;
         

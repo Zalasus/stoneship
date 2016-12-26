@@ -17,9 +17,14 @@ namespace Stoneship
     {
     public:
 
+        PosRot();
+
         osg::Vec3d getPosition() const;
         osg::Quat getRotation() const;
         
+        void setPosition(const osg::Vec3d &v);
+        void setRotation(const osg::Quat &v);
+
     private:
     
         osg::Vec3d mPos;

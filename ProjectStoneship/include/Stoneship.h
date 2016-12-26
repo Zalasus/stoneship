@@ -38,7 +38,7 @@
 #include "RecordReflector.h"
 #include "ResourceManager.h"
 #include "Root.h"
-#include "SimpleArray.h"
+#include "cont/SimpleArray.h"
 #include "Screen.h"
 #include "Subscreen.h"
 #include "SaveGameFile.h"

@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
         root->getMGFManager().storeSGF("master.mgf", &root->getGameCache());
 
-        //root->run();
+        root->run();
 
 
 	}catch(StoneshipException &e)
