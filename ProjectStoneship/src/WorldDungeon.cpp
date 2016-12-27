@@ -132,7 +132,12 @@ namespace Stoneship
 
     void WorldDungeon::loadAttachment(RecordAccessor &accessor, GameCache *gameCache)
     {
-        if(accessor.getHeader().type == Record::TYPE_GROUP && accessor.getHeader().recordCount > 0) //TODO: should it be an error if not followed by GROUP? Maybe check ATTACH flag
+        if(accessor.getHeader().type == Record::TYPE_GROUP)
+        {
+            STONESHIP_EXCEPT(StoneshipException::INVALID_RECORD_TYPE, "Expected GROUP attachment for Dungeon. Found: something different...");
+        }   
+        
+        if(accessor.getHeader().recordCount > 0)
         {
             //entity list is not empty
 
