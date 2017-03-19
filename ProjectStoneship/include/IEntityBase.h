@@ -71,6 +71,7 @@ namespace Stoneship
 
 		static EntityBaseFactory *getFactoryForRecordType(Record::Type t);
 		static uint32_t getRegisteredFactoryCount();
+        static void logRegisteredBases();
 
 
 	private:

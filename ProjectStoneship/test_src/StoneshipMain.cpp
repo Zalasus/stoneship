@@ -20,18 +20,20 @@ int main(int argc, char **argv)
 {
     bool gracefully = true;
 
-    Logger::getDefaultLogger().setEnableTimestamp(false); //get rid of those annoying timestamps on the console. let the file logger do this
     Logger::getDefaultLogger().setPrintDebug(true);
     Logger::info("Initializing Stoneship v" STONESHIP_VERSION "...");
 
     std::ofstream logStream("stoneship.log", std::ios::out);
     Logger fileLogger("Logfile", &logStream);
+    fileLogger.setEnableTimestamp(true);
     fileLogger.setPrintDebug(true);
     Logger::getDefaultLogger().setChildLogger(&fileLogger);
 
     Options options;
 
     Root *root = new Stoneship::Root(options);
+    
+    EntityBaseFactory::logRegisteredBases();
 
     try
 	{

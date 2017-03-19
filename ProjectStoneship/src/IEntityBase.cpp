@@ -59,8 +59,6 @@ namespace Stoneship
 
 	    }else
 	    {
-	        Logger::info("Registered Entity Base type '" + baseName + "'");
-
 	        getFactoryVector().push_back(this);
 	    }
 	}
@@ -102,16 +100,28 @@ namespace Stoneship
 		return nullptr;
 	}
 
-	uint32_t EntityBaseFactory::getRegisteredFactoryCount()
+	/*static*/ uint32_t EntityBaseFactory::getRegisteredFactoryCount()
 	{
 	    return getFactoryVector().size();
 	}
 
-	std::vector<EntityBaseFactory*> &EntityBaseFactory::getFactoryVector()
+	/*static*/ std::vector<EntityBaseFactory*> &EntityBaseFactory::getFactoryVector()
 	{
 	    static std::vector<EntityBaseFactory*> sFactories;
 
 	    return sFactories;
 	}
+	
+    /*static*/ void EntityBaseFactory::logRegisteredBases()
+    {
+        auto it = getFactoryVector().begin();
+        
+        while(it != getFactoryVector().end())
+        {
+            Logger::debug("Registered Entity Base type '" + (*it)->getBaseName() + "' as #" + (*it)->getRecordType());
+            
+            it++;
+        }
+    }
 
 }

@@ -98,9 +98,9 @@ namespace Stoneship
 	    osg::ref_ptr<osg::Group> rootNode = new osg::Group();
 	    mGuiManager.setRootNode(rootNode);
 	    
-	    /*Screen *plainScreen = new Screen();
-	    mGuiManager.setScreen(plainScreen);
-	    plainScreen->addSubscreen(new SubscreenConsole());*/
+	    //Screen *plainScreen = new Screen();
+	    //mGuiManager.setScreen(plainScreen);
+        //plainScreen->addSubscreen(new SubscreenConsole());
 	    
 	    Logger::info("Creating menu...");
 	    

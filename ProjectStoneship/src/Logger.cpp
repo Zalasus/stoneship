@@ -29,7 +29,7 @@ namespace Stoneship
 
 	Logger::Logger(const String &name, std::ostream *stream)
 	: mName(name),
-	  mEnableTimestamp(true),
+	  mEnableTimestamp(false),
 	  mPrintDebugInfo(false),
 	  mStream(stream),
 	  mChildLogger(nullptr)

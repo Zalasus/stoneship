@@ -18,8 +18,8 @@ namespace Stoneship
         virtual ~SubscreenConsole();
         
         //overrides Subscreen
-        virtual void attachNodes(osg::Group *screenNode);
-        virtual void detachNodes(osg::Group *screenNode);
+        virtual void attachNodes(osg::Group *screenNode, ResourceManager *resMan);
+        virtual void detachNodes(osg::Group *screenNode, ResourceManager *resMan);
         
         //overrides ILoggerListener
         virtual void onLog(const String &msg, Logger::LogLevel level);

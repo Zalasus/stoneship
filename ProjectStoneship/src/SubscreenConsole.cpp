@@ -9,7 +9,7 @@ namespace Stoneship
         Logger::getDefaultLogger().removeListener(this);
     }
     
-    void SubscreenConsole::attachNodes(osg::Group *screenNode)
+    void SubscreenConsole::attachNodes(osg::Group *screenNode, ResourceManager *resMan)
     {
         Subscreen::attachNodes(screenNode);
         
@@ -18,8 +18,8 @@ namespace Stoneship
         mConsoleBacklogGeom->setFont("/usr/share/fonts/TTF/LiberationMono-Regular.ttf");
         mConsoleBacklogGeom->setCharacterSize(16);
         mConsoleBacklogGeom->setAxisAlignment(osgText::Text::SCREEN);
-        mConsoleBacklogGeom->setPosition(osg::Vec3(0,1,0));
-        mConsoleBacklogGeom->setColor(osg::Vec4(255, 255, 255, 1));
+        mConsoleBacklogGeom->setPosition(osg::Vec3(0.5,0.5,0.5));
+        mConsoleBacklogGeom->setColor(osg::Vec4(255, 0, 255, 0.5));
         mSubscreenGeode->addDrawable(mConsoleBacklogGeom);
         mConsoleBacklog = "Stoneship Console\n"
                           "=================\n\n";
@@ -55,7 +55,7 @@ namespace Stoneship
         Logger::getDefaultLogger().addListener(this);
     }
     
-    void SubscreenConsole::detachNodes(osg::Group *screenNode)
+    void SubscreenConsole::detachNodes(osg::Group *screenNode, ResourceManager *resMan)
     {
         Subscreen::detachNodes(screenNode);
         

@@ -37,7 +37,7 @@ namespace Stoneship
         mScreenStateSet->setMode(GL_BLEND,osg::StateAttribute::ON); // Turn blending on (so alpha texture looks right)
         mScreenStateSet->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF); // Disable depth testing
         mScreenStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-        mScreenStateSet->setRenderBinDetails(11, "RenderBin"); // Need to make sure this geometry is draw last. RenderBins are handled in numerical order so set bin number to 11
+        mScreenStateSet->setRenderBinDetails(11, "RenderBin"); // Need to make sure this geometry is drawn last. RenderBins are handled in numerical order so set bin number to 11
         
         mScreenGroup = new osg::Group();
         mScreenGroup->setStateSet(mScreenStateSet);
