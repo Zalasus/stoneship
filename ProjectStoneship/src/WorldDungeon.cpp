@@ -87,6 +87,7 @@ namespace Stoneship
 
     void WorldDungeon::removeEntity(IEntity *entity)
     {
+    	//FIXME: linear complexity search
         auto it = mEntities.begin();
         while(it != mEntities.end())
         {
@@ -106,6 +107,7 @@ namespace Stoneship
 
     void WorldDungeon::removeEntity(UID uid)
     {
+    	//FIXME: linear complexity search
         auto it = mEntities.begin();
         while(it != mEntities.end())
         {
@@ -139,32 +141,40 @@ namespace Stoneship
         
         if(accessor.getHeader().recordCount > 0)
         {
-            //entity list is not empty
+            // entity list is not empty. reserve space for entities. TODO: not all child records could be entities in the future
+        	mEntities.reserve(accessor.getHeader().recordCount);
 
             RecordIterator childIt = accessor.getChildIterator();
             while(childIt != accessor.getChildEnd())
             {
                 RecordAccessor childRecord = *childIt;
                 
-                UID entityUID = UID(childRecord.getGameFile()->getOrdinal(), childRecord.getHeader().id);
-
-                UID baseUID;
-                Record::Type baseType;
-                childRecord.getReaderForSubrecord(Record::SUBTYPE_ENTITY)
-                        >> baseUID
-                        >> baseType
-                        >> MGFDataReader::endr;
-
-                IEntityBase *base = gameCache->getCachedElementOfType<IEntityBase>(baseUID, baseType);
-                if(base == nullptr) //FIXME: won't be returned
+                if(childIt->getHeader().type == Record::TYPE_ENTITY)
                 {
-                    STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Base " + baseUID.toString() + " for Entity " + entityUID.toString() + " not found");
-                }
+					UID entityUID = UID(childRecord.getGameFile()->getOrdinal(), childRecord.getHeader().id);
 
-                IEntity *entity = base->createEntity(entityUID);
-                mEntities.push_back(entity);
-                entity->loadFromRecord(childRecord, gameCache);
-                entity->spawn(this);
+					UID baseUID;
+					Record::Type baseType;
+					childRecord.getReaderForSubrecord(Record::SUBTYPE_ENTITY)
+							>> baseUID
+							>> baseType
+							>> MGFDataReader::endr;
+
+					IEntityBase *base = gameCache->getCachedElementOfType<IEntityBase>(baseUID, baseType);
+					if(base == nullptr) //FIXME: won't be returned
+					{
+						STONESHIP_EXCEPT(StoneshipException::RECORD_NOT_FOUND, "Base " + baseUID.toString() + " for Entity " + entityUID.toString() + " not found");
+					}
+
+					IEntity *entity = base->createEntity(entityUID);
+					mEntities.push_back(entity);
+					entity->loadFromRecord(childRecord, gameCache);
+					entity->spawn(this);
+
+                }else
+                {
+                	// ignore for now
+                }
                 
             }// for each entity record
         } // if entity list not emptyfinished

@@ -9,6 +9,7 @@
 #define INCLUDE_LOGGER_H_
 
 #include <iostream>
+#include <sstream>
 
 #include "String.h"
 
@@ -16,8 +17,36 @@ namespace Stoneship
 {
     class ILoggerListener;
 
+    class Logger;
+
+    class LoggerStreamProxy
+	{
+    	friend class Logger;
+
+	public:
+
+		~LoggerStreamProxy();
+
+		template <typename T>
+		LoggerStreamProxy operator<<(const T &t);
+
+
+	private:
+
+		LoggerStreamProxy(Logger &l);
+		LoggerStreamProxy(LoggerStreamProxy &p);
+
+
+		Logger &mLogger;
+		bool mIWasCopied;
+	};
+
+
+
 	class Logger
 	{
+    	friend class LoggerStreamProxy;
+
 	public:
 
 		enum LogLevel
@@ -27,10 +56,12 @@ namespace Stoneship
 			LOGLEVEL_SEVERE,
 			LOGLEVEL_DEBUG
 		};
+		static const LogLevel DEFAULT_LOGLEVEL = LOGLEVEL_INFO;
+
 
 		Logger(const String &name, std::ostream *stream = &std::cout);
 
-		void log(const String &msg, LogLevel level = LOGLEVEL_INFO);
+		void log(const String &msg, LogLevel level = DEFAULT_LOGLEVEL);
 
         String getLoggerName();
         void setEnableTimestamp(bool ts);
@@ -44,14 +75,24 @@ namespace Stoneship
          */
         String getLabelForLevel(LogLevel level);
 
+        template <typename T>
+        LoggerStreamProxy operator<<(const T &t);
+
         static Logger &getDefaultLogger();
 		static inline void info(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_INFO); }
 		static inline void warn(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_WARNING); }
 		static inline void severe(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_SEVERE); }
 		static inline void debug(const String &msg) { getDefaultLogger().log(msg, LOGLEVEL_DEBUG); }
 
+		// default stream getters
+		static LoggerStreamProxy info();
+		static LoggerStreamProxy warn();
+		static LoggerStreamProxy severe();
+		static LoggerStreamProxy debug();
 
 	private:
+
+		void _flushLogStream();
 
 		String mName;
 		bool mEnableTimestamp;
@@ -59,20 +100,47 @@ namespace Stoneship
 		std::ostream *mStream;
 		Logger *mChildLogger;
 		std::vector<ILoggerListener*> mListeners;
-
+		LogLevel mStreamLogLevel;
+		std::ostringstream mStreamBuffer;
 
 		static Logger smDefaultLogger;
 
 	};
-	
+
+
+
 	//TODO: Merge child logger and listener interfaces or remove one of them
 	class ILoggerListener
 	{
     public:
-    
+
+		virtual ~ILoggerListener();
+
         virtual void onLog(const String &msg, Logger::LogLevel level) = 0;
 	};
 
+
+
+	template <typename T>
+	LoggerStreamProxy LoggerStreamProxy::operator<<(const T &t)
+	{
+		mLogger.mStreamBuffer << t;
+
+		return *this;
+	}
+
+
+
+	// specialization for setting log level by sending it to the stream
+	template <> LoggerStreamProxy Logger::operator<< <Logger::LogLevel>(const Logger::LogLevel &t);
+
+	template <typename T>
+    LoggerStreamProxy Logger::operator<<(const T &t)
+	{
+		mStreamBuffer << t;
+
+		return LoggerStreamProxy(*this);
+	}
 }
 
 #endif /* INCLUDE_LOGGER_H_ */

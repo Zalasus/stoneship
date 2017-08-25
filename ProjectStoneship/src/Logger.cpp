@@ -32,7 +32,8 @@ namespace Stoneship
 	  mEnableTimestamp(false),
 	  mPrintDebugInfo(false),
 	  mStream(stream),
-	  mChildLogger(nullptr)
+	  mChildLogger(nullptr),
+	  mStreamLogLevel(LOGLEVEL_INFO)
 	{
 	}
 
@@ -136,6 +137,89 @@ namespace Stoneship
     Logger &Logger::getDefaultLogger()
     {
         return smDefaultLogger;
+    }
+
+    template <>
+    LoggerStreamProxy Logger::operator<< <Logger::LogLevel>(const Logger::LogLevel &t)
+	{
+		mStreamLogLevel = t;
+
+		LoggerStreamProxy p(*this);
+		return p;
+	}
+
+    LoggerStreamProxy Logger::info()
+    {
+    	getDefaultLogger().mStreamLogLevel = LOGLEVEL_INFO;
+
+    	LoggerStreamProxy p(getDefaultLogger());
+    	return p;
+    }
+
+	LoggerStreamProxy Logger::warn()
+    {
+    	getDefaultLogger().mStreamLogLevel = LOGLEVEL_WARNING;
+
+    	LoggerStreamProxy p(getDefaultLogger());
+    	return p;
+    }
+
+	LoggerStreamProxy Logger::severe()
+    {
+    	getDefaultLogger().mStreamLogLevel = LOGLEVEL_SEVERE;
+
+    	LoggerStreamProxy p(getDefaultLogger());
+    	return p;
+    }
+
+	LoggerStreamProxy Logger::debug()
+    {
+    	getDefaultLogger().mStreamLogLevel = LOGLEVEL_DEBUG;
+
+    	LoggerStreamProxy p(getDefaultLogger());
+    	return p;
+    }
+
+    void Logger::_flushLogStream()
+    {
+    	log(mStreamBuffer.str(), mStreamLogLevel);
+    	mStreamBuffer.str("");
+
+    	// reset log level to default everytime a stream statement ends
+    	mStreamLogLevel = DEFAULT_LOGLEVEL;
+    }
+
+
+
+    LoggerStreamProxy::~LoggerStreamProxy()
+    {
+    	// if this proxy was not copied, like what would happen if it was the last to be returned by
+    	//  a statement like Logger << "foo" << 42 << "bar"; it has to notify it's associated Logger
+    	//  to flush all stream output
+    	if(!mIWasCopied)
+    	{
+    		mLogger._flushLogStream();
+    	}
+    }
+
+	LoggerStreamProxy::LoggerStreamProxy(LoggerStreamProxy &p)
+	: mLogger(p.mLogger)
+	, mIWasCopied(false)
+	{
+		p.mIWasCopied = true;
+	}
+
+	LoggerStreamProxy::LoggerStreamProxy(Logger &l)
+	: mLogger(l)
+	, mIWasCopied(false)
+	{
+	}
+
+
+
+    ILoggerListener::~ILoggerListener()
+    {
+
     }
 
 }

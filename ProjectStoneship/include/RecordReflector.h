@@ -66,6 +66,8 @@ namespace Stoneship
         // does this really belong here?
         void setEditorName(const String &s);
         String getEditorName() const;
+        void setEditorComment(const String &s);
+        String getEditorComment() const;
 
     private:
 
@@ -74,6 +76,7 @@ namespace Stoneship
         std::vector<SubrecordFieldS*> mReflectedVect;
 
         String mEditorName;
+        String mEditorComment;
     };
 
 }

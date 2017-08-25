@@ -59,9 +59,18 @@ namespace Stoneship
         }
 
         //TODO: We could handle reading of this using an optional SubrecordField (once we have implemented proper handling for optional fields)
-        if(record.getSubrecordCountForType(Record::SUBTYPE_EDITOR))
+        if(record.getSubrecordCountForType(Record::SUBTYPE_EDITOR_NAME))
         {
-            record.getReaderForSubrecord(Record::SUBTYPE_EDITOR) >> mEditorName >> MGFDataReader::endr;
+            record.getReaderForSubrecord(Record::SUBTYPE_EDITOR_NAME)
+            		>> mEditorName
+					>> MGFDataReader::endr;
+        }
+
+        if(record.getSubrecordCountForType(Record::SUBTYPE_EDITOR_COMMENT))
+        {
+            record.getReaderForSubrecord(Record::SUBTYPE_EDITOR_COMMENT)
+            		>> mEditorComment
+					>> MGFDataReader::endr;
         }
     }
 
@@ -102,7 +111,15 @@ namespace Stoneship
 
         if(!mEditorName.empty())
         {
-            b.beginSubrecord(Record::SUBTYPE_EDITOR, mEditorName.length() + 5) << mEditorName;
+            b.beginSubrecord(Record::SUBTYPE_EDITOR_NAME, mEditorName.length() + 5)
+            		<< mEditorName;
+            b.endSubrecord();
+        }
+
+        if(!mEditorComment.empty())
+        {
+            b.beginSubrecord(Record::SUBTYPE_EDITOR_COMMENT, mEditorComment.length() + 5)
+            		<< mEditorComment;
             b.endSubrecord();
         }
     }
@@ -176,9 +193,19 @@ namespace Stoneship
         mEditorName = s;
     }
 
+    void RecordReflector::setEditorComment(const String &s)
+    {
+    	mEditorComment = s;
+    }
+
     String RecordReflector::getEditorName() const
     {
         return mEditorName;
+    }
+
+    String RecordReflector::getEditorComment() const
+    {
+    	return mEditorComment;
     }
 
     void RecordReflector::_registerForReflection(SubrecordFieldS *field)

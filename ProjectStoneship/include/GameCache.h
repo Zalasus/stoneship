@@ -9,6 +9,7 @@
 #define INCLUDE_GAMECACHE_H_
 
 #include <vector>
+#include <map>
 
 #include "Record.h"
 #include "RecordReflector.h"
@@ -61,7 +62,7 @@ namespace Stoneship
 
         /**
          * Resolves UID for given editor name. If name is not found in cache, MGFs are searched. Throws if name
-         * can't be located anywhere.
+         * can't be located anywhere. Linear complexity.
          */
         UID editorNameToUID(const String &name);
 
@@ -176,7 +177,7 @@ namespace Stoneship
         //std::vector<IWorld*> mWorldCache;
         //std::vector<IEntityBase*> mBaseCache;
         
-        std::vector<RecordReflector*> mCache;
+        std::map<UID, RecordReflector*> mCache;
     };
 
 
@@ -191,20 +192,19 @@ namespace Stoneship
     {
         static_assert(std::is_base_of<RecordReflector, T>::value, "Elements to be cached need to derive from RecordReflector");
 
-        for(uint32_t i = 0; i < mCache.size(); ++i)
+        auto it = mCache.find(uid);
+        if(it != mCache.end())
         {
-            if(mCache[i]->getCreatedUID() == uid)
+            T *element = dynamic_cast<T*>(it->second);
+
+            if(element == nullptr)
             {
-                T *element = dynamic_cast<T*>(mCache[i]);
-
-                if(element == nullptr)
-                {
-                    STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Requested cache element with UID " + uid.toString() + " was not of requested type.");
-                }
-
-                return element;
+                STONESHIP_EXCEPT(StoneshipException::INVALID_STATE, "Requested cache element with UID " + uid.toString() + " was not of requested type.");
             }
+
+            return element;
         }
+
 
         // requested element is not yet cached. aquire it.
 
@@ -232,7 +232,7 @@ namespace Stoneship
 
         RecordReflector *r = static_cast<RecordReflector*>(element);
 
-        mCache.push_back(r);
+        mCache[r->getCreatedUID()] = r;
 
         return element;
     }

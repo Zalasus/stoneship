@@ -182,7 +182,12 @@ namespace Stoneship
 
             if(groupHeader.type != Record::TYPE_GROUP)
             {
-                STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, String("Corrupted MGF found during scanning (expected Group record, found ") + groupHeader.type);
+            	Logger::severe()
+            			<< "Scanned MGF " << mFilename
+						<< " contained a top level record of type " << groupHeader.type
+						<< " instead of group";
+
+                STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF found during scanning (scanned top record was not a group)");
             }
 
             if(!(groupHeader.flags & RecordHeader::FLAG_TOP_GROUP))
@@ -190,7 +195,10 @@ namespace Stoneship
                 STONESHIP_EXCEPT(StoneshipException::DATA_FORMAT, "Corrupted MGF found during scanning (scanned Group was not a top group)");
             }
 
-            Logger::debug(String("Found group ") + groupHeader.groupType + " at " + uint32_t(offset) + " containing " + groupHeader.recordCount + " records");
+            Logger::debug()
+            		<< "Found group " << groupHeader.groupType
+					<< " at " << uint32_t(offset)
+					<< " containing " << groupHeader.recordCount << " records";
 
             mHints[i].offset = offset;
             mHints[i].type = groupHeader.groupType;
@@ -545,7 +553,7 @@ namespace Stoneship
 				try
 				{
 					String editorName;
-					record.getReaderForSubrecord(Record::SUBTYPE_EDITOR) >> editorName;
+					record.getReaderForSubrecord(Record::SUBTYPE_EDITOR_NAME) >> editorName;
 
 					if(editorName == name)
 					{

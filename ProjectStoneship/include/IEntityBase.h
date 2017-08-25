@@ -8,12 +8,12 @@
 #ifndef INCLUDE_IENTITYBASE_H_
 #define INCLUDE_IENTITYBASE_H_
 
-#include <RecordReflector.h>
 #include <vector>
 
 #include "Types.h"
 #include "String.h"
 #include "Record.h"
+#include "RecordReflector.h"
 
 //These have to be used to frame the block in which entities are registered
 #define REGISTER_ENTITY_BEGIN

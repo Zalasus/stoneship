@@ -33,10 +33,15 @@ namespace Stoneship
 		id = (l & 0xFFFFFFFF);
 	}
 
-	bool UID::operator==(const UID &right)
+	bool UID::operator==(const UID &right) const
 	{
 		return id == right.id && ordinal == right.ordinal;
 	}
+
+	bool UID::operator<(const UID &right) const
+    {
+        return toUInt64() < right.toUInt64();
+    }
 
 	const UID UID::NO_UID(SELF_REF_ORDINAL, NO_ID);
 

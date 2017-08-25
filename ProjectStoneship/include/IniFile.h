@@ -39,7 +39,7 @@ namespace Stoneship
 
         bool getValueAsBool(const String &section, const String &key, bool def) const;
 
-        const std::vector<IniEntry> &getEntriesInSection(const String &section) const;
+        std::vector<IniEntry> getEntriesInSection(const String &section) const;
 
 
     private:

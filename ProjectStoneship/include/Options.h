@@ -20,11 +20,18 @@ namespace Stoneship
 
 		Options();
 		
+		void parse(int argc, const char **argv);
+		bool isConfigFileLoaded() const;
+		void loadConfigFile(const String &filename);
+
 		std::vector<String> &getMGFList();
 		
 		
     private:
     
+		bool mConfigLoaded;
+		IniFile mConfig;
+
         std::vector<String> mMGFList;    
 
 	};

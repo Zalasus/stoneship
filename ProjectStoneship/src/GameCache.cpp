@@ -30,9 +30,11 @@ namespace Stoneship
 
     GameCache::~GameCache()
     {
-        for(uint32_t i = 0; i < mCache.size(); ++i)
+        //FIXME: This kind of management is error-prone and unelegant. Should store an RAII wrapper/smart pointer
+        //  in mCache which could manage LRU stuff, too
+        for(auto it = mCache.begin(); it != mCache.end(); ++it)
         {
-            delete mCache[i];
+            delete it->second;
         }
     }
 
@@ -49,11 +51,11 @@ namespace Stoneship
     UID GameCache::editorNameToUID(const String &name)
     {
         
-        for(uint32_t i = 0; i < mCache.size(); ++i)
+        for(auto it = mCache.begin(); it != mCache.end(); ++it)
         {
-            if(mCache[i]->getEditorName() == name)
+            if(it->second->getEditorName() == name)
             {
-                return mCache[i]->getCreatedUID();
+                return it->second->getCreatedUID();
             }
         }
 
@@ -168,7 +170,7 @@ namespace Stoneship
         auto it = mCache.begin();
         while(it != mCache.end())
         {
-            IEntityBase *base = dynamic_cast<IEntityBase*>(*it);
+            IEntityBase *base = dynamic_cast<IEntityBase*>(it->second);
             if(base != nullptr)
             {
                 // should we delete this base?
@@ -218,12 +220,14 @@ namespace Stoneship
             return 0;
         }
 
-        // first, we sort the cache so we can archive proper grouping in the MGF
+        // first, we sort the cache so we can archive proper grouping in the MGF.
+        //  since the cache is a map we can't sort that easily, we dump it in a vector first
+        std::vector<std::pair<UID, RecordReflector*>> linearCache(mCache.begin(), mCache.end());
 
         // lambda for comparing record type of two Base objects
-        auto compare = [](RecordReflector *a, RecordReflector *b) -> bool { return a->getRecordType() < b->getRecordType();};
+        auto compare = [](std::pair<UID, RecordReflector*> a, std::pair<UID, RecordReflector*> b) -> bool { return a.second->getRecordType() < b.second->getRecordType();};
 
-        std::sort(mCache.begin(), mCache.end(), compare);
+        std::sort(linearCache.begin(), linearCache.end(), compare);
 
 
         // next, iterate over records and store them
@@ -231,9 +235,9 @@ namespace Stoneship
         uint32_t groupCount = 0;
         RecordBuilder groupBuilder(writer);
 
-        for(uint32_t i = 0; i < mCache.size(); ++i)
+        for(auto it = linearCache.begin(); it != linearCache.end(); ++it)
         {
-            RecordReflector *reflector = mCache[i];
+            RecordReflector *reflector = it->second;
 
             if(reflector->getCreatedUID().ordinal != UID::SELF_REF_ORDINAL)
             {
@@ -304,21 +308,24 @@ namespace Stoneship
             return 0;
         }
 
-        // first, we sort the cache so we can archive proper grouping in the MGF
+        //FIXME: Redundant sorting code and data. Unify linearCache in member and avoid unneccesary dumping
+        // first, we sort the cache so we can archive proper grouping in the MGF.
+        //  since the cache is a map we can't sort that easily, we dump it in a vector first
+        std::vector<std::pair<UID, RecordReflector*>> linearCache(mCache.begin(), mCache.end());
 
         // lambda for comparing record type of two Base objects
-        auto compare = [](RecordReflector *a, RecordReflector *b) -> bool { return a->getRecordType() < b->getRecordType();};
+        auto compare = [](std::pair<UID, RecordReflector*> a, std::pair<UID, RecordReflector*> b) -> bool { return a.second->getRecordType() < b.second->getRecordType();};
 
-        std::sort(mCache.begin(), mCache.end(), compare);
+        std::sort(linearCache.begin(), linearCache.end(), compare);
 
 
         // next, iterate over records and store MODIFYs
         RecordBuilder groupBuilder(writer);
         bool writtenStuff = false;
 
-        for(uint32_t i = 0; i < mCache.size(); ++i)
+        for(auto it = linearCache.begin(); it != linearCache.end(); ++it)
         {
-            RecordReflector *reflector = mCache[i];
+            RecordReflector *reflector = it->second;
 
             
             if(reflector->getCreatedUID().ordinal == UID::SELF_REF_ORDINAL || reflector->isDirty())

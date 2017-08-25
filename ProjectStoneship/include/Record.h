@@ -11,6 +11,7 @@
 #include <istream>
 #include <sstream>
 #include <vector>
+#include <functional>
 
 #include "Types.h"
 #include "String.h"
@@ -30,7 +31,14 @@ namespace Stoneship
 		Ordinal ordinal;
 		ID id;
 
-		bool operator==(const UID &right);
+		bool operator==(const UID &right) const;
+		inline bool operator!=(const UID &right) const { return !this->operator==(right); }
+		bool operator<(const UID &right) const;
+		inline bool operator<=(const UID &right) const { return this->operator<(right) || this->operator==(right); }
+		inline bool operator>(const UID &right) const  { return !(this->operator<(right) || this->operator==(right)); }
+		inline bool operator>=(const UID &right) const { return this->operator>(right) || this->operator==(right); }
+
+
 
 		inline uint64_t toUInt64() const { return (static_cast<uint64_t>(ordinal) << 32) | id;};
 		inline String toString() const
@@ -44,6 +52,8 @@ namespace Stoneship
 		static const ID NO_ID = 0xFFFFFFFF;
 		static const UID NO_UID;
 	};
+
+
 
 	struct Record
 	{
@@ -85,7 +95,8 @@ namespace Stoneship
 		static const Subtype SUBTYPE_TEXT = 0x105;
 		static const Subtype SUBTYPE_CONTAINER = 0x10E;
 		static const Subtype SUBTYPE_CONTAINED_ITEM = 0x10F;
-		static const Subtype SUBTYPE_EDITOR = 0xFFF0;
+		static const Subtype SUBTYPE_EDITOR_NAME = 0xFFF0;
+		static const Subtype SUBTYPE_EDITOR_COMMENT = 0xFFF1;
 		static const Subtype SUBTYPE_MODIFY_METADATA = 0xFFF9;
 	};
 
@@ -166,5 +177,23 @@ namespace Stoneship
 	};
 
 }
+
+
+// inject custom hash function for UID in std
+namespace std
+{
+    template<>
+    struct hash<Stoneship::UID>
+    {
+        typedef Stoneship::UID argument_type;
+        typedef std::size_t result_type;
+
+        result_type operator()(argument_type const& s) const
+        {
+            return std::hash<uint64_t>()(s.toUInt64());
+        }
+    };
+}
+
 
 #endif /* INCLUDE_RECORD_H_ */

@@ -146,7 +146,7 @@ namespace Stoneship
         mWrittenSubrecordHeader = mSubrecordHeader; // store what we've just written so we can check if we need to update it when it changed
 
         // is this an editor data subrecord? if yes, we set the appropriate flag in the encasing group and all groups surrounding that one
-        if(mSubrecordHeader.type == Record::SUBTYPE_EDITOR)
+        if(mSubrecordHeader.type == Record::SUBTYPE_EDITOR_NAME)
         {
             RecordBuilder *b = mParent;
 

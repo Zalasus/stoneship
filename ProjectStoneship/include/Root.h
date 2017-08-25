@@ -19,7 +19,7 @@
 namespace Stoneship
 {
 
-    //TODO: A god class like this one should be optional
+    // optional god class. just bundles everything we need to easily test the engine
 	class Root
 	{
 	public:

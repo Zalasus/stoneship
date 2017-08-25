@@ -1,47 +1,95 @@
 Stoneship code style convetions
 ===============================
+Convetions listed without any particular order. The following list is not comprehensive.
+When in doubt, refer to common sense.
 
 
-modifier order is: static const int. Don't you dare putting const after the type!!!
-Always use class. use struct only for dumb classes without any more functionality than constructors to initialize public elements.
-public member variables do not exist except in dumb structs
-absolutely no using's. always use full namespace identifier. omit only in local namespace. no, std is NOT an exception
-please don't bother keeping your lines under the 80 column mark. write readable code instead
-use spaces and parentheses to make expressions more readable and unambiguous, but don't overdo it
-english code only. no exceptions. (Betrifft nicht die Lokalisation des Programms)
-stop hating goto. if it's more elegant than anything else, go ahead. but beware of velociraptors when you do.
-single line comments start with space: // this is a comment
-acceptable task markers are: "TODO:" for general to-do, "FIXME:" for bug causing lines
-multi line comments are encouraged for anything longer than like... 3 lines
-Documentation comments are always multiline and use doxygen syntax /** with @ as tag marker
-includes for anything outside project scope in <>. use "" elsewhere
-headers always *.h no *.hpp or others
-include guards are obligatory. shouldn't even have to mention that
-use forward declaration instead of inclusion whenever possible
-no unused includes
-Getters prefixed with get*, setters with set* boolean getters may use is* instead
-no egyptian braces anywhere. closing brace must be on same column as opening one (except for arrays and stuff. make something up for them)
-always use stdint.h, never write unsigned int, write uint32_t instead (except when interfacing nonconforming code)
-no cstrings
-never ever suppress warnings
-when using compiler specific stuff, stick to gcc. no pragmas and shit like that
-when writing system dependent code, use macros for substitutions
-every definition belongs in a cpp file.
-really dumb functions, like those just one step away from beeing constexpr may be defined in the header using inline keyword
-use function macros wisely. write them so a ; after invocation does not break them
-use exceptions over errnos
-no polymorphism for exceptions
-throw by value, catch by reference
-RAII!!! no stray news and deletes
-no RTTI! if possible, use static_cast. if not, don't cast.
-RTTI is okay when you implement it yourself using interfaces and the like. use it to check static_casts when neccessary
-no smart pointers except when absolutely neccessary. suppress any "using a smart pointer would be easier" thoughts
-write readable code. write plenty of comments for any non-straightforward solution. refer to additional papers when neccessary
-if you are feeling comfortable with iterators, use them. don't be ashamed to use classical array access
-prefer stl over own code. prefer own code over boost.
-when your code needs autoconfig, your programming needs adjustment
+Modifier order is: static const int. Don't you dare putting const after the type!!!
 
-order of elements in classes:
+Always use class. Use struct only for dumb classes without any more functionality than 
+constructors to initialize public elements or the occasional operator.
+
+Public member variables do not exist except in dumb structs.
+
+Absolutely no using's. Always use full namespace identifier. Omit only in local namespace. No, std is NOT an exception!
+
+Please don't bother keeping your lines under the 80 column mark. Write readable code instead.
+
+Use spaces and parentheses to make expressions more readable and unambiguous, but don't overdo it.
+	if((A == B) && (C == D)) is okay
+	if(((A == B) && (C == D))) is one nested paren too much
+
+English code only. No exceptions. (Betrifft nicht die Lokalisation des Programms)
+
+Stop hating goto. If it's more elegant than anything else, go ahead. But beware of velociraptors when you do.
+
+Single line comments start with space: // this is a comment
+If your comment continues on the next line, use two spaces there and on every following line:
+	// This comment will continue
+	//  on the next line. The additional indentation marks this line as continuing
+	//  the previous statement.
+	// This is another remark and idependent from the previous comment, thus no second space here.
+	
+Multi line comments are encouraged for anything longer than like... 3 lines.
+
+Acceptable task markers are: "TODO:" for general to-do, "FIXME:" for bug causing lines and everything utterly dissatisfying.
+
+Documentation comments are always multiline and use doxygen syntax /** with @ as tag marker.
+
+Includes for anything outside project scope in <>. Use "" elsewhere.
+
+Headers always *.h, no *.hpp or others.
+
+Include guards are obligatory. Shouldn't even have to mention that.
+Also no #pragma once or other avoidable pragmas.
+
+Use forward declaration instead of inclusion whenever possible.
+
+No unused includes.
+
+Getters prefixed with get*, setters with set* boolean getters may use is* instead.
+
+No egyptian braces anywhere. Closing brace must be on same column as opening one (except for arrays and stuff. make something up for them)
+
+Always use stdint.h, never write unsigned int, write uint32_t instead (except when interfacing nonconforming code)
+
+No cstrings.
+
+Never ever suppress warnings.
+
+Stick to standard. When using compiler specific stuff is absolutely neccessary, stick to gcc.
+
+When writing system dependent code, use macros for substitutions.
+
+Every definition belongs in a cpp file except for template weirdness.
+
+Really dumb functions, like those just one step away from beeing constexpr may be defined in the header using inline keyword.
+
+Use function macros wisely. Write them so a ; after invocation does not break them and use parens 
+around all arguments used in macro definiton (you should know why if you use function macros).
+
+Use exceptions over errnos.
+
+Use modest polymorphism for exceptions. Don't create a new class for every type of error that may occur.
+Even general stuff like std::runtime_error is okay if used properly.
+
+Throw by value, catch by reference.
+
+RAII!!! No stray news and deletes.
+
+No smart pointers except when absolutely neccessary. Use proper RAII constructs instead of wrapping GC around bad architecture.
+
+Write readable code. Write plenty of comments for any non-straightforward solution. Refer to additional papers when neccessary.
+
+Use iterators when possible and elegant.
+
+Prefer STL over own code. Prefer own code over boost (I'm not compiling 80GB of libraries every time U switch workstations).
+
+Try to avoid custom toolchains. Best if your code would never have to be touched by anything but gcc.
+
+
+
+Order of elements in classes:
 
 public:
 	
@@ -75,7 +123,7 @@ private:
 Naming conventions
 ------------------
 
-CamelCase preferred
+lower camelCase preferred
 Classes, Structs, Namespaces upper case
 Variables, Funtions lower case
 non-static member variables prefixed with m

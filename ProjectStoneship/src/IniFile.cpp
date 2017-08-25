@@ -21,7 +21,7 @@ namespace Stoneship
 
     void IniFile::load(const String &path)
     {
-        //Incredibly primitve parsing method. Makes you look like a Java programmer again >_<
+        // Incredibly primitve parsing method. Makes you look like a Java programmer again >_<
         std::ifstream in(path, std::ios::in);
 
         if(!in.good())
@@ -66,6 +66,8 @@ namespace Stoneship
 
             mEntries.push_back(entry);
         }
+
+        in.close();
     }
 
     const String &IniFile::getValue(const String &section, const String &key, const String &def) const
@@ -149,10 +151,9 @@ namespace Stoneship
         return def;
     }
 
-    const std::vector<IniFile::IniEntry> &IniFile::getEntriesInSection(const String &section) const
+    std::vector<IniFile::IniEntry> IniFile::getEntriesInSection(const String &section) const
     {
-        static std::vector<IniEntry> entries;
-        entries.clear();
+        std::vector<IniEntry> entries;
 
         for(uint32_t i = 0; i < mEntries.size(); ++i)
         {

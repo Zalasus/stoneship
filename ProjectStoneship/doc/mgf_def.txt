@@ -235,7 +235,7 @@ For more information on these IDs, see the previous chapter "IDs / UIDs"
 	
 For additional data, every record contains a flag byte. The meanings of the flag bits are as follows:
 
-	0x0001    DELETED            If set, this record is scratched, and should not be bought
+	0x0001    DELETED            If set, this record is scratched, and should not be bought (record is deleted)
 	0x0002    FULLOFEELS         If set, your hovercraft is full of eels (this flag is reserved)
 	0x0004    EDATA_PRESENT      If set, this record contains an _EDITOR_DATA subrecord
 	0x0008    ATTACHMENT         If set, this record is followed by an additional record that is logically connected to it (usually a GROUP)
@@ -565,8 +565,11 @@ F0: entity base data
     uid: item uid
     uint: item count
 
-FFF0: editor data
+FFF0: editor name
 	string: editor name
+	
+FFF1: editor comment
+	string: editor comment
 		
 FFF9: modify metadata (not to be used in any other record)
 

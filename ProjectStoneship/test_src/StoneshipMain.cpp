@@ -5,20 +5,38 @@
  *      Author: Zalasus
  */
 
+#ifndef _LIBRARY
+
 #include <iostream>
 #include <fstream>
 
 #include "Stoneship.h"
 #include "sas/SASEntityBases.h"
 #include "sas/SASEntities.h"
+#include "cxxopts.hpp"
 
 using namespace Stoneship;
 
-#ifndef _LIBRARY
-
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
     bool gracefully = true;
+
+    Options options;
+    try
+    {
+
+        options.parse(argc, argv);
+        if(!options.isConfigFileLoaded())
+        {
+            // load default config
+            options.loadConfigFile("stoneship.cfg");
+        }
+
+    }catch(StoneshipException &e)
+    {
+        std::cerr << e.getMessage() << std::endl;
+        return 1;
+    }
 
     Logger::getDefaultLogger().setPrintDebug(true);
     Logger::info("Initializing Stoneship v" STONESHIP_VERSION "...");
@@ -29,23 +47,21 @@ int main(int argc, char **argv)
     fileLogger.setPrintDebug(true);
     Logger::getDefaultLogger().setChildLogger(&fileLogger);
 
-    Options options;
-
-    Root *root = new Stoneship::Root(options);
+    Root root(options);
     
     EntityBaseFactory::logRegisteredBases();
 
     try
 	{
 
-        root->getResourceManager().addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
-        root->loadAllMGFs();
+        root.getResourceManager().addResourcePath(STONESHIP_DEFAULT_RESOURCE_PATH, ResourceManager::PATH_FILESYSTEM);
+        root.loadAllMGFs();
 
-        for(uint32_t i = 0; i < 10; ++i)
+        /*for(uint32_t i = 0; i < 10; ++i)
         {
-            UID uid = root->getMGFManager().getNewUID();
+            UID uid = root.getMGFManager().getNewUID();
             EntityBase_Book *book = new EntityBase_Book(uid);
-            root->getGameCache().manageElement(book);
+            root.getGameCache().manageElement(book);
             book->setDisplayName("A book at bedtime");
             book->setText(String("This is the book with ID ") + uid.toString());
             book->setDescription("Test Test Test");
@@ -54,48 +70,48 @@ int main(int argc, char **argv)
             book->setEditorName("book_id_" + uid.toString());
         }
 
-        EntityBase_Stuff *stuff = new EntityBase_Stuff(root->getMGFManager().getNewUID());
-        root->getGameCache().manageElement(stuff);
+        EntityBase_Stuff *stuff = new EntityBase_Stuff(root.getMGFManager().getNewUID());
+        root.getGameCache().manageElement(stuff);
         stuff->setDisplayName("Gunk");
         stuff->setDescription("Dunkygunkydunkygunk");
 
-        EntityBase_Weapon *weapon = new EntityBase_Weapon(root->getMGFManager().getNewUID());
-        root->getGameCache().manageElement(weapon);
+        EntityBase_Weapon *weapon = new EntityBase_Weapon(root.getMGFManager().getNewUID());
+        root.getGameCache().manageElement(weapon);
         weapon->setDisplayName("Rusty sword");
         weapon->setDescription("A random test weapon");
         weapon->setModelName("weap_sword_rusty.model");
 
         WorldDungeon *dungeon = new WorldDungeon(0xFFFFDEADBEEF);
-        root->getGameCache().manageElement(dungeon);
+        root.getGameCache().manageElement(dungeon);
         dungeon->setWorldName("Random cave");
         for(uint32_t i = 0; i < 5; ++i)
         {
-            IEntity *entity = stuff->createEntity(root->getMGFManager().getNewUID());
+            IEntity *entity = stuff->createEntity(root.getMGFManager().getNewUID());
             entity->setEditorName("ent_stuff_id_" + entity->getCreatedUID().toString());
             dungeon->addEntity(entity);
         }
 
-        EntityBase_Container *containerBase = new EntityBase_Container(root->getMGFManager().getNewUID());
-        root->getGameCache().manageElement(containerBase);
+        EntityBase_Container *containerBase = new EntityBase_Container(root.getMGFManager().getNewUID());
+        root.getGameCache().manageElement(containerBase);
         containerBase->setSlotCount(20);
         containerBase->setEditorName("cont_test_1");
         containerBase->setModelName("chest1.model");
 
-        EntityContainer *containerEntity = static_cast<EntityContainer*>(containerBase->createEntity(root->getMGFManager().getNewUID()));
+        EntityContainer *containerEntity = static_cast<EntityContainer*>(containerBase->createEntity(root.getMGFManager().getNewUID()));
         containerEntity->getInventory().addItem(stuff, 10);
         containerEntity->getInventory().addItem(weapon, 1);
         containerEntity->setEditorName("ent_cont");
         dungeon->addEntity(containerEntity);
         
         WorldOutdoor *outdoor = new WorldOutdoor(0xFFFFCAFEBABE);
-        root->getGameCache().manageElement(outdoor);
+        root.getGameCache().manageElement(outdoor);
         outdoor->setWorldName("Plains of Tarquay");
         
         for(int32_t x = -10; x <= 10; ++x)
         {
             for(int32_t y = -10; y <= 10; ++y)
             {
-                UID uid = root->getMGFManager().getNewUID();
+                UID uid = root.getMGFManager().getNewUID();
                 Chunk *chunk = new Chunk(uid, outdoor);
                 outdoor->getLoadedChunks().push_back(chunk);
                 
@@ -103,9 +119,9 @@ int main(int argc, char **argv)
             }
         }
 
-        root->getMGFManager().storeSGF("master.mgf", &root->getGameCache());
+        root.getMGFManager().storeSGF("master.mgf", &root.getGameCache());*/
 
-        root->run();
+        root.run();
 
 
 	}catch(StoneshipException &e)
@@ -117,8 +133,6 @@ int main(int argc, char **argv)
 	Logger::debug(String("Total read tp:  getcs=") + MGFDataReader::GETCS + " seeks=" + MGFDataReader::SEEKS + " tells=" + MGFDataReader::TELLS);
 	Logger::debug(String("Total write tp: putcs=") + MGFDataWriter::PUTCS + " seeks=" + MGFDataWriter::SEEKS + " tells=" + MGFDataWriter::TELLS);
 
-
-	delete root;
 
 	logStream.close();
 
@@ -145,6 +159,8 @@ int main(int argc, char **argv)
 
         return -1;
     }
+
+	return 0;
 }
 
 #endif
